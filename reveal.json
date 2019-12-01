@@ -1,0 +1,4 @@
+{
+  "controls": true,
+  "progress": true
+}
