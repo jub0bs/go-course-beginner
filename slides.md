@@ -233,7 +233,7 @@ import tw "github.com/jubobs/username/twitter"
 import (
   "encoding/json"
   "fmt"
-  "import io"
+  "io"
 )
 ```
 
@@ -678,7 +678,7 @@ if <condition> {
 ### `switch`
 
 ```go
-switch <condition> {
+switch <expression> {
 case <expression>:
   // ...
 case <expression>:
@@ -867,7 +867,7 @@ f := func (i int) int {
 ### Closures
 
 * functions can capture variables in their environment
-* exercise: stateful function
+* exercise: [stateful function](https://play.golang.org/p/ssTccHvDj-o)
 
 ---
 
@@ -967,15 +967,14 @@ func isValid(username string) bool {
 
 ### Test files
 
-Test files for package `foo`
-
-* must have a `_test` suffix
-* must be placed in `foo` folder
+* Test files for package `foo`
+  * must have a `_test` suffix
+  * must be placed in `foo` folder
 
 ```txt
-twitter
-├── twitter.go
-├── twitter_test.go
+foo
+├── foo.go
+├── foo_test.go
 ```
 
 ---
@@ -994,7 +993,7 @@ determined by package clause
 
 ### Test functions
 
-* declared like normal functions in 
+* declared like normal functions in
 * naming constraints
   * `Test` prefix
   * followed by an uppercase letter!
@@ -1008,11 +1007,16 @@ determined by package clause
 ```go
 func TestUsernameTooShort(t *testing.T) {
   username := "ab"
-	want := false
-	got := twitter.IsValid(username)
-	if got != want {
-		t.Errorf("twitter.IsValid(%s) = %t; want %t", username, got, want)
-	}
+  want := false
+  got := twitter.IsValid(username)
+  if got != want {
+    t.Errorf(
+      "twitter.IsValid(%s) = %t; want %t",
+      username,
+      got,
+      want,
+    )
+  }
 }
 ```
 
@@ -1042,6 +1046,6 @@ Write tests for `isValid`
 
 ### Code coverage
 ```
-go test -coverprofile="coverprofile.tmp" ./...
-go tool cover --html="coverprofile.tmp"
+$ go test -coverprofile="coverprofile.tmp" ./...
+$ go tool cover --html="coverprofile.tmp"
 ```
