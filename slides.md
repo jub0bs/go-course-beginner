@@ -239,7 +239,7 @@ import (
 
 ---
 
-### Elements of style: import order
+### Elements of style: organising imports
 
 ```go
 import (
@@ -810,6 +810,12 @@ func first(a, b int) int {
 
 ---
 
+### Variadic functions
+
+example: [`fmt.Println`](https://golang.org/pkg/fmt/#Println)
+
+---
+
 ### Function call
 
 * usual syntax (parens)
@@ -947,10 +953,6 @@ func isValid(username string) bool {
 
 ---
 
-# Packages
-
----
-
 # Testing
 
 ---
@@ -980,7 +982,7 @@ twitter
 
 ### White-box vs. black-box testing
 
-determined by package declaration
+determined by package clause
 * white-box
   * `package twitter`
   * (favoured by the Go community)
