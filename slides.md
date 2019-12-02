@@ -1,10 +1,11 @@
-### Installation
+### Installaton
 
-* Go (`go version`: 1.13.4)
+* Go v1.13.4
 * Visual Studio Code
 * Go VSCode extension
 * Git
 * Wifi
+* https://github.com/jubobs/human-coders-go-slides
 
 ---
 
@@ -13,7 +14,8 @@
 * @jub0bs
 * freelance developer
 * Go trainer
-* security researcher & bug-bounty hunter
+* security researcher
+* occasional bug-bounty hunter
 
 ---
 
@@ -37,7 +39,7 @@
   * availability
 * business case
   * brand consistency
-  * username squatting (?)
+  * username squatting (😈)
 * a forcing function for learning Go
 
 ---
@@ -449,7 +451,7 @@ s := "Hello World!"
 
 ---
 
-### Useful packages for string manipulation
+### String manipulation
 
 * `strings`
 * `unicode/utf8`
@@ -478,9 +480,9 @@ utf8.RuneCountInString(s) // number of runes
 
 ### Substring operator
 
+* structural sharing!
 * syntax: `s[lo:hi]`
-* semi-open interval: bytes from index `lo` to index `hi` (exclusive)
-* structural sharing between string and its substrings
+* semi-open interval: from `lo` to `hi` (exclusive)
 * if _hi_ or _lo_ out of bounds or _hi < lo_, panic!
 
 ---
@@ -549,10 +551,10 @@ const Monday int = 1
 ### Untyped constants
 
 * constants not committed to a particular type
+* example: [`math` constants](https://golang.org/pkg/math/#pkg-constants)
 * flexibility!
+* numeric untyped constants: at least 256 bits of precision
 * six _kinds_ of untyped constants
-* numeric untyped constants have at least 256 bits of precision
-* [example from the `math` package](https://golang.org/pkg/math/#pkg-constants)
 
 ---
 
@@ -632,10 +634,12 @@ const (
 ---
 
 ### `if` (basic form)
+
 ```go
 if <condition> {
-  <body>
+  // ...
 }
+
 ```
 * condition is of boolean type
 * no parentheses around condition
@@ -644,24 +648,28 @@ if <condition> {
 ---
 
 ### `if` (with optional declarations)
+
 ```go
 if [short-var-declarations;] <condition> {
-  <body>
+  // ...
 }
 ```
+
 * variables scoped to the `if` statement
 * examples in Go playground
 
 ---
 
 ### `if`/`else`
+
 ```go
 if <condition> {
-  <if-body>
+  // ...
 } else {
-  <else-body>
+  // ...
 }
 ```
+
 * `else` is seldom used in Go
 * avoid long `if`/`else` chains
 
@@ -672,15 +680,13 @@ if <condition> {
 ```go
 switch <condition> {
 case <expression>:
-  ...
+  // ...
 case <expression>:
-  ...
-...
+  // ...
 default:
-  ...
+  // ...
 }
 ```
-exercise: write a signum function
 
 ---
 
@@ -695,7 +701,7 @@ exercise: write a signum function
 
 ### Tagless `switch`
 
-```
+```go
 switch {
 case <condition>:
   ...
@@ -707,25 +713,27 @@ default:
 }
 ```
 * favour a tagless switch to `if`/`else` chains
+* exercise: write a signum function
 
 ---
 
 ### `for` loop
 
-```
+```go
 for <condition> {
-  <body>
+  // ...
 }
 ```
+
 * no `while` in Go
 
 ---
 
 ### `for` infinite loop
 
-```
+```go
 for {
-  <body>
+  // ...
 }
 ```
 
@@ -733,9 +741,9 @@ for {
 
 ### C-style `for` loop
 
-```
+```go
 for <init>; <condition>; <post> {
-  <body>
+  // ...
 }
 ```
 
@@ -743,17 +751,13 @@ for <init>; <condition>; <post> {
 
 ### `range`-based `for` loop
 
-```
+```go
 for <variables> := range <data-structure> {
-  <body>
+  // ...
 }
 ```
-* `range` works with
-  * strings
-  * arrays
-  * slices
-  * maps
-  * channels
+
+* `range` works with strings, arrays, slices, maps, channels.
 
 ---
 
@@ -765,7 +769,8 @@ for <variables> := range <data-structure> {
 
 ```
 func <name>(<param-list>) <result-list> {
-  <body>
+  // ...
+  return ...
 }
 ```
 
@@ -784,8 +789,9 @@ func CountWords(path string) (int, error) {
 ### Named results
 
 ```
-func CountWords(path string) (c int, err error) {
+func CountWords(path string) (count int, err error) {
   // ...
+  return // bare return
 }
 ```
 * useful for
@@ -794,7 +800,7 @@ func CountWords(path string) (c int, err error) {
 
 ---
 
-### Type factorisation
+### Type factorisation in param list
 
 ```
 func first(a, b int) int {
@@ -806,27 +812,20 @@ func first(a, b int) int {
 
 ### Function call
 
-* no default parameter value
-* no optional parameters
+* usual syntax (parens)
 * all arguments must be specified
+  * no default parameter value
+  * no "named parameters"
+* calling a `nil` function: panic!
 
 ---
 
 ### Parameter evaluation
 
 * call-by-value evaluation
-* However...
-  * Some types are glorified pointers (e.g. strings).
-  * These types are known as "reference types".
-
----
-
-### Functions are first-class values
-
-* a function can be
-    * another function's parameter
-    * another function's result
-* function literals
+* "reference types"
+  * built-in types that are glorified pointers
+  * pointers, functions, slices, maps, channels
 
 ---
 
@@ -839,6 +838,26 @@ func first(a, b int) int {
 
 ---
 
+### Functions are first-class values
+
+* a function can be
+    * another function's parameter
+    * another function's result
+
+---
+
+### Function literals
+
+```go
+f := func (i int) int {
+  return i + 1
+}
+```
+
+(no lambdas)
+
+---
+
 ### Closures
 
 * functions can capture variables in their environment
@@ -846,10 +865,17 @@ func first(a, b int) int {
 
 ---
 
-### Project: validating the length of a Twitter username
+### Project: validation (Twitter)
 
-* `isLongEnough(username string) bool`
-* `isShortEnough(username string) bool`
+```go
+func isLongEnough(username string) bool {
+  // ...
+}
+
+func isShortEnough(username string) bool {
+  // ...
+}
+```
 
 ---
 
@@ -862,15 +888,15 @@ func first(a, b int) int {
 * a function that can fail returns an additional value
 * this value comes last, by convention
 * only one possible cause: `bool`
-* multiple possible causes: `error` (an interface type)
+* multiple possible causes: `error`
 * non-nil error: something bad happened
 
 ---
 
 ### Error-check idiom
 
-```
-if err := fou(); err != nil {
+```go
+if err := fallibleFoo(); err != nil {
   // unhappy path :(
   // early return
 }
@@ -883,30 +909,41 @@ if err := fou(); err != nil {
 
 ### Beyond `err != nil`
 
-* you might want to find out more about the nature of the error
-* when possible, assert on the error's behaviour
-* more on that later (when we know what interfaces are)
+* to find out more about the nature of the error,
+  assert on the error's behaviour
+* more on that later (when we know about interfaces)
 
 ---
 
 ### Error handling
 
 * always check for errors
-* when appropriate, wrap errors in custom errors before reporting them
+* wrap low-level errors in higher-level ones
 * few errors should be ignored
 
 ---
 
-## Project: validating legal chars/patterns
+## Project: validation (cont'd)
 
-* `containsOnlyLegalChars(username string) ???`
-* `containsNoIllegalPattern(username string) ???`
+```go
+func containsOnlyLegalChars(username string) ??? {
+  // ...
+}
+
+func containsNoIllegalPattern(username string) ??? {
+  // ...
+}
+```
 
 ---
 
-## Project: validate a prospective Twitter username
+## Project: validation (cont'd)
 
-* `isValid(username string) bool`
+```go
+func isValid(username string) bool {
+  // ...
+}
+```
 
 ---
 
@@ -914,19 +951,90 @@ if err := fou(); err != nil {
 
 ---
 
-# Unit testing
+# Testing
 
 ---
 
 ### `testing` package
 
-* tests for package `foo` should be written in `foo_test.go`
-* `foo_test.go` must be placed inside folder `foo`
-* the package declaration of `foo_test.go` matters:
-    * `import foo`: white-box testing
-    * `import foo_test`: black-box testing
-* test methods start with prefix "Test" (e.g. `TestValidity`)
-* Run `go test ./...` at the root of your module
+* unit tests
+* example tests (for documentation)
+* micro-benchmarks
+
+---
+
+### Test files
+
+Test files for package `foo`
+
+* must have a `_test` suffix
+* must be placed in `foo` folder
+
+```txt
+twitter
+├── twitter.go
+├── twitter_test.go
+```
+
+---
+
+### White-box vs. black-box testing
+
+determined by package declaration
+* white-box
+  * `package twitter`
+  * (favoured by the Go community)
+* black-box
+  * `package twitter_test`
+  * (also useful for breaking dependency cycles)
+
+---
+
+### Test functions
+
+* declared like normal functions in 
+* naming constraints
+  * `Test` prefix
+  * followed by an uppercase letter!
+* take a single parameter of type `*testing.T`
+* return no results
+
+---
+
+### Test functions: example
+
+```go
+func TestUsernameTooShort(t *testing.T) {
+  username := "ab"
+	want := false
+	got := twitter.IsValid(username)
+	if got != want {
+		t.Errorf("twitter.IsValid(%s) = %t; want %t", username, got, want)
+	}
+}
+```
+
+---
+
+### Running tests
+
+* Run tests for package in `.`
+
+```
+$ go test
+```
+
+* Run tests for all packages in and under `.`
+
+```
+$ go test ./...
+```
+
+---
+
+### Project: validation (cont'd)
+
+Write tests for `isValid`
 
 ---
 
