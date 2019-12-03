@@ -690,12 +690,13 @@ default:
 
 ---
 
-### `switch`
+### `switch` (cont'd)
 
 * cases are evaluated from top to bottom
 * the first match is executed
 * if none match, the (optional) default case is executed
 * `default` can occur at any place among the cases
+* exercise: write a signum function
 
 ---
 
@@ -713,7 +714,6 @@ default:
 }
 ```
 * favour a tagless switch to `if`/`else` chains
-* exercise: write a signum function
 
 ---
 
@@ -1049,3 +1049,5 @@ Write tests for `isValid`
 $ go test -coverprofile="coverprofile.tmp" ./...
 $ go tool cover --html="coverprofile.tmp"
 ```
+
+---
