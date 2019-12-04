@@ -196,7 +196,7 @@ enToFr := map[string]string {
 ### Accessing the elements of a map
 
 * `v := m[k]`
-* key `k` need not be in the map
+* key `k` needs not be in the map
 * ... in which case `v` will be the zero value for the value type!
 
 ---
