@@ -176,7 +176,7 @@ for i, v := range s {
 ### Allocating a map
 
 ```
-m := make([string]int)
+m := make(map[string]int)
 ```
 
 ---
@@ -394,7 +394,7 @@ Live demo in Playground
 * define `Twitter` and `GitHub` types
 * turn `IsValid` into a method
 * turn `IsAvailable` into a method
-* declare a `Name` method on both types
+* declare a `String() string` method on both types
 * (adjust your tests)
 
 ---
@@ -603,8 +603,8 @@ func (f *Foo) Save(w Writer) error // better!
 
 ```go
 type ErrUnknownAvailability struct {
-  username string
-  cause error
+  Username string
+  Cause error
 }
 
 func (e *ErrUnknownAvailability) Unwrap() error {
@@ -617,7 +617,7 @@ func (e *ErrUnknownAvailability) Unwrap() error {
 ### Unwrapping errors (client code)
 
 ```go
-err := foo()
+available, err := tw.IsAvailable("babar")
 type wrapper interface {
   Unwrap() error
 }
@@ -677,7 +677,7 @@ func do(i interface{}) {
 ### Project: list social networks
 
 ```
-func socialNetworks() []SocialNetwork {...}
+func SocialNetworks() []SocialNetwork {...}
 ```
 
 ---
@@ -897,7 +897,7 @@ import "../twitter"
 ### Project: list social networks
 
 ```
-func socialNetworks() []SocialNetwork {...}
+func SocialNetworks() []SocialNetwork {...}
 ```
 
 ---
