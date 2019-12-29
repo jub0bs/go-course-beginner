@@ -545,7 +545,8 @@ type Writer interface {
 
 ### Project: define some interfaces
 
-* define `Namer`, `Validator`, `Provider` interfaces
+* make sure `Twitter` and `GitHub` satisfy `fmt.Stringer`
+* define `Validator`, `Provider` interfaces
 * make sure `Twitter` and `GitHub` satisfy each
 * define `SocialNetwork` interface
 
