@@ -1,4 +1,4 @@
-### Installaton
+### Installation
 
 * Go v1.13.4
 * Visual Studio Code
@@ -66,6 +66,7 @@
 
 ### What makes Golang special (cont'd)
 
+* multiple return values
 * first-class functions
 * object-oriented, but no inheritance
 * built-in concurrency (channels, goroutines)
@@ -111,6 +112,7 @@
 * no command-line arguments
 * only standard-library imports
 * concurrency is weird...
+* no "undo" functionality (`^z`)
 
 ---
 
@@ -142,10 +144,38 @@ func main() {
 
 ---
 
-### Building & running a Go program
+### Compiling and executing a Go program
 
-* `$ go build main.go`
-* `$ go run main.go`
+```shell
+$ go build main.go
+$ ./main
+```
+
+---
+
+### Compiling and executing a Go program (2)
+
+```shell
+$ go build <path-to-source-code-directory>
+$ ./namecheck # for example
+```
+
+---
+
+### Compiling and executing a Go program (3)
+
+```shell
+$ go run main.go
+```
+
+equivalent to
+
+
+```shell
+$ go build main.go
+$ ./main
+$ rm main
+```
 
 ---
 
@@ -207,7 +237,7 @@ var foo = "foo" // this is a comment
 * examples
   * `fmt`
   * `io/ioutil`
-  * `github.com/jubobs/username/twitter`
+  * `github.com/jubobs/missilelauncher`
 
 ---
 
@@ -217,10 +247,10 @@ var foo = "foo" // this is a comment
 * examples
   * `fmt`
   * `ioutil`
-  * `twitter`
-* picking a different name is possible
+  * `missilelauncher`
+* picking a different name is possible:
 ```go
-import tw "github.com/jubobs/username/twitter"
+import ml "github.com/jubobs/missilelauncher"
 ```
 
 ---
@@ -327,7 +357,7 @@ var (
 * implicitly assigned the _zero value_ of its type
 ```go
 var i int
-fmt.Printf("value: %d\n", i) // "0"
+fmt.Printf("value: %d\n", i) // "value: 0"
 ```
 
 ---
@@ -338,6 +368,7 @@ fmt.Printf("value: %d\n", i) // "0"
 * favour `var` over `:=` when
   * the initial value must be the zero value
   * the initial value doesn't matter
+  * the default type of the initialising expression won't do
 
 
 ---
@@ -391,7 +422,8 @@ fmt.Printf("value: %d\n", i) // "0"
 
 * arithmetic: `+`, `-`, `*`, `/`, `%`
 * comparison: `==`, `!=`, `<`, `<=`, `>`, `>=`
-* bitwise (integers): `&`, `|`, `^`, `&^`
+* bitwise (integers): `&`, `|`, `^`, `&^`, `<<`, `>>`
+* also compound operators: `+=`, etc.
 
 ---
 
@@ -410,7 +442,10 @@ fmt.Printf("value: %d\n", i) // "0"
 * `rune` is an alias for `int32`
 * represents a single Unicode code point
 * UTF-8 encoding (1 to 4 bytes per rune)
-* number of bytes in rune `r`: `utf8.RuneLen(r)`
+* number of bytes in rune `r`:
+    ```go
+    utf8.RuneLen(r)
+    ```
 
 ---
 
@@ -508,15 +543,14 @@ for i, r := range s {
 
 ---
 
-### Named types
+### Named types (user-defined types)
 
+* `type` declaration
 ```go
 type <name> <underlying_type>
 ```
-
 * underlying type can be arbitrary
-* user-defined types
-* `type` declaration
+* default value: default value of underlying type
 * _methods_ can be defined on named types!
 
 ---
@@ -696,7 +730,18 @@ default:
 * the first match is executed
 * if none match, the (optional) default case is executed
 * `default` can occur at any place among the cases
-* exercise: write a signum function
+
+### `switch` cases with multiple values
+
+```go
+r := 'b'
+switch r {
+case 'a', 'e', 'i', 'o', 'u':
+  fmt.Println("ASCII vowel")
+default:
+  fmt.Println("not an ASCII vowel")
+}
+```
 
 ---
 
@@ -714,6 +759,7 @@ default:
 }
 ```
 * favour a tagless switch to `if`/`else` chains
+* exercise: write a signum function
 
 ---
 
@@ -770,7 +816,7 @@ for <variables> := range <data-structure> {
 ```
 func <name>(<param-list>) <result-list> {
   // ...
-  return ...
+  return <result-values>
 }
 ```
 
@@ -812,7 +858,14 @@ func first(a, b int) int {
 
 ### Variadic functions
 
-example: [`fmt.Println`](https://golang.org/pkg/fmt/#Println)
+* function that accepts any number of trailing arguments
+```go
+func max(first int, rest ...int) int {
+  // ...
+}
+```
+* variadic parameter `rest` is a slice of `int`s
+* see also [`fmt.Println`](https://golang.org/pkg/fmt/#Println)
 
 ---
 
@@ -867,7 +920,18 @@ f := func (i int) int {
 ### Closures
 
 * functions can capture variables in their environment
-* exercise: [stateful function](https://play.golang.org/p/ssTccHvDj-o)
+* exercise: [stateful function](https://play.golang.org/p/kcYOX2eGxWi)
+
+---
+
+### Project: set up directory structure
+
+* set up project files
+
+```txt
+namecheck
+└── main.go
+```
 
 ---
 
@@ -875,11 +939,16 @@ f := func (i int) int {
 
 ```go
 func isLongEnough(username string) bool {
-  // ...
+  // returns true if username is not empty
 }
 
 func isShortEnough(username string) bool {
-  // ...
+  // returns true if username contains 15 chars or fewer
+}
+
+func containsNoIllegalPattern(username string) bool {
+  // returns true if username does not contain "twitter"
+  // (and all case variations, incl. "TwItTEr", etc.)
 }
 ```
 
@@ -933,23 +1002,67 @@ if err := fallibleFoo(); err != nil {
 
 ```go
 func containsOnlyLegalChars(username string) ??? {
-  // ...
-}
-
-func containsNoIllegalPattern(username string) ??? {
-  // ...
+  // returns true if username matches ^[0-9A-Z_a-z]*$
 }
 ```
+* Design question: what should the result list be?
 
 ---
 
 ## Project: validation (cont'd)
 
 ```go
-func isValid(username string) bool {
-  // ...
+func Validate(username string) bool {
+  // returns true if all four predicates return true
 }
 ```
+
+---
+
+## Project: create a `twitter` package
+
+```txt
+namecheck
+├── main.go
+└── twitter
+    └── twitter.go
+```
+
+---
+
+## Project: initialise a module
+
+```shell
+$ go mod init github.com/<your-GitHub-username>/namecheck
+```
+
+```txt
+namecheck
+├── go.mod
+├── main.go
+└── twitter
+    └── twitter.go
+```
+
+---
+
+## Project: import twitter package in main
+
+```go
+package main
+
+import "github.com/jubobs/namecheck/twitter"
+
+func main() {
+  username := "jubobs"
+  fmt.Printf(
+    "%s is valid on Twitter: %t\n,
+    username,
+    twitter.Validate(username),
+  )
+}
+```
+
 
 ---
 
@@ -1005,8 +1118,8 @@ determined by package clause
 ### Test functions: example
 
 ```go
-func TestUsernameTooShort(t *testing.T) {
-  username := "ab"
+func TestUsernameTooLong(t *testing.T) {
+  username := "longer_than_15_chars"
   want := false
   got := twitter.IsValid(username)
   if got != want {
@@ -1022,15 +1135,15 @@ func TestUsernameTooShort(t *testing.T) {
 
 ---
 
-### Running tests
-
-* Run tests for package in `.`
+### Running tests of current package
 
 ```
 $ go test
 ```
 
-* Run tests for all packages in and under `.`
+---
+
+### Running tests of current package and subpackages
 
 ```
 $ go test ./...
@@ -1038,9 +1151,26 @@ $ go test ./...
 
 ---
 
+### Running specific tests
+
+```
+$ go test -run=<regexp-for-test-method-names>
+```
+
+---
+
 ### Project: validation (cont'd)
 
-Write tests for `isValid`
+Write tests for `Validate` in `twitter_test.go`
+
+```txt
+namecheck
+├── go.mod
+├── main.go
+└── twitter
+    ├── twitter.go
+    └── twitter_test.go
+```
 
 ---
 
@@ -1051,3 +1181,8 @@ $ go tool cover --html="coverprofile.tmp"
 ```
 
 ---
+
+## Project: create a `github` package
+
+* adapt it from package `twitter`
+* different rules!
