@@ -168,6 +168,13 @@ for i, v := range s {
 ### Maps are reference types
 
 * zero value: `nil`
+* accessing elements of a nil map: zero value of value type
+* attempting to add an entry to a nil map => panic!
+
+---
+
+### Maps are reference types (cont'd)
+
 * a function that takes a map argument gets a copy of the reference
 * the underlying hash table does not get copied
 
@@ -224,13 +231,33 @@ if ok {
 ---
 
 ### Ranging over a map
+
 ```
 for k, v := range m {
-  // ...
+  // do something with k and v
 }
 ```
 * iteration order is nondeterministic!
-* if iteration order matters, first create a slice of sorted keys
+
+---
+
+### Ranging over a map in a deterministic order
+
+```
+// create a slice of keys
+keys := make([]string, 0, len(m))
+for k := range m {
+  keys = append(keys, k)
+}
+
+// sort it
+sort.Strings(keys)
+
+// then range over the sorted slice of keys
+for k := range keys {
+  // do something with k and m[k]
+}
+```
 
 ---
 
@@ -242,16 +269,10 @@ for k, v := range m {
 
 ---
 
-## Structs
-
-Live demo in Playground
-
----
-
 ### Project: availability check
 
 ```
-func isAvailable(username string) ???
+func Available(username string) ???
 ```
 
 ---
@@ -268,7 +289,7 @@ func isAvailable(username string) ???
 ### Cleaning up resources with `defer`
 
 ```
-func IsAvailable(username string) (bool, error) {
+func Available(username string) (bool, error) {
   resp, err := http.Get("https://twitter.com/" + username)
   if err != nil {
     return false, errors.New("Unknown availability")
@@ -287,7 +308,7 @@ func IsAvailable(username string) (bool, error) {
 ### Cleaning up resources with `defer`
 
 ```
-func IsAvailable(username string) (bool, error) {
+func Available(username string) (bool, error) {
   resp, err := http.Get("https://twitter.com/" + username)
   if err != nil {
     return false, errors.New("Unknown availability")
@@ -377,9 +398,22 @@ func foo() (err error) {
 
 ---
 
-### Project: write tests for `isAvailable`
+### Project: write tests for `Available`
 
 * any issue?
+
+---
+
+## Structs
+
+Live demo in Playground
+
+---
+
+## Project: custom Twitter & GitHub types
+
+* in package `twitter`, declare a `Twitter` struct type
+* in package `github`, declare a `GitHub` struct type
 
 ---
 
@@ -389,13 +423,12 @@ Live demo in Playground
 
 ---
 
-### Project: custom types & methods
+### Project: declare methods on custom types
 
-* define `Twitter` and `GitHub` types
-* turn `IsValid` into a method
-* turn `IsAvailable` into a method
-* declare a `String() string` method on both types
-* (adjust your tests)
+* turn `Validate` into a method
+* turn `Available` into a method
+* declare a `String() string` method
+* adjust your tests
 
 ---
 
