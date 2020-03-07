@@ -16,6 +16,12 @@
 
 * possibly multiple source files (see stdlib)
 * all source files go in a folder matching the package name
+* at most one package per folder!
+
+---
+
+### Composition of a package (cont'd)
+
 * package members accessible to all source files
 * however, each file must import what it needs
 
@@ -60,7 +66,7 @@
 Package initialisation happens
 * in a single goroutine
 * sequentially
-* one package at a time.
+* one package at a time
 
 ---
 
@@ -149,10 +155,10 @@ import "../twitter"
 
 ---
 
-### Project: list social networks
+### Project: list available checkers
 
 ```
-func SocialNetworks() []SocialNetwork {...}
+func Checkers() []Checker {...}
 ```
 
 ---
@@ -193,7 +199,7 @@ func SocialNetworks() []SocialNetwork {...}
 
 ### Don't panic
 
-* good libraries don't panic
+* good libraries don't panic (after initialisation)
 * report failures to clients as `error`s
 
 ---
@@ -325,7 +331,7 @@ func printTenIntsConcurrently() {
   var wg sync.WaitGroup
   const n = 10
   wg.Add(n)
-  for i := 0; i < 10; i++ {
+  for i := 0; i < n; i++ {
     go func() {
       defer wg.Done()
       fmt.Println(i)
@@ -335,7 +341,7 @@ func printTenIntsConcurrently() {
 }
 ```
 
-* what's the problem?
+* Do you get the output you expect?
 
 ---
 
@@ -450,6 +456,15 @@ var tasks chan task
 
 ---
 
+## Operations on a channel
+
+* sending a value to channel
+* receiving a value from a channel
+* ranging over a channel
+* closing a channel
+
+---
+
 ### Closing a channel
 
 * a (non-`nil`) channel starts its life as open
@@ -533,9 +548,9 @@ v, ok := <-ch
 ### Ranging over a channel
 
 * receiving from a channel in a loop
-```
+```go
 for v := range ch {
-  // ...
+  // do something with v
 }
 ```
 * loop only terminates once channel is closed
@@ -545,13 +560,14 @@ for v := range ch {
 ### Ranging over a channel (cont'd)
 
 * equivalent to
-```
+
+```go
 for {
   v, ok := <-ch
   if !ok {
     break
   }
-  // ...
+  // do something with v
 }
 ```
 
