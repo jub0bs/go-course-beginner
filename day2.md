@@ -18,7 +18,7 @@
 ### Array literals
 ```go
 words := [3]string{"foo", "bar", "baz"}
-moreWords := [...]string { // specifyin the size is optional
+moreWords := [...]string { // size is optional
   "qux",
   "quux", // the last comma is mandatory
 }
@@ -496,7 +496,7 @@ type ReadWriteCloser interface {
 
 ---
 
-### `Stringer` interface
+### `fmt.Stringer`
 
 ```
 type Stringer interface {
@@ -507,18 +507,52 @@ type Stringer interface {
 
 ---
 
-### `error` interface
+## Project: satisfy `fmt.Stringer`
+
+* Do `twitter.Twitter` and `github.GitHub` satisfy it?
+* If not, make it so!
+
+---
+
+### `error`
 
 ```
 type error interface {
   Error() string
 }
 ```
+* for any type meant to represent an error value
 
 ---
 
+## Project: define a custom error type
 
-### `Reader` interface
+* define (where?)
+```go
+type ErrUnknownAvailability struct {
+  Username string
+  Platform string
+}
+```
+* make it satisfy the `error` interface
+* use it in `twitter.Available`
+
+---
+
+### `sort.Interface`
+
+```go
+type Interface interface {
+    Len() int
+    Less(i, j int) bool
+    Swap(i, j int)
+}
+```
+* analogous to Java's `Comparable` interface
+
+---
+
+### `io.Reader`
 
 ```go
 type Reader interface {
@@ -530,7 +564,7 @@ type Reader interface {
 
 ---
 
-### `Writer` interface
+### `io.Writer`
 
 ```go
 type Writer interface {
@@ -540,15 +574,42 @@ type Writer interface {
 * sink of `[]byte`
 * satisfied by `*os.File`, and many others
 
+---
+
+### Project: define `Validator` interface
+
+```go
+type Validator interface {
+  Validate(username string) bool
+}
+```
+
+* Do `twitter.Twitter` and `github.GitHub` satisfy it?
+* If not, make it so!
+
 
 ---
 
-### Project: define some interfaces
+### Project: define `Availabler` interface
 
-* make sure `Twitter` and `GitHub` satisfy `fmt.Stringer`
-* define `Validator`, `Provider` interfaces
-* make sure `Twitter` and `GitHub` satisfy each
-* define `SocialNetwork` interface
+```go
+type Validator interface {
+  Validate(username string) bool
+}
+```
+
+* Do `twitter.Twitter` and `github.GitHub` satisfy it?
+* If not, make it so!
+
+---
+
+## Project: define `Checker` interface
+
+* ...by composition of
+  * a `fmt.Stringer`
+  * a `Validator`
+  * an `Availabler`
+* Do `twitter.Twitter` and `github.GitHub` satisfy it?
 
 ---
 
@@ -581,7 +642,7 @@ func (t *Tree) Save(w io.Writer) error
 * only ask for the required behaviour from interface parameters
 
 ```go
-func (f *Foo) Save(rw ReadWriter) error // good?
+func (t *Tree) Save(rw ReadWriter) error // good?
 ```
 
 ---
@@ -592,66 +653,58 @@ func (f *Foo) Save(rw ReadWriter) error // good?
 * similar to DDD principle of "keeping ports small"
 
 ```go
-func (f *Foo) Save(w Writer) error // better!
+func (t *Tree) Save(w Writer) error // better!
 ```
 
 ---
 
-### Wrapping errors (library code)
+### Wrapping errors
 
-* a.k.a. error-translation idiom
-* see https://golang.org/pkg/errors/
-
-```go
-type ErrUnknownAvailability struct {
-  Username string
-  Cause error
-}
-
-func (e *ErrUnknownAvailability) Unwrap() error {
-  return e.cause
-}
-```
+* error-translation idiom
+* present a high-level error...
+* ... but allow programmatic access to lower-level cause
+* standardised in Go 1.13: see https://golang.org/pkg/errors/
 
 ---
 
-### Unwrapping errors (client code)
+### Project: wrap low-level http error into custom error type
 
+* augment `ErrUnknownAvailability` with a `Cause error` field
+* make it satisfy the following interface
 ```go
-available, err := tw.IsAvailable("babar")
 type wrapper interface {
   Unwrap() error
 }
-err, ok := err.(wrapper) // does err satisfy wrapper?
-if ok {
-  cause := err.Unwrap()
-  // inspect cause further...
-}
 ```
-
----
-
-### Project: wrapping errors
-
-* define a custom error type for `IsAvailable`
-* wrap the low-level networking error in it
 
 ---
 
 ### Asserting on behaviour
 
-```
-func isTimeout(err error) bool {
-    type timeout interface {
-        Timeout() bool
-    }
-    te, ok := err.(timeout)
-    return ok && te.Timeout()
+* given an interface value, you can ask whether
+  the concrete type also satisfy another interface
+```go
+var b Barista = &Ray{}
+b.PrepareCoffee()
+c, ok := ray.(Cashier)
+if ok {
+  c.AcceptPayment()
 }
 ```
-* if `err` satisfies interface `timeout`
-  * `te` has type `timeout`
-  * `ok` is `true`
+
+---
+
+## Project: figure out why twitter.Available failed
+
+* in `main.go`
+```go
+available, err := tw.Available("babar")
+err, ok := err.(wrapper) // does err satisfy wrapper?
+if ok {
+  cause := err.Unwrap()
+  // inspect cause...
+}
+```
 
 ---
 
@@ -675,8 +728,9 @@ func do(i interface{}) {
 
 ---
 
-### Project: list social networks
+### Project: list available checkers
 
+* in `namecheck.go`, define
 ```
-func SocialNetworks() []SocialNetwork {...}
+func Checkers() []Checker {...}
 ```
