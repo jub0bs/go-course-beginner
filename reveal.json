@@ -1,4 +1,5 @@
 {
   "controls": true,
-  "progress": true
+  "progress": true,
+  "transition": "none"
 }
