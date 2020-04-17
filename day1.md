@@ -1176,8 +1176,8 @@ namecheck
 
 ### Code coverage
 ```
-$ go test -coverprofile="coverprofile.tmp" ./...
-$ go tool cover --html="coverprofile.tmp"
+$ go test -coverprofile="coverage.out" ./...
+$ go tool cover --html="coverage.out"
 ```
 
 ---
