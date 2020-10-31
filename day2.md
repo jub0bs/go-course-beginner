@@ -64,7 +64,17 @@ for i, v := range arr {
 * a slice is composed of
   * a pointer to the underlying array
   * a length (`len`)
-  * a capacity (`cap`): size of underlying array
+  * a capacity (`cap`)
+
+---
+
+### Capacity of a slice
+
+> The array underlying a slice may extend past the end of the slice.
+> The capacity is a measure of that extent: it is the sum of the length of the
+> slice and the length of the array beyond the slice.
+
+([source](https://golang.org/ref/spec#Slice_types))
 
 ---
 
@@ -87,7 +97,7 @@ s := make([]string, l, c) // c: capacity
 
 ### Slice literal
 
-```
+```go
 words := []string{"foo", "bar", "baz"}
 moreWords := []string {
   "qux",
@@ -123,7 +133,7 @@ moreWords := []string {
 
 ### Ranging over a slice
 
-```
+```go
 for i, v := range s {
   // ...
 }
@@ -182,7 +192,7 @@ for i, v := range s {
 
 ### Allocating a map
 
-```
+```go
 m := make(map[string]int)
 ```
 
@@ -190,7 +200,7 @@ m := make(map[string]int)
 
 ### Map literals
 
-```
+```go
 enToFr := map[string]string {
   "one": "un",
   "two": "deux",
@@ -232,7 +242,7 @@ if ok {
 
 ### Ranging over a map
 
-```
+```go
 for k, v := range m {
   // do something with k and v
 }
@@ -243,7 +253,7 @@ for k, v := range m {
 
 ### Ranging over a map in a deterministic order
 
-```
+```go
 // create a slice of keys
 keys := make([]string, 0, len(m))
 for k := range m {
@@ -271,8 +281,8 @@ for k := range keys {
 
 ### Project: availability check
 
-```
-func Available(username string) ???
+```go
+func IsAvailable(username string) ???
 ```
 
 ---
@@ -288,8 +298,8 @@ func Available(username string) ???
 
 ### Cleaning up resources with `defer`
 
-```
-func Available(username string) (bool, error) {
+```go
+func IsAvailable(username string) (bool, error) {
   resp, err := http.Get("https://twitter.com/" + username)
   if err != nil {
     return false, errors.New("Unknown availability")
@@ -307,8 +317,8 @@ func Available(username string) (bool, error) {
 
 ### Cleaning up resources with `defer`
 
-```
-func Available(username string) (bool, error) {
+```go
+func IsAvailable(username string) (bool, error) {
   resp, err := http.Get("https://twitter.com/" + username)
   if err != nil {
     return false, errors.New("Unknown availability")
@@ -327,15 +337,15 @@ func Available(username string) (bool, error) {
 
 * Can you spot the problem?
 
-```
-func foo() {
-  for i := range ... {
-    r, err := obtainResource(i)
+```go
+func process(filenames []string) {
+  for _, filename := range resources {
+    file, err := os.Open(filename)
     if err != nil {
       // deal with error
     }
-    defer r.Close()
-    // do something with r...
+    defer file.Close()
+    // do something interesting with file...
   }
 }
 ```
@@ -369,7 +379,7 @@ func process(i int) error {
 * Deferred statements return no result.
 * What if the function call returns an error?
 
-```
+```go
 func foo() error {
   // ...
   defer badIfThisFails() // but error is lost!
@@ -398,7 +408,7 @@ func foo() (err error) {
 
 ---
 
-### Project: write tests for `Available`
+### Project: write tests for `IsAvailable`
 
 * any issue?
 
@@ -425,8 +435,8 @@ Live demo in Playground
 
 ### Project: declare methods on custom types
 
-* turn `Validate` into a method
-* turn `Available` into a method
+* turn `IsValid` into a method
+* turn `IsAvailable` into a method
 * declare a `String() string` method
 * adjust your tests
 
@@ -454,20 +464,14 @@ Live demo in Playground
 
 ---
 
-### Gotcha: `nil` and interfaces
-
-* An interface that holds a `nil` pointer to a concrete type is not itself `nil`!
-* see https://golang.org/doc/faq#nil_error
-
----
-
 ### Interface satisfaction
 
 * easy: declare the right methods on the concrete type
 * verified at compile time
 * implicit!
 * compare to Java, PHP, C#, etc.
-```
+
+```go
 class PokerHand implements Comparable<? super PokerHand> // Java
 class Template implements iTemplate                      // PHP
 class BoomerangCollection : IEnumerable                  // C#
@@ -494,7 +498,8 @@ class BoomerangCollection : IEnumerable                  // C#
 ### Naming of single-method interfaces
 
 * method + "er"
-```
+
+```go
 type Climber interface {
     Climb(int)
 }
@@ -504,7 +509,7 @@ type Climber interface {
 
 ### Interface composition
 
-```
+```go
 type ReadWriteCloser interface {
   Reader
   Writer
@@ -531,7 +536,7 @@ type ReadWriteCloser interface {
 
 ### `fmt.Stringer`
 
-```
+```go
 type Stringer interface {
   String() string
 }
@@ -547,9 +552,9 @@ type Stringer interface {
 
 ---
 
-### `error`
+### `error` interface
 
-```
+```go
 type error interface {
   Error() string
 }
@@ -560,15 +565,23 @@ type error interface {
 
 ## Project: define a custom error type
 
-* define (where?)
 ```go
 type ErrUnknownAvailability struct {
-  Username string
-  Platform string
+    Username string
+    Platform string
 }
 ```
+
 * make it satisfy the `error` interface
-* use it in `twitter.Available`
+* use it in `twitter.IsAvailable`
+
+---
+
+### Gotcha: `nil` and interfaces
+
+* An interface that holds a `nil` pointer to a concrete type is not itself `nil`!
+* Example with `ErrUnknownAvailability`
+* see https://golang.org/doc/faq#nil_error
 
 ---
 
@@ -613,7 +626,7 @@ type Writer interface {
 
 ```go
 type Validator interface {
-  Validate(username string) bool
+  IsValid(username string) bool
 }
 ```
 
@@ -626,8 +639,8 @@ type Validator interface {
 ### Project: define `Availabler` interface
 
 ```go
-type Validator interface {
-  Validate(username string) bool
+type Availabler interface {
+  IsAvailable(username string) (bool, error)
 }
 ```
 
@@ -657,7 +670,7 @@ func (t *Tree) Save(f *os.File) error
 
 ---
 
-### Favour interface parameters
+### Favour interface parameters (cont'd)
 
 * if possible, take interface types as function parameters, rather than concrete types
 * more flexible
@@ -672,6 +685,7 @@ func (t *Tree) Save(w io.Writer) error
 
 ### Require no more, promise no less
 
+* be wary of broad interfaces
 * only ask for the required behaviour from interface parameters
 
 ```go
@@ -680,7 +694,7 @@ func (t *Tree) Save(rw ReadWriter) error // good?
 
 ---
 
-### Require no more, promise no less
+### Require no more, promise no less (cont'd)
 
 * only ask for the required behaviour
 * similar to DDD principle of "keeping ports small"
@@ -704,6 +718,7 @@ func (t *Tree) Save(w Writer) error // better!
 
 * augment `ErrUnknownAvailability` with a `Cause error` field
 * make it satisfy the following interface
+
 ```go
 type wrapper interface {
   Unwrap() error
@@ -716,22 +731,39 @@ type wrapper interface {
 
 * given an interface value, you can ask whether
   the concrete type also satisfy another interface
+
 ```go
-var b Barista = &Ray{}
-b.PrepareCoffee()
-c, ok := ray.(Cashier)
-if ok {
-  c.AcceptPayment()
+type Barista interface {
+  PrepareCoffee()
+}
+type Cashier interface {
+  ProcessPayment()
 }
 ```
 
 ---
 
-## Project: figure out why twitter.Available failed
+### Asserting on behaviour (cont'd)
+
+```go
+// ...definition of a Ray type that
+// satisfies the Barista interface...
+var b Barista = &Ray{}
+b.PrepareCoffee()
+c, ok := b.(Cashier) // is b also a Cashier?
+if ok {
+  c.ProcessPayment()
+}
+```
+
+---
+
+## Project: figure out why twitter.IsAvailable failed
 
 * in `main.go`
+
 ```go
-available, err := tw.Available("babar")
+available, err := tw.IsAvailable("babar")
 err, ok := err.(wrapper) // does err satisfy wrapper?
 if ok {
   cause := err.Unwrap()
@@ -743,7 +775,7 @@ if ok {
 
 ### Type switch
 
-```
+```go
 func do(i interface{}) {
   switch v := i.(type) { // what's the type of i?
   case int:
@@ -761,9 +793,26 @@ func do(i interface{}) {
 
 ---
 
+## Mocking
+
+* Interfaces are great for mocking!
+* You can define an interface for a concrete type you don't own!
+
+---
+
+## Project: mock the HTTP client
+
+* modify your code in order to mock the HTTP client
+  * define a `Client` interface that `&http.Client` satisfies
+  * add a `client` field to your `Twitter` and `GitHub` types
+  * ...
+
+---
+
 ### Project: list available checkers
 
 * in `namecheck.go`, define
-```
+
+```go
 func Checkers() []Checker {...}
 ```

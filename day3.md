@@ -49,7 +49,17 @@
 * special function
 * executed at package initialisation
 * cannot be called in a program
-* tip: avoid execessive side effects
+
+---
+
+### Recommendation: avoid side effects in init
+
+Within an `init` function, avoid
+* reading/writing files
+* network communications
+* etc.
+
+(Why?)
 
 ---
 
@@ -271,20 +281,41 @@ namecheck
 ### goroutines
 
 * a concurrent function execution
+* has no ID (unlike a Unix process)
 * `main` function is itself a goroutine
-* `go` keyword: used to spawn more goroutines
 * Go scheduler: in charge of switching between goroutines
 
 ---
 
 ### The `go` keyword
 
-* use keyword `go` to spawn a new goroutine
-```
+* used to spawn a new goroutine
+* causes the following function call to be executed "in the background"
+* similar to `&` in Unix shell
+```go
 go prepareSoufflé()
 go peelPotatoes()
 ```
-* golden rule: before launching a goroutine, understand exactly how it will terminate
+
+---
+
+### `go` statements...
+
+... immediately yield control back to the enclosing function.
+
+---
+
+### The `go`lden rule
+
+Before launching a goroutine,
+you must understand exactly under what conditions it will terminate.
+
+---
+
+### Exercise
+
+Define two functions, `prepareSoufflé` and `peelPotatoes`,
+and call them concurrently in `main`.
 
 ---
 
@@ -324,6 +355,15 @@ func main() {
 
 ---
 
+### Gotcha: never call `Add` after `Wait`
+
+> calls [to `Add`] with a positive delta that occur when the counter is zero
+> must happen before a `Wait`.
+
+(see [documentation](https://golang.org/pkg/sync/#WaitGroup.Add))
+
+---
+
 ### Gotcha: goroutine & func
 
 ```go
@@ -353,6 +393,27 @@ func printTenIntsConcurrently() {
   const n = 10
   wg.Add(n)
   for i := 0; i < n; i++ {
+    go func() { // this function "closes over" loop variable i
+      defer wg.Done()
+      fmt.Println(i) // but i is being modified concurrently
+    }()
+  }
+  wg.Wait()
+}
+```
+
+* race condition!
+
+---
+
+### Gotcha: goroutine & func
+
+```go
+func printTenIntsConcurrently() {
+  var wg sync.WaitGroup
+  const n = 10
+  wg.Add(n)
+  for i := 0; i < n; i++ {
     go func(j int) {  // <----
       defer wg.Done()
       fmt.Println(j)
@@ -361,6 +422,8 @@ func printTenIntsConcurrently() {
   wg.Wait()
 }
 ```
+
+* see [the Golang FAQ](https://golang.org/doc/faq#closures_and_goroutines)
 
 ---
 
@@ -384,6 +447,12 @@ func printConcurrently(i int, wg *sync.WaitGroup) {
   fmt.Println(i)
 }
 ```
+
+---
+
+### Project: add concurrency
+
+Rather than sending requests sequentially, send them concurrently.
 
 ---
 
@@ -657,6 +726,12 @@ for {
 * to get an idea, watch
   * [Dave Cheney - Concurrency made easy (GopherCon SG 2017)](https://www.youtube.com/watch?v=yKQOunhhf4A)
   * [Go Concurrency Patterns (Rob Pike, Google I/O 2012)](https://www.youtube.com/watch?v=f6kdp27TYZs)
+
+---
+
+## Project: turn your CLI tool into a server
+
+See the documentation of the `http` package.
 
 ---
 

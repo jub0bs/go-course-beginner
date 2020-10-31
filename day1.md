@@ -1,25 +1,11 @@
 ### Installation
 
-* Go v1.13.4
+* Go v1.15.2
 * Visual Studio Code
 * Go VSCode extension
 * Git
 * Wifi
-* https://github.com/jubobs/human-coders-go-slides
-
----
-
-### [A little bit about me](https://twitter.com/jub0bs)
-
-* @jub0bs
-* freelance developer
-* Go trainer
-* security researcher
-* occasional bug-bounty hunter
-
----
-
-### Who are you?
+* https://github.com/jub0bs/human-coders-go-slides
 
 ---
 
@@ -47,9 +33,9 @@
 ### Go's history
 
 * created at Google in 2009
-* ...by Rob Pike, Robert Griesemer, Ken Thompson
+* ...by [Rob Pike, Robert Griesemer, Ken Thompson](https://res.cloudinary.com/practicaldev/image/fetch/s--opTYcTMa--/c_limit%2Cf_auto%2Cfl_progressive%2Cq_auto%2Cw_880/https://cdn-images-1.medium.com/max/800/1%2A5O-YqwO94QUQ8OkNypcVdQ.png)
 * Go 1.0 released in 2012
-* Go 1.13.4 (latest release)
+* Go 1.15.2 (latest release)
 * powers Docker, Kubernetes, and many more
 
 ---
@@ -237,7 +223,7 @@ var foo = "foo" // this is a comment
 * examples
   * `fmt`
   * `io/ioutil`
-  * `github.com/jubobs/missilelauncher`
+  * `github.com/jub0bs/missilelauncher`
 
 ---
 
@@ -250,7 +236,7 @@ var foo = "foo" // this is a comment
   * `missilelauncher`
 * picking a different name is possible:
 ```go
-import ml "github.com/jubobs/missilelauncher"
+import ml "github.com/jub0bs/missilelauncher"
 ```
 
 ---
@@ -274,20 +260,12 @@ import (
 ```go
 import (
   // standard-library packages
-  //
+
   // 3rd-party packages
-  //
+
   // your packages
 )
 ```
-
----
-
-### The `fmt` package
-
-* `fmt.Println`
-* `fmt.Sprintf`
-* `fmt.Printf`
 
 ---
 
@@ -300,7 +278,14 @@ import (
 
 # Variables
 
-A variable is an _addressable value_.
+In Go, a variable is an _addressable value_.
+
+---
+
+## Local variables must be used
+
+* A variable declared within a function _must_ be used.
+* Otherwise, compilation error!
 
 ---
 
@@ -351,7 +336,7 @@ var (
 
 ---
 
-### Initial value
+### Initial value of a variable
 
 * no uninitialised variable in Go!
 * implicitly assigned the _zero value_ of its type
@@ -731,6 +716,8 @@ default:
 * if none match, the (optional) default case is executed
 * `default` can occur at any place among the cases
 
+---
+
 ### `switch` cases with multiple values
 
 ```go
@@ -771,7 +758,7 @@ for <condition> {
 }
 ```
 
-* no `while` in Go
+* no `while` keyword in Go!
 
 ---
 
@@ -890,10 +877,9 @@ func max(first int, rest ...int) int {
 
 ### Recursion
 
-* functions can call themselves
-* exercise: mutually recursive functions
-    * `isEven(uint) bool`
-    * `isOdd(uint) bool`
+* a function can call itself
+* exercise: write a "factorial" function
+  ([solution](https://play.golang.org/p/yvRytLgk12U))
 
 ---
 
@@ -917,16 +903,24 @@ f := func (i int) int {
 
 ---
 
+### Function result
+
+* The result of a function can itself be a function.
+* exercise: write a function that
+  * takes a `name` parameter (of type `string`)
+  * returns a function that prints "Hello, <name>"
+* [solution](https://play.golang.org/p/zQ67huh73x-)
+
+---
+
 ### Closures
 
 * functions can capture variables in their environment
-* exercise: [stateful function](https://play.golang.org/p/kcYOX2eGxWi)
+* example: [stateful function](https://play.golang.org/p/kcYOX2eGxWi)
 
 ---
 
 ### Project: set up directory structure
-
-* set up project files
 
 ```txt
 namecheck
@@ -970,15 +964,34 @@ func containsNoIllegalPattern(username string) bool {
 
 ### Error-check idiom
 
+* convention: keep the happy path "on the left"
+* (not nested in if-else statements)
+
+---
+
+### Error-check idiom
+
+Bad:
+```go
+if err := fallibleFoo(); err == nil {
+  // happy path :)
+} else {
+  // unhappy path :(
+}
+```
+
+---
+
+### Error-check idiom (cont'd)
+
+Good:
 ```go
 if err := fallibleFoo(); err != nil {
   // unhappy path :(
   // early return
 }
-// happy path
+// happy path :)
 ```
-* convention: keep the happy path "on the left"
-* (not nested in if-else statements)
 
 ---
 
@@ -998,6 +1011,16 @@ if err := fallibleFoo(); err != nil {
 
 ---
 
+### `panic`
+
+* similar to Java's `throw`
+* signifies an _unrecoverable_ failure
+* Do _not_ use `panic` for "expected" and recoverable failures, e.g.
+  * a file couldn't be opened
+  * a HTTP request failed
+
+---
+
 ## Project: validation (cont'd)
 
 ```go
@@ -1005,14 +1028,14 @@ func containsOnlyLegalChars(username string) ??? {
   // returns true if username matches ^[0-9A-Z_a-z]*$
 }
 ```
-* Design question: what should the result list be?
+* Design question: what should the result list (`???`) be?
 
 ---
 
 ## Project: validation (cont'd)
 
 ```go
-func Validate(username string) bool {
+func IsValid(username string) bool {
   // returns true if all four predicates return true
 }
 ```
@@ -1036,6 +1059,8 @@ namecheck
 $ go mod init github.com/<your-GitHub-username>/namecheck
 ```
 
+A `go.mod` file will be created:
+
 ```txt
 namecheck
 ├── go.mod
@@ -1051,18 +1076,17 @@ namecheck
 ```go
 package main
 
-import "github.com/jubobs/namecheck/twitter"
+import "github.com/jub0bs/namecheck/twitter"
 
 func main() {
-  username := "jubobs"
+  username := "jub0bs"
   fmt.Printf(
     "%s is valid on Twitter: %t\n,
     username,
-    twitter.Validate(username),
+    twitter.IsValid(username),
   )
 }
 ```
-
 
 ---
 
@@ -1119,12 +1143,12 @@ determined by package clause
 
 ```go
 func TestUsernameTooLong(t *testing.T) {
-  username := "longer_than_15_chars"
+  username := "obviously_longer_than_15_chars"
   want := false
-  got := twitter.IsValid(username)
+  got := IsValid(username)
   if got != want {
     t.Errorf(
-      "twitter.IsValid(%s) = %t; want %t",
+      "IsValid(%s) = %t; want %t",
       username,
       got,
       want,
@@ -1161,7 +1185,7 @@ $ go test -run=<regexp-for-test-method-names>
 
 ### Project: validation (cont'd)
 
-Write tests for `Validate` in `twitter_test.go`
+Write tests for `IsValid` in `twitter_test.go`
 
 ```txt
 namecheck
@@ -1186,3 +1210,49 @@ $ go tool cover --html="coverage.out"
 
 * adapt it from package `twitter`
 * different rules!
+
+---
+
+### Project: validation (GitHub)
+
+```go
+func isLongEnough(username string) bool {
+  // returns true if username is not empty
+}
+
+func isShortEnough(username string) bool {
+  // returns true if username contains 39 chars or fewer
+}
+
+func containsOnlyLegalChars(username string) ??? {
+  // returns true if username matches ^[-0-9A-Za-z]*$
+}
+```
+
+---
+
+### Project: validation (GitHub) cont'd
+
+```go
+func containsNoIllegalPattern(username string) bool {
+  // returns true if username does not contain "--"
+}
+
+func containsNoIllegalPrefix(username string) bool {
+  // returns true if username does not start with "-"
+}
+
+func containsNoIllegalSuffix(username string) bool {
+  // returns true if username does not end with "-"
+}
+```
+
+---
+
+## Project: validation (GitHub) (cont'd)
+
+```go
+func IsValid(username string) bool {
+  // returns true if all predicates above return true
+}
+```
