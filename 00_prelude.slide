@@ -1,0 +1,274 @@
+Introduction to Go
+
+0 - Prelude
+
+Julien Cretel
+
+https://jub0bs.com
+
+https://bsky.app/profile/jub0bs.com
+https://infosec.exchange/@jub0bs
+
+
+
+* About this slidedeck
+
+*Licence*
+
+These slides are freely available at [[https://github.com/jub0bs/go-course-beginner]] and are subject to a [[https://creativecommons.org/licenses/by-nc-sa/3.0/][CC BY-NC-SA 4.0 licence]].
+
+*Why*English*rather*than*French?*
+
+The French terminology about Go concepts isn't firmly established yet; for instance, some people translate _slice_ (which is a Go data structure) to _coupe_ and others to _tranche_.
+
+Moreover, most of the Go learning resources available online are in English.
+
+*How*to*run*these*slides*locally*
+
+[[https://github.com/jub0bs/go-course-beginner/blob/main/README.md][The README]] constains instructions for running the slides with [[https://pkg.go.dev/golang.org/x/tools/cmd/present][a Go-specific tool]].
+
+Some of these slides contain editable and executable code snippets. If you need to add a line break somewhere in a code snippet, make sure [[https://github.com/golang/go/issues/9011][to type Shift + Enter]].
+
+
+
+* About me
+
+- known as @jub0bs on the Web
+- self-employed since 2019
+- Go developer since 2017
+- Web-security researcher & consultant
+- occasional bug-bounty hunter
+- trainer on topics such as [[https://www.humancoders.com/formations/go][Go]] and [[https://www.humancoders.com/formations/securite-des-applications-web][Web security]]
+- blogger (at [[https://jub0bs.com][jub0bs.com]])
+
+.image https://habrastorage.org/getpro/habr/post_images/eb1/923/9cc/eb19239cc91d38445932da1ade5a5e7d.png 200 _
+
+: pentests, vulnerability evaluation, code audits
+: introduce yourselves to the other participants in 60 seconds or less
+
+
+
+* Setup
+
+If you haven't already, install Go by following the guidance from [[https://go.dev/dl]].
+
+You can check which version of Go is installed by running the following shell command:
+
+  $ go version
+  go version go1.23.2 darwin/amd64
+
+To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
+
+Also, make sure you have Git installed.
+
+
+
+* Rough course outline & expected difficulty curve
+
+.image img/difficulty_vs_time.svg 400 _
+
+: https://excalidraw.com/#json=m8YUv7D6vovgtROSA0AnH,zc9t16WYwXH_FDftsmming
+
+: power through basic stuff: skip/skim
+: - Go history
+: - playground + hello world
+: - predeclared names
+: - comments
+: - imports
+: - basic/composite types
+: - constants
+
+
+
+* Namecheck project
+
+You'll develop a small command-line tool (and later a HTTP API) for checking the *validity* and *availability* of a username on multiple social networks: GitHub, etc.
+
+Over the years, I have found this project to be a good forcing function for learning Go.
+
+Moreover, there is a [[https://twitter.com/marckohlbrugge/status/1682064001331609615][business case]] for such a tool, as it would allow organizations and even individuals to choose a brand name consistent across multiple platforms.
+
+: see Poppulo's case on X/Twitter: https://twitter.com/poppulo
+
+.image https://go.dev/blog/gophergala/fancygopher.jpg 200 _
+
+Besides, if you're 😈, you may find this tool useful for [[https://en.wikipedia.org/wiki/Cybersquatting#Social_media][name squatting]]. Be aware that this practice is [[https://docs.github.com/en/site-policy/other-site-policies/github-username-policy][prohibited by GitHub]] and most of the other social networks, though.
+
+: discover a coveted username that's available on some platform, claim it for yourself and later sell it to an interested party
+
+
+
+* Genesis of the language
+
+Go was created in 2007 at Google by
+
+- *Robert*Griesemer* (worked on [[https://en.wikipedia.org/wiki/V8_(JavaScript_engine)][V8]] and [[https://en.wikipedia.org/wiki/HotSpot_(virtual_machine)][the HotSpot JVM]], studied with [[https://en.wikipedia.org/wiki/Niklaus_Wirth][Niklaus Wirth]]),
+- *Rob*Pike* (worked on [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], and experimental predecessors to Go), and
+- *Ken*Thompson* (worked on [[https://en.wikipedia.org/wiki/Unix][Unix]], [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], [[https://en.wikipedia.org/wiki/Turing_Award][Turing Award]] recipient)
+
+.image https://miro.medium.com/max/1256/0*pCC5UI7QqThjdBvm.png _ 600
+
+: Thompson: first implementor of regexps
+: Pike/Thompson: former Bell Labs employees
+: Pike: predecessor languages to Go (Newsqueak, Alef, Limbo)
+: Thompson: invented increment/decrement operators; see https://en.wikipedia.org/wiki/B_(programming_language)#History
+: Pike/Griesemer: worked on Sawzall at Google
+
+
+
+* Genesis of the language (cont'd)
+
+Back in 2007, [[https://www.youtube.com/watch?v=sln-gJaURzk&t=17m47s][C++'s increasing complexity]], [[https://www.youtube.com/watch?v=i0zzChzk8KE&t=545s][slow compilation]], and [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=18m30s][poor support for concurrency]] were [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=18m30s][recurring sources of frustration]] for the three creators of Go, where C++ is heavily used for infrastructure.
+
+.image https://imgs.xkcd.com/comics/compiling.png 180 _
+
+They enlisted the help of Ken Thompson and started working on a new language, which ultimately became Go... For more on the origins of Go, see
+
+- [[https://www.youtube.com/watch?v=YXV7sa4oM4I][Rob Pike - The Go Programming Language and Environment]]
+- [[https://www.youtube.com/watch?v=6oF0UblqkGs&t=465s][Carmen Andoh - 10 Years of Go (GopherConAU 2019)]]
+- [[https://www.youtube.com/watch?v=igFz-5rdn2Y&t=85s][Cameron Balahan - Keynote: The State Of Go (GopherCon Europe 2023)]].
+
+: for Google's infrastructure code: https://www.youtube.com/watch?v=rFejpH_tAHM&t=10m42s
+
+
+
+* A brief history of Go
+
+- 2007: Griesemer, Pike & Thompson start working on Go.
+- 2008: Ian Lance Taylor & Russ Cox (both from Google) join the Go team.
+- 2009: Go is open-sourced.
+- 2012: [[https://go.dev/blog/go1][Go 1.0 is released]]. [[https://go.dev/doc/go1compat][The language becomes stable.]] [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=34m15s][Adoption rises sharply.]]
+- 2013: Docker
+- 2014: Kubernetes; first GopherCon conference
+- 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
+- 2022: Go 1.18 adds generics to the language.
+- 2024: Go 1.23 (the latest minor version) is released.
+
+: Russ and ILT joined the Go Team
+: - between 2007 and 2009: https://research.swtch.com/back
+: - 2008! https://www.youtube.com/watch?v=0Zbh_vmAKvk&t=10s
+
+
+
+* Logo & mascot
+
+Go's logo may strike you as rather uninspired and unremarkable:
+
+.image https://go.dev/blog/go-brand/logos.jpg 150 _
+
+However, [[https://go.dev/blog/gopher][Go's mascot]], a [[https://en.wikipedia.org/wiki/Gopher][gopher]], enjoys worldwide recognition:
+
+.image https://go.dev/blog/gopher/gopher.png 150 _
+
+In fact, Go programmers are affectionately known as "Gophers".
+
+: Lapins Crétins vibe!
+
+
+
+* What kind of language is Go?
+
+*Concurrent*programming*
+
+Go's [[https://en.wikipedia.org/wiki/Concurrent_computing][concurrency]] features let you cleanly delineate independent tasks in your code.
+
+*Object*orientation*
+
+The ability to define custom types (and methods on them) promote [[https://en.wikipedia.org/wiki/Abstraction_(computer_science)#Abstraction_in_object_oriented_programming][_abstraction_]].
+
+Go's interfaces (and generics) enable [[https://en.wikipedia.org/wiki/Polymorphism_(computer_science)][_polymorphism_]].
+
+Go's packages enable [[https://en.wikipedia.org/wiki/Encapsulation_(computer_programming)][_encapsulation_]].
+
+Go has no concept of [[https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)][_inheritance_]], but facilitates [[https://en.wikipedia.org/wiki/Object_composition][_composition_]] instead. For more on the topic, see [[https://go.dev/doc/faq#Is_Go_an_object-oriented_language][Is Go an object-oriented language? (FAQ)]]
+
+*Functional*aspects*
+
+Go supports [[https://en.wikipedia.org/wiki/First-class_function][first-class functions]], multiple function results, [[https://en.wikipedia.org/wiki/Recursion#In_computer_science][recursion]], and [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][closures]].
+
+: Although Go has its roots in C, it is in many ways a more powerful language.
+: memory safety: no pointer arithmetic, no dangling pointers, bounds checks
+
+: Can a language without inheritance be described as object-oriented? Sure!
+: [[https://www.infoworld.com/article/2073649/why-extends-is-evil.html][Allen Holub - Why extends is evil (InfoWorld 2003)]]
+: [[https://www.quora.com/What-does-Alan-Kay-think-about-inheritance-in-object-oriented-programming][What does Alan Kay think about inheritance in object-oriented programming? (Quora)]]
+: James Gosling (Java): "I'd leave classes out."
+: even in classical OOP language, you should favour composition over inheritance, since the latter breaks encapsulation in subtle ways
+: No concept of inheritance in Alan Kay's Simula... a Web of objects
+: no classes
+: no constructors
+: no operator overloading
+: no method overloading
+: subtyping, but no covariance/contravariance
+: encapsulation at the package level rather than at the type/class level
+
+: packages: no ifdef guards, no required ordering of package-level declarations, encapsulation
+: Brian Kernighan (popularized C): I think that the real problem with C is that it doesn't give you enough mechanisms for structuring really big programs, for creating ``firewalls'' within programs so you can keep the various pieces apart. https://www.cs.cmu.edu/~mihaib/kernighan-interview/
+
+
+
+* Go's rich toolchain
+
+- [[https://pkg.go.dev/cmd/go][cross-compilation]]
+- [[https://pkg.go.dev/cmd/gofmt][code formatting]] & [[https://pkg.go.dev/golang.org/x/tools/cmd/goimports][automatic package imports]]
+- [[https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite][documentation generation]]
+- [[https://pkg.go.dev/testing][testing]] & [[https://pkg.go.dev/cmd/cover][code coverage]]
+- [[https://pkg.go.dev/cmd/pprof][profiling]] & [[https://pkg.go.dev/cmd/trace][tracing]]
+- [[https://go.dev/doc/articles/race_detector][race detector]]
+- extensive [[https://pkg.go.dev/std][standard library]]
+
+.image https://habrastorage.org/getpro/habr/post_images/eb1/923/9cc/eb19239cc91d38445932da1ade5a5e7d.png 200 _
+
+
+: typically run on save
+: gofmt: enforced specific style. flattens learning curve and reduces friction for code reviews
+: goimports: imports in canonical order and in alphabetical order per section
+
+
+
+* Go development pays well
+
+See the results of the Stack Overflow developer survey ([[https://survey.stackoverflow.co/2023/#top-paying-technologies][2023]], [[https://survey.stackoverflow.co/2022/#technology-top-paying-technologies][2022]], [[https://insights.stackoverflow.com/survey/2021#technology-top-paying-technologies][2021]], [[https://insights.stackoverflow.com/survey/2020#technology-what-languages-are-associated-with-the-highest-salaries-worldwide-global][2020]]).
+
+Even if don't stay at your current job for much longer, learning Go is not a waste of time!
+
+: https://insights.stackoverflow.com/survey/2021#technology-top-paying-technologies
+
+.image https://go.dev/blog/gophergala/fancygopher.jpg 300 _
+
+
+
+* The Go Playground
+
+The Go Playground (available at [[https://go.dev/play]]) is a Web app that lets you write and run
+a small Go program from your browser. Features include:
+
+- code formatting & automatic package imports
+- basic static analysis
+- [[https://go.dev/play/p/lEDjyvhttIB][limited support for modules and multiple packages]]
+- persistent URLs (e.g. [[https://go.dev/play/p/S8HfNUCy13U][https://go.dev/play/p/S8HfNUCy13U]])
+- raw program source (^S or ⌘+S)
+
+: static analysis: go vet
+: permalinks: convenient for sharing code snippets
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/computer/gamer.svg 150 _
+
+: It's a good place to experiment and fix ideas about the language and its standard library.
+
+
+
+* Some limitations of the Go Playground
+
+As its name suggests, the Go Playground isn't meant for projects. Limitations include:
+
+- single executable
+- no networking (no HTTP requests, etc.)
+- no way of specifying command-line arguments
+- limited support for third-party packages
+
+.image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 200 _
+
+: In this course, we'll only use the Playground to solve simple exercises.
+: An alternative with more features, incl. syntax highlighting: https://goplay.space/
+: support for 3rd-party libraries added in May 2019: https://www.youtube.com/watch?v=6oF0UblqkGs&t=36m50s

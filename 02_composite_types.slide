@@ -1,0 +1,1031 @@
+Introduction to Go
+
+2 - Composite types: arrays, slices, maps, structs
+
+Julien Cretel
+
+https://jub0bs.com
+
+https://bsky.app/profile/jub0bs.com
+https://infosec.exchange/@jub0bs
+
+
+
+* Arrays
+
+Arrays are fixed-length sequences of elements of the same type. Contrary to many other languages, Go encodes the length of an array in its type name:
+
+.play -edit src/array_literal.go  /^//START/,/^//END/
+
+The built-in function `len` yields the length of an array:
+
+  fmt.Println(len(roles)) // 3
+
+In array literals, you can write "`...`" in place of the array's length. The compiler will then simply infer the length from the number of elements listed in the literal:
+
+.play -edit src/array_no_length.go  /^//START/,/^//END/
+
+
+
+* Arrays are values
+
+Go arrays [[https://go.dev/doc/effective_go#arrays][differ significantly from C arrays]]. They're _not_ "reference types". An array value is not a pointer to the first element, but denotes the entire collection.
+
+The zero value of an array type is not `nil` (which an invalid value for array types),
+but an array full of zero values of its element type.
+
+.play -edit src/array_zero.go  /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 200 _
+
+
+
+* Array comparability
+
+An array type is comparable only if the type of its elements is itself comparable:
+
+.play -edit src/array_comparability.go  /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/stovepipe-hat-front.svg 250 _
+
+: the [0]func() trick is actually used to make types non-comparable w/o compromising memory footprint
+
+
+
+* Accessing the elements of an array
+
+Like most languages, Go uses 0-based indexing.
+
+Individual elements of an array can be accessed using the usual bracket syntax.
+
+Taking the address of an array element is legal. Elements are contiguous in memory.
+
+Indexing an array outside its bounds causes either a compilation or a panic!
+
+.play -edit src/array_indexing.go  /^//START/,/^//END/
+
+
+
+* Ranging over an array
+
+You can iterate over an array using a for-range loop.
+
+The first iteration variable (`i` below) is the index of the current element, whereas the second iteration variable (`role` below) is a _copy_ of the array's current element.
+
+.play -edit src/array_range.go  /^//START/,/^//END/
+
+If you only need one of the iteration variables, you can omit the other:
+
+.play -edit src/array_range2.go  /^//START/,/^//END/
+
+
+
+* Direct use of arrays is inflexible
+
+A function taking, as a parameter, an array of a given length cannot accept an array of any other length.
+
+.play -edit src/array_inflexible.go  /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 200 _
+
+
+
+* Direct use of arrays can be expensive
+
+Remember that Go's evaluation strategy is call by value and that Go arrays are values.
+
+Functions that take an array operate on an entire copy of their array argument!
+
+.play -edit src/array_expensive.go  /^//START/,/^//END/
+
+.image https://go.dev/blog/gophergala/fancygopher.jpg 200 _
+
+
+
+* Arrays are seldom used
+
+[[https://go.dev/doc/effective_go#arrays][Legitimate cases for direct use of arrays do exist]], but are relatively rare.
+
+.code src/sudoku.go  /^//START/,/^//END
+
+Arrays are mostly building blocks for _slices_, which are much more commonly used.
+
+: use cases: detailed layout of memory, avoid allocations
+
+
+
+* Slices
+
+Slices are arguably the most fundamental and ubiquitous type in Go. As such, they demand a solid understanding of their [[https://go.dev/blog/slices][mechanics]] from any serious Gopher.
+
+A slice represents a variable-length sequence of elements of the same type.
+
+The type of a slice of elements of type `T` is denoted by `[]T`.
+
+Note that, contrary to arrays, slices do not have a length specified in their type name, simply because the length of a slice variable isn't fixed and may change over time.
+
+Fun fact: [[https://go.dev/blog/slices#strings][Go strings actually are read-only slices of bytes with a bit of syntactic sugar.]]
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
+
+: similar to Java's ArrayList
+
+
+
+* Initializing a slice
+
+You can initialize a slice via a slice literal, whose syntax is reminiscent of that for arrays:
+
+.play -edit src/slice_literal.go  /^//START/,/^//END
+
+You can also use the built-in `make` function to initialize a slice of a desired length:
+
+.play -edit src/slice_make.go  /^//START/,/^//END
+
+
+
+* A slice's zero value
+
+Slice are "reference types". Their zero value is `nil`.
+
+A `nil` slice is distinct from, but functionally equivalent to, an empty slice. [[https://go.dev/wiki/CodeReviewComments#declaring-empty-slices][Convention]] dictates that you not differentiate a `nil` slice from a non-`nil` empty slice in your code.
+
+.play -edit src/slice_zero.go  /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 200 _
+
+
+
+* Slices are not comparable
+
+Regardless of their element type, slices are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary slice values.
+
+The only legal comparison is to a literal `nil` value.
+
+.play -edit src/slice_incomparable.go  /^//START/,/^//END/
+
+However, you can use [[https://pkg.go.dev/slices#Equal][the `Equal` function]] from [[https://pkg.go.dev/slices][the `slices` package]] to compare two slices whose element type is comparable.
+
+.play -edit src/slice_equal.go  /^//START/,/^//END/
+
+
+
+* Accessing the elements of a slice
+
+Like arrays, slices can be indexed.
+
+Taking the address of a slice element is legal.
+
+.play -edit src/slice_indexing.go  /^//START/,/^//END/
+
+Indexing a slice in the negatives or beyond its _length_ causes a panic:
+
+.play -edit src/slice_indexing_panic.go  /^//START/,/^//END/
+
+So does indexing a `nil` slice:
+
+.play -edit src/slice_indexing_panic_nil.go  /^//START/,/^//END/
+
+
+
+* Slices under the hood
+
+A slice is essentially a resizable view (or window) into a backing array.
+
+Under the hood, a slice is a data structure simply composed of three machine words:
+
+- a pointer to the backing array
+- an int corresponding to the _length_ of the slice (given by built-in function `len`)
+- an int corresponding to the _capacity_ of the slice (given by built-in function `cap`)
+
+  names := []string{"foo", "bar", "baz"}
+  fmt.Println(len(roles)) // 3
+  fmt.Println(cap(roles)) // 3
+
+.image img/slice_under_hood0.svg 200 _
+
+: https://excalidraw.com/#json=6NCwjZHDM87KQT4ov8FOH,YVzPYpRGuz0wQ2EzslAijA
+
+
+
+* Slice length and capacity
+
+A slice is only a window into a backing array. In particular, the backing array may extend past the end of the slice, hence [[https://go.dev/ref/spec#Length_and_capacity][the notion of _capacity_]] in addition to that of _length_.
+
+The capacity of a slice is the maximum length the slice may assume before running out of space in the backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for more elements.
+
+.image img/slice_capacity.svg 200 _
+
+Note that the part of the backing array that extends before the start of the slice doesn't factor in the slice's capacity.
+
+: https://excalidraw.com/#json=GdXPwfEINQppeQbgEeVI0,aLwF22Wr97DQElcExGF_6Q
+
+
+
+* Initializing a slice with custom length and capacity
+
+With the `make` built-in function, you can specify the desired length and capacity of your slice independently:
+
+  roles := make([]string, 0, 3)       // note: one more parameter for the slice's capacity
+  fmt.Println(len(roles), cap(roles)) // 0 3
+
+.image img/slice_under_hood2.svg 200 _
+
+Doing this is useful as a micro-optimization when you're about to grow a slice and you already know what its final length will be.
+
+Of course, the specified capacity must be greater or equal to the length, or [[https://go.dev/play/p/Igtzx7wAgZz][a compilation error or a panic will occur]].
+
+
+: https://excalidraw.com/#json=TiMTjJURaNLArsUwaeo3q,sY2pt8gItY8QI4JWhWHkZA
+
+
+
+* Slice function parameters are cheap and flexible
+
+Remember: a slice is only a [[https://go.dev/blog/slices-intro#slice-internals][descriptor of an array segment]].
+
+Accordingly, functions that take a slice operate on a copy of their slice argument, but [[https://go.dev/blog/slices#passing-slices-to-functions][this copying doesn't incur any copy of its backing array]]!
+
+.play -edit src/slice_cheap.go  /^//START/,/^//END
+
+Moreover, a slice parameter is much more flexible than an array parameter because the length of the slice argument can be arbitrary.
+
+: 24 bytes on a 64-bit architecture
+
+
+
+* Slice function parameters allow updates to the backing array
+
+Furthermore, updates to elements of a slice argument are visible to the caller:
+
+.play -edit src/slice_update.go  /^//START/,/^//END
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+
+
+* Passing a slice to variadic function
+
+You can "explode" a slice argument into a variadic parameter using a trailing ellipsis:
+
+.play -edit src/slice_explode.go  /^//START/,/^//END/
+
+This functionality is reminiscent of [[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax][JavaScript's spread syntax]], [[https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists][Python's]] and [[https://docs.ruby-lang.org/en/2.0.0/syntax/calling_methods_rdoc.html#label-Array+to+Arguments+Conversion][Ruby's]] "splat" (`*`) operator.
+
+
+
+* Slicing operator
+
+The _slicing_operator_ can be applied to an array or a slice to produce a slice that focuses on a specific portion of the same backing array:
+
+.play -edit src/slicing_operator.go  /^//START/,/^//END/
+
+.image img/slice_under_hood.svg _ 900
+
+: slice names omitted on my diagram
+
+
+
+* Slicing operator (cont'd)
+
+The semantics of the slicing operator are that of a [[https://en.wikipedia.org/wiki/Interval_(mathematics)#Definitions][half-open interval]]:
+
+- The first index is inclusive and, if unspecified, defaults to `0`.
+- The second index is exclusive and, if unspecified, defaults to the length of the slice.
+
+.play -edit src/slicing_operator2.go  /^//START/,/^//END/
+
+In the slicing expression `s[i:j]`,  indices `i` and `j` must satisfy
+
+  0 <= i <= j <= cap(s)
+
+Otherwise, a compilation error or a panic will occur.
+
+There's also [[https://go.dev/ref/spec#Slice_expressions][a three-index form of the slicing operator]], which is useful for controlling the capacity of the resulting slice, but that is an advanced feature.
+
+
+
+* Slicing operator (cont'd)
+
+Note that the slicing operator allows you to retrieve the part of the backing array that extends beyond the length of the slice you're operating on:
+
+.play -edit src/slicing_operator3.go  /^//START/,/^//END/
+
+However, attempts to re-slice a slice beyond its capacity results in either a compilation error or a panic.
+
+
+
+* Namecheck project: pass a username as a command-line arg
+
+1. Consult the [[https://pkg.go.dev/os][documentation of the `os` package]].
+
+2. Identify an exported identifier of that package that will allow you to get the program's command-line arguments as a slice of strings.
+
+3. Check the length of that slice; if no username was specified, print a friendly error message on stderr and exit with status 1.
+
+4. If a username was specified, use it as before in the rest of your program.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+
+
+* Ranging over a slice
+
+Just like for arrays, you can iterate over a slice using a for-range loop.
+
+The first iteration variable corresponds to the index of the current element.
+The second iteration variable is only a copy of the slice's current element.
+
+.play -edit src/slice_range.go  /^//START/,/^//END/
+
+If you only need one of the iteration variables, you can omit the other:
+
+.play -edit src/slice_range2.go  /^//START/,/^//END/
+
+: iteration happens over the length (not the capacity) of the slice
+
+
+
+* Table-driven tests
+
+One use case for slices is [[https://go.dev/blog/subtests#table-driven-tests-using-subtests][_table-driven_tests_]], an approach to writing test cases that drastically reduces test-logic duplication and [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=5m05s][eases the addition of test cases]]:
+
+  func TestIsValid(t *testing.T) {
+    type TestCase struct{
+      desc     string
+      username string
+      want     bool
+    }
+    testCases := []TestCase {
+      {"contains two consecutive hyphens", "jub0bs--on-GitHub", false},
+      // other test cases...
+    }
+    for _, tc := range testCases {
+      got := github.IsValid(tc.username)
+      if got != tc.want {
+        t.Errorf("%s: github.IsValid(%q): got %t; want %t", tc.desc, tc.username, got, tc.want)
+      }
+    }
+  }
+
+: you can also use a one-off anonymous struct to hold a test case's inputs and expected outputs
+
+
+
+* Namecheck project: use table-driven tests
+
+1. Write a `TestIsValid` test function that uses table-driven tests. If the anonymous struct confuses you, you can declare a `TestCase` struct type at the top of your function.
+
+2. Move all the test cases for the `IsValid` function inside a slice of test cases within your `TestIsValid` test function.
+
+3. You can now safely remove your original test functions.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+: note that the name of the type can be omitted in struct literal
+
+
+
+* Table-driven subtests
+
+An improvement over table-driven tests is [[https://go.dev/blog/subtests#table-driven-tests-using-subtests][_table-driven_subtests_]]. This approach consists in passing the test logic (as an anonymous function) to `*testing.T`'s `Run` method:
+
+  // the rest of the test function is unchanged
+  for _, tc := range testCases {
+    f := func(t *testing.T) {
+      got := github.IsValid(tc.username)
+      if got != tc.want {
+        t.Errorf("github.IsValid(%q): got %t; want %t", tc.username, got, tc.want)
+      }
+    }
+    t.Run(tc.desc, f)
+  }
+
+This approach displays information about the different subtests when you run the tests.
+
+It also allows you to limit which subtests to run within a given test function, e.g. only the subtests in `TestIsValid` whose description starts with "too":
+
+  go test -v -run='^TestIsValid/too.*' ./...
+
+: Run method: results of each subtest detailed in output
+: https://go.dev/wiki/TableDrivenTests
+
+
+
+* Namecheck project: use table-driven subtests
+
+1. Turn your table-driven tests into table-driven subtests.
+
+2. Run your tests.
+
+3. Using the `-run` flag, run only a fraction of the test cases.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+
+
+* Appending elements to a slice
+
+  names := []string{"foo"}
+
+.image img/slice_append_before.svg _ 500
+
+: https://excalidraw.com/#json=Jf2l5usIl7U7fcj8GWJJ0,4xyYhfANLHaOYvWWj6KjaA
+
+[[https://pkg.go.dev/builtin#append][A built-in function named "append"]] allows you to add elements to the end of a slice. Its last parameter is variadic, which allows you to add multiple elements in one call:
+
+  names = append(names, "bar", "baz")
+
+.image img/slice_append_after.svg _ 500
+
+: https://excalidraw.com/#json=9qoTSCzImp47KqLXlN3V1,KTBQ_exGPDUsez3PJ20XfQ
+
+
+
+* Append: under the hood
+
+When `append` is called and its slice argument's backing array is at capacity, it
+
+1. allocates a new array large enough to accommodate both the old and new elements,
+2. copies the elements of the slice's backing array into the new array,
+3. adds the new elements to the new backing array,
+4. returns a slice that points to the new array.
+
+If the old backing array is no longer referenced anywhere in the program, it becomes eligible for garbage collection:
+
+.image img/slice_append_gc.svg _ 500
+
+: https://excalidraw.com/#json=snAWYDiuwLLRDlArjyLp0,ZVZuFKw9kgpna5-maewrKA
+
+
+
+* Append: under the hood (cont'd)
+
+How exactly does `append` choose the size of the new backing array? This detail remains unspecified in the language spec. In practice, [[https://go.dev/blog/slices][the Go runtime does the right thing]].
+
+However, if you're curious, the following program allows you to peek under the hood:
+
+.play -edit src/append_grow.go  /^//START/,/^//END/
+
+A change in the slice's capacity indicates that the slice reached capacity and `append` had to allocate a new array and copy the elements of the old array into the new one.
+
+However, in this case (since you know in advance what the final length is), all this intermediate copying can be avoided by pre-allocating enough space:
+
+  s := make([]int, 0, n)
+
+
+
+* Slice aliasing
+
+Multiple slices may share the same backing array. In this case, a change to an element of one [[https://en.wikipedia.org/wiki/Aliasing_(computing)][_alias_]] will be visible through the others:
+
+.play -edit src/slice_spooky.go  /^//START/,/^//END/
+
+.image img/slice_aliasing.svg 250 _
+
+: https://excalidraw.com/#json=-mlvHgRYnKtKuTDrbtBSw,9CBzzI48q959ZPabKjvqNQ
+
+
+
+* Slice aliasing (cont'd)
+
+In particular, when you pass a slice to a function, the function operates on a copy of that slice, but both the original slice and its copy uses the same backing array:
+
+.play -edit src/slice_spooky_func.go  /^//START/,/^//END/
+
+
+
+* Inadvertent slice aliasing
+
+Bear in mind that inadvertent slice aliasing may compromise desirable type immutability and introduce subtle bugs in your code.
+
+.play -edit src/inadvertent_slice_aliasing.go  /^//START/,/^//END/
+
+When needed, resort to [[https://go.dev/wiki/CodeReviewComments#copying][defensive copying]], perhaps thanks to functions like [[https://pkg.go.dev/slices#Clone][`slices.Clone`]] and [[https://pkg.go.dev/maps#Clone][`maps.Clone`]].
+
+
+
+* Inadvertent slice de-aliasing
+
+Conversely, inadvertent slice de-aliasing is also dangerous. In particular, because the slice parameter and result of `append` may well have different backing arrays, taking the address of a slice element as you're about to append to that slice rarely is a good idea!
+
+.play -edit src/slice_dealiasing.go  /^//START/,/^//END/
+
+.image img/slice_inadvertent_dealiasing.svg 250 _
+
+: https://excalidraw.com/#json=DWUzGy5i9MH3dmAG3YkcX,iGsAWKkmRCmqyZVYnK6jDQ
+
+
+
+* Other operations on slices
+
+[[https://pkg.go.dev/builtin#copy][The built-in `copy` function]] allows you to copy elements from one slice into another. The number of elements it actually copies is the minimum of the lengths of the two slices.
+
+[[https://pkg.go.dev/builtin#clear][The built-in `clear` function]] resets all the elements of its slice argument to the zero value of the slice's element type.
+
+Finally, [[https://pkg.go.dev/slices][the `slices` package]] provides many functions for performing usual operations on slices, such as [[https://pkg.go.dev/slices#Equal][testing for equality]], [[https://pkg.go.dev/slices#Sort][sorting]], [[https://pkg.go.dev/slices#BinarySearch][running a binary search]], etc.
+
+👉 Enough about slices. Let's talk about maps.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+
+
+* Maps
+
+A map is a built-in type that represent an unordered collection of key-value pairs. Names from other languages include _dictionary_ (Python) and _associative_array_ (PHP).
+
+The type of a map of keys of type `K` and values of type `V` is denoted by
+
+  map[K]V
+
+The key type *must* be comparable:
+
+.play -edit src/incomparable_key_type.go /^//START/,/^//END/
+
+Internally, a map stores its key-value pairs in a [[https://en.wikipedia.org/wiki/Hash_table][hash table]].
+
+.image https://golangforall.com/assets/dvoe.svg 100 _
+
+
+
+* Initializing a map
+
+You can create and populate a map with a _map_literal_:
+
+.play -edit src/map_literal.go /^//START/,/^//END/
+
+Alternatively, you can use the built-in function `make` to initialize an empty map of the desired type:
+
+.play -edit src/map_make.go /^//START/,/^//END/
+
+As an optional second argument to `make`, you can specify a _size_hint_ as a non-negative integer. The resulting map will be large enough to accommodate that many key-value pairs before requiring [[https://en.wikipedia.org/wiki/Hash_table#Dynamic_resizing][internal re-allocations]].
+
+
+
+* Maps are reference types
+
+The zero value of map types is `nil`. A `nil` map isn't backed by any hash table internally.
+
+.play -edit src/map_zero.go /^//START/,/^//END/
+
+Under the hood, a map is simply a pointer to a [[https://en.wikipedia.org/wiki/Hash_table][hash table]]. Therefore, maps [[https://dave.cheney.net/2017/04/30/if-a-map-isnt-a-reference-variable-what-is-it][can be thought of as "reference types"]].
+
+A function that takes a map operates on a copy of a pointer to the same underlying hash table, and any changes the function makes to the contents of the map will be visible to the caller.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 200 _
+
+
+
+* Maps are not comparable
+
+Regardless of their key and value types, maps are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary map values.
+
+The only legal comparison is to a literal nil value.
+
+.play -edit src/map_incomparable.go /^//START/,/^//END/
+
+However, you can use [[https://pkg.go.dev/maps#Equal][the `Equal` function]] from [[https://pkg.go.dev/maps][the `maps` package]] to compare two maps whose key type and value type are comparable.
+
+.play -edit src/map_equal.go /^//START/,/^//END/
+
+
+
+* Accessing a value associated to a map key
+
+`m[k]` yields the value associated with a key `k` in a map `m`:
+
+.play -edit src/map_access.go /^//START/,/^//END/
+
+[[https://www.youtube.com/watch?v=Tl7mi9QmLns&t=1273s][For good reasons]], `m[k]` is *not* addressable:
+
+.play -edit src/map_value_not_addressable.go /^//START/,/^//END/
+
+If `k` is absent from `m`, then `m[k]` yields the zero value of `m`'s value type. To distinguish an absent key from a key present in the map but associated to the zero value, you can declare an additional variable of boolean type:
+
+.play -edit src/map_access_comma_ok.go /^//START/,/^//END/
+
+This syntax, known as the "comma-ok idiom", is also useful for other operations.
+
+: yields the actual value: you can operate on m[k] directly (e.g. m[k]++ if map value type is integer)
+
+
+
+* Storing a key-value pair in a map
+
+Adding a new key-value pair in a map is straightforward:
+
+.play -edit src/map_store.go /^//START/,/^//END/
+
+If the key was already present in the map, the value associated with it in the map is simply updated:
+
+.play -edit src/map_update.go /^//START/,/^//END/
+
+Be careful: attempts to store a value in a `nil` map cause a panic!
+
+.play -edit src/map_store_panic.go /^//START/,/^//END/
+
+
+
+* Removing a key-value pair from a map
+
+To remove a key `k` and its value from a map `m`, use built-in function `delete`:
+
+  delete(m, k)
+
+If the map is `nil` or if the key is already absent from the map, deleting the key from the map is a no-op.
+
+.play -edit src/map_delete.go /^//START/,/^//END/
+
+
+
+* Implementing a set using a map
+
+A mathematical set is an unordered collection of unique elements.
+
+Unlike Python, Go doesn't yet provide a native set type, but... maps to the rescue!
+
+.play -edit src/map_set_nothing.go /^//START/,/^//END/
+
+Feel free to create [[https://go.dev/play/p/24iPnMKvdz6][a small set abstraction]] that hides those unsightly empty structs.
+
+: amortized O(1) insertion/deletion/membership
+
+
+
+* Ranging over a map
+
+You can iterate over a map using `for` and `range`:
+
+.play -edit src/map_range.go /^//START/,/^//END/
+
+At each iteration, the variables yielded by the `range` expression hold copies of
+the key and value.
+
+Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-9][specified as nondeterministic]]! Try running the code snippet above a few times: the iteration order will typically change from one program execution to the next. See [[https://www.hyrumslaw.com/][Hyrum's Law]].
+
+
+
+* Namecheck project: table-driven subtests using a map
+
+1. Remove the field named `desc` from the declaration of your `TestCase` struct type.
+
+2. In your `TestIsValid` function, range over a `map[string]TestCase` instead of a `[]TestCase`.
+
+3. Run your tests.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+
+
+* Ranging over a map in a deterministic order
+
+If you need to range over a map in sorted order of its keys, derive a sorted sequence of the map's keys and iterate over that iterator instead of over the map directly:
+
+.play -edit src/map_range_deterministic.go /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+
+
+* Other operations on maps
+
+[[https://pkg.go.dev/builtin#clear][The built-in `clear` function]] deletes all the elements of its map argument, leaving the map empty.
+
+Moreover, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for performing usual operations on maps, such as
+
+- [[https://pkg.go.dev/maps#Keys][deriving an iterator over a map's keys]],
+- [[https://pkg.go.dev/maps#Equal][testing two maps for equality]],
+- [[https://pkg.go.dev/maps#Clone][copying a map]],
+- [[https://pkg.go.dev/maps#Copy][merging two maps]].
+
+👉 We'll use maps again later in our project. Let's learn about structs.
+
+
+
+* Declaring a named struct type
+
+A [[https://go.dev/ref/spec#Struct_types][struct type]] is a sequence of _fields_.
+
+Each field typically has both a name and a type (and sometimes a _tag_):
+
+
+  type User struct {
+    firstName string
+    lastName  string
+    isAdmin   bool
+  }
+
+All fields of a struct value are laid out in a contiguous fashion in memory; the compiler may add some padding between fields to respect [[https://en.wikipedia.org/wiki/Data_structure_alignment][alignment rules]], though.
+
+: compare to Java classes, where everything but primitive types is a reference (not memory/cache efficient)
+
+
+
+* Limitation on recursive struct types
+
+A struct type `T` cannot have a field of type `T`:
+
+  type User struct {
+    firstName string
+    lastName  string
+    spouse    User   // compilation error
+  }
+
+However, it can have fields of some composite types that involve `T`:
+
+  type User struct {
+    firstName string
+    lastName  string
+    spouse    *User
+    friends   []User
+  }
+
+
+
+* A struct type's zero value
+
+The zero value of a struct types has all its fields set to their types' zero values:
+
+.play -edit src/struct_zero.go  /^//START/,/^//END/
+
+Struct types are not "reference types". They cannot take the value `nil`.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 200 _
+
+
+
+* Constructing a struct value
+
+Consider the following type declaration:
+
+  type User struct {
+    firstName string
+    lastName  string
+    isAdmin   bool
+  }
+
+You can construct a value of this type via a *struct*literal*:
+
+  u := User{
+    firstName: "Julien",
+    lastName: "Cretel",
+  }
+
+Fields omitted from the struct literal are zero-valued. In the example above, the `isAdmin` field of `u` is `false`.
+
+The order in which the fields are specified in such a struct literal have no bearing on the resulting value.
+
+
+
+* Avoid unkeyed literals
+
+Consider the following struct type and unkeyed and keyed literals of it:
+
+.play -edit src/unkeyed_literals.go /^//START/,/^//END/
+
+[[https://go.dev/doc/go1compat#expectations][You should avoid unkeyed literals]] (esp. of cross-package struct types); in fact, the `vet` subcommand warns you about them.
+
+Their reliance on the order of the fields in the struct-type declaration makes them less expressive (harder to write and read) and brittle to changes in the declaration ([[https://www.youtube.com/watch?v=v24wrd3RwGo&t=5m2s][addition of a field]], or re-ordering of the fields).
+
+Support for unkeyed struct literals [[https://www.youtube.com/watch?v=v24wrd3RwGo&t=19m28s][may be removed in a future version of Go]].
+
+: error-prone
+: In struct literals, you can either specify all the...
+: why error prone: easier to swap the fields,
+: won't be affected by reordering of the fields in the type declaration
+: unkeyed literal acceptable for anonymous structs (e.g. in table-driven subtests)
+: legitimate reason to change order of fields: minimize footprint or fit snuggly in cache line
+: the compiler emits no warnings, but go vet does
+
+
+
+* The empty struct
+
+A remarkable struct type is the empty struct, i.e. a struct type that contains no fields:
+
+  struct{}
+
+This type can take only one value:
+
+  struct{}{}
+
+The memory footprint of this value is zero.
+
+Contrary to what you may believe, the empty struct is often useful.
+
+: conveys intent that data doesn't matter
+: sets
+: signalling with channels
+
+
+
+* Field access
+
+Field access uses the usual dot syntax present in many languages:
+
+  type User struct {
+    firstName string
+    lastName  string
+    isAdmin   bool
+  }
+
+
+  func main() {
+    u := User{firstName: "Julien"}
+    fmt.Println(u.firstName) // Julien
+  }
+
+Struct fields are addressable:
+
+  fmt.Println(&u.Name) // some address in hexadecimal
+
+
+
+* Field access via pointer
+
+Struct fields are also conveniently accessible through a pointer to the struct value in question:
+
+  type User struct {
+    firstName string
+    lastName  string
+    isAdmin   bool
+  }
+
+  func main() {
+    p := &User{firstName: "Julien"}
+    fmt.Println((*p).firstName) // ok but unnecessary
+    fmt.Println(p.firstName)    // syntactic sugar!
+  }
+
+You took advantage of this "syntactic sugar" earlier in the project when you accessed the `Body` and `StatusCode` fields of a `http.Response` value through a pointer to it. 😏
+
+
+
+* Exported or unexported fields
+
+The case of the first letter of a field's name dictates whether that field is exported.
+
+  type User struct {
+    FirstName string
+    LastName  string
+    isAdmin   bool
+  }
+
+Keeping struct fields unexported is the primary mechanism for encapsulation in Go.
+
+Completely encapsulated struct types are _opaque_: they export none of their fields.
+For example, see [[https://pkg.go.dev/time#Time][`time.Time`]] or [[https://pkg.go.dev/regexp#Regexp][`regexp.Regexp`]].
+
+Don't export the fields of your package-level struct types unless you have to (e.g. for JSON decoding).
+
+To allow clients of your package to manipulate values of struct types that have non-exported fields, provide methods (like `*regexp.Regexp`'s `MatchString` method) and,
+if needed, factory functions (like `regexp.Compile` and `regexp.MustCompile`).
+
+
+
+* Struct as function parameters
+
+Functions that have a struct as parameter operate on a entire copy of that struct!
+
+.play -edit src/struct_func_param.go /^//START/,/^//END/
+
+
+
+* Struct as function parameters (cont'd)
+
+Use pointers if you want changes to be reflected outside of the function.
+
+.play -edit src/struct_func_param_pointer.go /^//START/,/^//END/
+
+Or return the updated value as a result of the function.
+
+
+
+* Struct-field tags
+
+The declaration of a struct type may specify a _tag_ for each of the fields. A field tag is a string value that follows the field's type in the struct type's declaration.
+
+A field tag provides metadata about its field. Although field tags are in theory free-form strings, some libraries rely on format conventions that they document.
+
+For encoding/decoding purposes, field tags can be used for mapping the correspondance between names in Go values and JSON objects:
+
+  type User struct {
+    FirstName string `json:"first_name"`
+    LastName  string `json:"last_name"`
+    IsAdmin   bool   `json:"is_admin"`
+  }
+
+
+
+* Struct comparability
+
+A struct type is comparable only if the types of all its fields are themselves comparable:
+
+.play -edit src/struct_comparability.go  /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/stovepipe-hat-front.svg 200 _
+
+[[https://go.dev/play/p/axkpaElUyHI][Live demo in Playground]]
+
+
+
+* Exercise: design a binary tree
+
+A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contains some element (e.g. of integer type) and references up to two children nodes.
+
+.image img/binary_tree.svg 200 _
+
+1. Open the Go Playground.
+
+2. Declare a type named `Node` for representing one node of this kind of binary tree. We'll simply model a tree as a `*Node`, here.
+
+3. In your `main` function, declare a variable named `tree` that represents the tree shown above; then print that value.
+
+: https://excalidraw.com/#json=b_AryM5iFA9oUa2kMT6sd,saZDan7wON3vgjTYRDYsgQ
+: better: type Tree struct { root *Node }
+
+
+
+* Exercise: design a binary tree (cont'd)
+
+4. Implement the following function:
+
+  func Size(t *Node) int
+
+It should return the number of nodes in its argument.
+
+5. Implement the following function:
+
+  func Sum(t *Node) int
+
+It should return the sum of the elements of all the nodes in its argument.
+
+A solution is available on the [[https://go.dev/play/p/_IobLxneezU][Go Playground]]. Is it satisfactory? What if we wanted to use another type for node values? Discuss.
+
+
+
+* Embedded fields
+
+_Embedded_fields_ are fields that have a type but no explicit name; their effective name is derived from the name of their type:
+
+  type Manager struct {
+    *User
+    title string
+  }
+
+The type of an embedded field can be a named type or even a pointer to a named type (as in the example above), but some limitations apply:
+
+.play -edit src/embedded_fields_limitations.go /^//START/,/^//END/
+
+
+
+* Embedded fields (cont'd)
+
+Embedding is useful (though not necessary) for [[https://en.wikipedia.org/wiki/Object_composition][composition]] because the identifiers (methods and, when applicable, struct fields) of the embedded type get promoted to identifiers on the embedding struct type.
+
+When put to good use, embedded fields can considerably reduce composition-related boilerplate. [[https://www.youtube.com/watch?v=JKJnGWRF30Q&t=1830s][Good use cases]] can be found in [[https://pkg.go.dev/context][the `context` package]], though they require a preliminary understanding of interfaces.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+: https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/context/context.go;l=416
+
+
+
+* Embedded fields (cont'd)
+
+However, embedded fields are the subject of much abuse: many people coming to Go from languages that support some form of inheritance rely on embedded fields in a doomed attempt to emulate the type hierarchies that they're used to.
+
+.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
+
+My personal advice is to
+
+- eschew embedded fields until you have a firmer grasp of the Go language,
+- use embedded fields only in order to compose behavior (rather than data),
+- embed only non-exported types in your exported types.
+
+We won't discuss embedded fields further in the remainder of this course.
+
+
+
+* A glimpse of parametric polymorphism in Go
+
+Go 1.18 added support for _parametric_polymorphism_ ([[https://www.youtube.com/watch?v=RIvL2ONhFBI&t=1020s][a.k.a. _generics_]]) to the language. Types and functions can now be parameterized by other types, called _type_parameters_:
+
+.play -edit src/generic_tree.go /^//START/,/^//END/
+
+`any`, which acts as a _type_constraint_ on `E` above, is a [[https://pkg.go.dev/builtin#any][an alias for `interface{}`]].
+
+
+
+* A glimpse of parametric polymorphism in Go (cont'd)
+
+You don't need to master generics at this stage of your Go learning, but a basic understanding of their syntax will benefit you.
+
+Parametric polymorphism promotes flexibility while providing compile-time guarantees that the empty interface simply cannot.
+
+You may never write generic code yourself, but you will likely use some of the standard-library packages that provide generic functions, such as [[https://pkg.go.dev/slices][`slices`]], [[https://pkg.go.dev/maps][`maps`]], and [[https://pkg.go.dev/cmp][`cmp`]].
+
+For more details about parametric polymorphism in Go, see [[https://go.dev/doc/tutorial/generics][Tutorial: Getting started with generics]].
+
+👉 Now, let's learn about methods.
