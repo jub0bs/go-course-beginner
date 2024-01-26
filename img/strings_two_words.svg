@@ -1,0 +1,16 @@
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 185.30303955078125 162.75975036621094" width="370.6060791015625" height="325.5195007324219">
+  <!-- svg-source:excalidraw -->
+  
+  <defs>
+    <style>
+      @font-face {
+        font-family: "Virgil";
+        src: url("https://excalidraw.com/Virgil.woff2");
+      }
+      @font-face {
+        font-family: "Cascadia";
+        src: url("https://excalidraw.com/Cascadia.woff2");
+      }
+    </style>
+  </defs>
+  <g stroke-linecap="round" transform="translate(10.10125732421875 10) rotate(0 82.60089111328125 35.21150207519531)"><path d="M0.89 0.23 C42.71 0.38, 89.2 -0.16, 163.44 -0.79 M-0.79 -0.83 C60.59 -0.99, 123.26 -1.63, 165.36 0.01 M165.36 0.51 C166.07 21.17, 163.78 41.64, 163.42 72.32 M165 0.27 C164.12 17.31, 164.39 35.03, 165.84 69.46 M166.55 70.75 C117.07 73.28, 67.32 72.95, 1.63 68.78 M164.22 70.36 C110.01 69.66, 54.51 69.82, -0.55 71.38 M0.25 71.57 C2.08 56.77, 1.01 38.89, -1.36 1.28 M-0.44 69.99 C0.55 50.26, 0.22 31.47, 0.8 -0.35" stroke="#000000" stroke-width="1" fill="none"></path></g><g stroke-linecap="round" transform="translate(10 82.33674621582031) rotate(0 82.60089111328125 35.21150207519531)"><path d="M-0.3 -1.59 C37.07 -0.34, 69.96 -0.27, 166.23 -0.44 M0.07 -0.36 C61.48 1.33, 122.97 1.17, 165.88 0.46 M165.41 -0.69 C164.9 26.1, 165.43 50.97, 165.71 71.17 M166.08 -0.73 C165.48 26.01, 165.69 53.11, 165.4 70.08 M167.12 72.26 C110.85 71.63, 54.08 68.16, 0.02 68.54 M164.38 71.3 C123.05 71.41, 81.3 70.9, -0.22 70.17 M-0.66 69.04 C1.62 46.47, -0.21 19.47, -0.15 -0.95 M-0.77 70.07 C-1.2 46.53, 0.19 20.38, -0.04 0.12" stroke="#000000" stroke-width="1" fill="none"></path></g><g transform="translate(56.69964599609375 107.62109375) rotate(0 33.5 12.5)"><text x="0" y="18" font-family="Virgil, Segoe UI Emoji" font-size="20px" fill="#000000" text-anchor="start" style="white-space: pre;" direction="ltr">int (13)</text></g><g transform="translate(50.5831298828125 31.68145751953125) rotate(0 45 12.5)"><text x="0" y="18" font-family="Virgil, Segoe UI Emoji" font-size="20px" fill="#000000" text-anchor="start" style="white-space: pre;" direction="ltr">*[13]byte</text></g></svg>
