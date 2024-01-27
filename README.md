@@ -3,7 +3,8 @@
 This course is an introduction to Go for people
 who already have some programming experience.
 
-The course material consists of slides,
+The course material consists of slides
+(broken down into five parts for, easier navigation)
 some of which contain editable and executable code samples.
 You can run the slideshow on your machine after following a few simple steps:
 
@@ -40,7 +41,7 @@ You can run the slideshow on your machine after following a few simple steps:
     The output should contain some local URL (like `http://127.0.0.1:3999`).
 
 6. Visit the URL from step 5 in your browser,
-    then click on `main.slide` to start the slideshow.
+    then click on "00_prelude.slide" to start the first slideshow.
 
 [install]: https://go.dev/doc/install
 [present]: https://pkg.go.dev/golang.org/x/tools/cmd/present
