@@ -751,7 +751,7 @@ A blank import makes none of the imported package's exported identifiers availab
 
 The sole reason for using a blank import to import a package is the side effects carried out during [[https://go.dev/ref/spec#Package_initialization][the package's initialization]].
 
-Blank imports are used in the so-called _registration_pattern_ in packages such as `database/sql` and `image`.
+Blank imports play a part in the controversial _registration_pattern_, which is used in subpackages of the `image` package (such as [[https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/image/png/reader.go;l=1059][`image/png`]]) and in third-party SQL drivers like [[https://github.com/go-sql-driver/mysql][github.com/go-sql-driver/mysql]].
 
 Use blank imports if the libraries you import require you to, but do not emulate the registration pattern in your own packages.
 
@@ -912,11 +912,11 @@ Automatic memory management and the absence of pointer arithmetic contribute to 
 
 * Variable declaration
 
-You can declare variables at the package level or locally within a function:
+You can declare variables at the package level or locally within a function. A _local_variable_ *must* be used, or compilation will fail.
 
 .play -edit src/variables.go
 
-A _local_variable_ *must* be used, or compilation will fail.
+Variable names (and other identifiers in Go) [[https://go.dev/ref/spec#Identifiers][must]] start with a Unicode letter followed by an arbitrary number of Unicode letters and Unicode digits.
 
 Go's declaration syntax departs from C's in many ways. Rob Pike clarified the motivations behind this departure in [[https://go.dev/blog/declaration-syntax][a post entitled _Go's_Declaration_Syntax_]].
 
@@ -1006,11 +1006,7 @@ When you use the `:=` operator, always ask yourself whether you're declaring new
 
 
 
-* Variable naming
-
-Identifiers in Go [[https://go.dev/ref/spec#Identifiers][must]] start with a Unicode letter followed by an arbitrary number of Unicode letters and Unicode digits:
-
-  identifier = letter { letter | unicode_digit } .
+* Naming conventions for variables
 
 You should [[https://go.dev/wiki/CodeReviewComments#variable-names][strive for conciseness]]; [[https://go.dev/talks/2014/names.slide#4][the smaller the scope, the shorter the name]].
 
@@ -1057,7 +1053,7 @@ In some cases, you have no option but to use the `var` keyword...
 
   package foo
 
-  // maxConcurrent := 16    // compilation error: non-declaration statement outside function body
+  // maxConcurrent := 16 // compilation error: non-declaration statement outside function body
   var maxConcurrent = 16 // works fine
 
 *To*declare*a*variable*whose*desired*type*cannot*be*inferred*
@@ -4322,7 +4318,7 @@ But no need to repeat yourself! Interface composition is easier than this in Go.
 
 * Easier interface composition
 
-You can declare a broader interface type by simply listing the interfaces it's made of:
+You can declare a broader interface type simply by [[https://go.dev/ref/spec#Embedded_interfaces][_embedding_]] the constitutive interfaces in it:
 
   type ReadCloser interface {
     Reader
@@ -6378,7 +6374,7 @@ However, you may want to force that goroutine to terminate that goroutine earlie
 
 * Canceling goroutines (cont'd)
 
-One trick for controlling the lifespan of goroutines relies on  a `select` statement, and a parameter of type `<-chan`struct{}`:
+One trick for controlling the lifespan of goroutines relies on  a `select` statement and a parameter of type `<-chan`struct{}`:
 
   func cancelable(done <-chan struct{}) {
     for {
