@@ -4,7 +4,7 @@ This course is an introduction to Go for people
 who already have some programming experience.
 
 The course material consists of slides
-(broken down into five parts for, easier navigation)
+(broken down into five parts, for easier navigation)
 some of which contain editable and executable code samples.
 You can run the slideshow on your machine after following a few simple steps:
 
