@@ -1,4 +1,4 @@
-# Go course (beginner)
+# Introduction to Go
 
 This course is an introduction to Go for people
 who already have some programming experience.
