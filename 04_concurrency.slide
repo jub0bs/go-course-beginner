@@ -1218,7 +1218,7 @@ The Go community has produced several Web frameworks but, in my opinion, they ty
 
 My advice ([[https://www.youtube.com/watch?v=Jm8UJ6cVYMw][and others']]) is to resist the temptation to reach for a Web framework, at least at first. The lowly `net/http` package actually goes a long way, especially since Go 1.22, which [[https://tip.golang.org/doc/go1.22#enhanced_routing_patterns][welcomed more powerful routing features]].
 
-If needed, seek additional (possibly third-party) middleware libraries that do one thing (e.g. CSRF protection, [[https://pkg.go.dev/github.com/jub0bs/fcors][CORS]], etc.) and do it well. [[https://en.wikipedia.org/wiki/Unix_philosophy][Unix philosophy]] for the win!
+If needed, seek additional (possibly third-party) middleware libraries that do one thing (e.g. CSRF protection, [[https://pkg.go.dev/github.com/jub0bs/cors][CORS]], etc.) and do it well. [[https://en.wikipedia.org/wiki/Unix_philosophy][Unix philosophy]] for the win!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 100 _
 
@@ -1357,11 +1357,11 @@ So far, you've exclusively relied on Go's standard library but, thanks to Go's m
 
 .image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 150 _
 
-For example, you may want to configure your server for [[https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS][CORS]], so that your API can be consumed by a browser-based [[https://developer.mozilla.org/en-US/docs/Glossary/Origin][cross-origin]] client. The most popular CORS middleware library for Go may be [[https://github.com/rs/cors][rs/cors]], but I [[https://jub0bs.com/posts/2023-02-08-fearless-cors/][strongly recommend]] my own: [[https://github.com/jub0bs/fcors][jub0bs/fcors]].
+For example, you may want to configure your server for [[https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS][CORS]], so that your API can be consumed by a browser-based [[https://developer.mozilla.org/en-US/docs/Glossary/Origin][cross-origin]] client. The most popular CORS middleware library for Go may be [[https://github.com/rs/cors][rs/cors]], but I [[https://jub0bs.com/posts/2023-02-08-fearless-cors/][strongly recommend]] my own: [[https://github.com/jub0bs/cors][jub0bs/cors]].
 
 To add this CORS middleware library as a dependency to your project, you would run
 
-  go get github.com/jub0bs/fcors
+  go get github.com/jub0bs/cors
 
 This command downloads and caches the module locally in `$GOPATH/pkg/mod`.
 
@@ -1371,11 +1371,11 @@ This command downloads and caches the module locally in `$GOPATH/pkg/mod`.
 
 Running that `go`get` command adds the following line to your `go.mod` file:
 
-  require github.com/jub0bs/fcors v0.7.0 // indirect
+  require github.com/jub0bs/cors v0.1.2 // indirect
 
 Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on that module in your code.
 
-Once you actually use package `github.com/jub0bs/fcors` in your code, you'll be able to remove that "indirect" comment by running the following command:
+Once you actually use package `github.com/jub0bs/cors` in your code, you'll be able to remove that "indirect" comment by running the following command:
 
   go mod tidy
 
@@ -1405,11 +1405,11 @@ Don't forget to track changes to this file in your version-control system!
 
 1. Run the following command within your project to download the dependency:
 
-  go get github.com/jub0bs/fcors
+  go get github.com/jub0bs/cors
 
 2. Inspect the contents of the `go.mod` file and of the newly created `go.sum` file.
 
-3. Import `github.com/jub0bs/fcors` in your server's `main.go`.
+3. Import `github.com/jub0bs/cors` in your server's `main.go`.
 
 4. In your main function, instantiate a CORS middleware and apply it to the default `http.ServeMux`.
 

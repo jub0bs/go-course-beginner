@@ -319,7 +319,7 @@ Go comes with several predeclared names accessible from anywhere in your code. W
     a general comment
   */
 
-The documentation of a package is written as comments in the package's source file(s). For an example, see [[https://github.com/jub0bs/fcors/blob/main/fcors.go]].
+The documentation of a package is written as comments in the package's source file(s). For an example, see [[https://github.com/jub0bs/cors/blob/main/cors.go]].
 
 : won't talk too much about documentation in this first course
 
@@ -1738,31 +1738,7 @@ The name should be [[https://www.youtube.com/watch?v=ltqV6pDKZD8&t=734s][a clue 
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
-
-
-* Naming conventions for packages (cont'd)
-
-Finally, don't prevent the users of your package from choosing a good identifier.
-
-For example, if you choose "cors" for the name of your [[https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS][CORS]]-middleware library package, its users cannot declare a variable named "cors" without shadowing the name of your package.
-
-This consideration drove me to name [[https://pkg.go.dev/github.com/jub0bs/fcors][my own library]] "fcors" rather than simply "cors":
-
-  import "github.com/jub0bs/fcors"
-
-  func main() {
-    cors, err := fcors.AllowAccess(
-      fcors.FromOrigins("https://example.com"),
-      fcors.WithMethods(
-        http.MethodGet,
-        http.MethodPost,
-      ),
-      fcors.WithRequestHeaders("Authorization"),
-    )
-    // ...
-  }
-
-
+: also, don't prevent the users of your package from choosing a good identifier.
 : concise: fmt, not format; strconv, not stringconversion
 : avoid painfully generic (!) names / catchall names
 
