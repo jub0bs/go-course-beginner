@@ -153,7 +153,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.21.6
+  go 1.22.4
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
@@ -319,7 +319,7 @@ Go comes with several predeclared names accessible from anywhere in your code. W
     a general comment
   */
 
-The documentation of a package is written as comments in the package's source file(s). For an example, see [[https://github.com/jub0bs/cors/blob/main/cors.go]].
+The documentation of a package is written as comments in the package's source file(s). For an example, see [[https://github.com/jub0bs/cors/blob/main/config.go]].
 
 : won't talk too much about documentation in this first course
 
