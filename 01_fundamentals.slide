@@ -1412,15 +1412,15 @@ Instead, invert the conditions and deal with failure cases first:
 
   v, err := fallibleFunction()
   if err != nil {
+          // failure: handle 1st error
+  }
+  v2, err := fallibleFunction2()
+  if err != nil {
           // failure: handle 2nd error
   }
-  v2, err := faillibleFunction2()
-  if err == nil {
-          // failure: handle 2nd error
-  }
-  v3, err := faillibleFunction3()
-  if err == nil {
-          // failure: handle 2nd error
+  v3, err := fallibleFunction3()
+  if err != nil {
+          // failure: handle 3rd error
   }
   // happy path <--------------
 
