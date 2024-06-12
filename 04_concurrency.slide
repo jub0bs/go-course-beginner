@@ -38,7 +38,7 @@ but can be difficult to learn and master.
 
 Moreover, even for seasoned Gophers, reasoning about concurrent programs remains harder than about sequential ones.
 
-.image https://i.stack.imgur.com/QjsGt.png 200 _
+.image https://go.dev/talks/2012/waza/gophersimple2.jpg 200 _
 
 : starting a goroutine is deceptively simple: three keystrokes; https://www.youtube.com/watch?v=rFejpH_tAHM&t=880s
 : hence being relegated to the end of many learning resources
@@ -620,9 +620,9 @@ This unfortunate behavior caused so many bugs that [[https://www.youtube.com/wat
 
 * Namecheck project: check each user name concurrently (fan out)
 
-1. Extract the body of the for-range loop that iterates on your `[]namecheck.Checker` slice as a function in your `main` package:
+1. Extract the body of the for-range loop that iterates on your `[]Checker` slice as a function in your `main` package:
 
-  func check(checker namecheck.Checker, username string)
+  func check(checker Checker, username string)
 
 2. Add a parameter of type `*sync.WaitGroup` to your `check` function.
 
@@ -1275,7 +1275,6 @@ This bug is particularly insidious because it will only manifest itself under su
 
 
 
-
 * Namecheck project: turn your CLI tool into a Web server (cont'd)
 
 5. Adjust `handleCheck`'s implementation:
@@ -1371,7 +1370,7 @@ This command downloads and caches the module locally in `$GOPATH/pkg/mod`.
 
 Running that `go`get` command adds the following line to your `go.mod` file:
 
-  require github.com/jub0bs/cors v0.1.2 // indirect
+  require github.com/jub0bs/cors v0.2.0 // indirect
 
 Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on that module in your code.
 

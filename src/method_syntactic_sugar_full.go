@@ -13,7 +13,7 @@ func main() {
 	v.Val()
 	p.Ptr()
 	p.Val() // syntactic sugar: the compiler implicitly derefences p
-	v.Ptr() // syntactic sugar: the compiler implicitly takes the address of variable f
+	v.Ptr() // syntactic sugar: the compiler implicitly takes the address of variable v
 	// T(42).Ptr() // compilation error! T(42) is not an addressable value
 }
 

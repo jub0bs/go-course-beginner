@@ -386,7 +386,7 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 4. Adjust your tests in `github_test.go` and `main.go` accordingly.
 
-5. Repeat steps 1-4 for the `reddit` package.
+5. Repeat steps 1-3 for the `reddit` package.
 
 `IsAvailable` has now gained in flexibility but, because it's tied to the concrete type `*http.Client`, it still lacks testability... It's finally time to talk about interfaces! 👉
 
@@ -558,7 +558,7 @@ Therefore, peppering empty interfaces all over the business layer of your applic
 
 * Keep interfaces small and focused
 
-The [[https://en.wikipedia.org/wiki/Interface_segregation_principle][Interface-Segregation principle]] states that clients should not be forced to depend on methods that they do not use. Accordingly, interface types should be be [[https://www.youtube.com/watch?v=zzAdEt3xZ1M&t=12m49s][just specific enough for the job, but no more]].
+The [[https://en.wikipedia.org/wiki/Interface_segregation_principle][Interface-Segregation principle]] states that clients should not be forced to depend on methods that they do not use. Accordingly, interface types should be [[https://www.youtube.com/watch?v=zzAdEt3xZ1M&t=12m49s][just specific enough for the job, but no more]].
 
 Refrain from _interface_pollution_, i.e. declaring interface types with many methods. Smaller interfaces are comparatively easier to satisfy and are more composable.
 
@@ -736,7 +736,7 @@ The `io` package provides two complementary interface types: `Reader` and `Write
     Read(dst []byte) (int, error)
   }
 
-`io.Writer` represents a _sink_ of bytes. It's satisfied by `*.bytes.Buffer`, `*os.File`, etc.
+`io.Writer` represents a _sink_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
 
   type Writer interface {
     Write(src []byte) (int, error)
@@ -849,12 +849,12 @@ Beware, though: comparing two interface values sharing the same dynamic type cau
 The zero value of basic interfaces is `nil`. A `nil` interface value has no dynamic type.
 
  var i any // dynamic type: none; dynamic value: nil
- i == nil // true
+ i == nil  // true
 
 However, an interface value is equal to `nil` only if it has no dynamic type! An interface value that holds a `nil` value of some concrete type is not itself equal to `nil`! 🤯
 
   var checker Checker = (*github.GitHub)(nil) // dynamic type: *github.GitHub; dynamic value: nil
-  checker == nil // false!
+  checker == nil                              // false!
 
 This subtlety is a major source of initial confusion for newcomers to the language.
 If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]], especially in connection with error handling.
@@ -1078,11 +1078,11 @@ We'll declare our interface type in a new package at the root of the module. But
 
 2. Make `*stub.SuccessfulGetter` satisfy your `namecheck.Getter` interface. Its `Get` method should unconditionally succeed and return the specified status code.
 
-3. You'll need to set response body with an empty but non-`nil` body; use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
+3. Because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`. Use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
 
 4. Now write a few unit tests for `github.GitHub`'s `IsAvailable` method and run them.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
 : https://www.martinfowler.com/articles/mocksArentStubs.html
 : rationale for the package name: https://www.youtube.com/watch?v=cAWlv2SeQus&t=1685s
