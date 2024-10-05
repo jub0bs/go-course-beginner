@@ -122,7 +122,7 @@ Go's approach to concurrent programming is largely inspired by [[https://dl.acm.
 
 In CSP, concurrent programs are structured as independent processes that execute sequentially and communicate by passing messages.
 
-.image https://i.stack.imgur.com/QjsGt.png 150 _
+.image https://go.dev/talks/2012/waza/gophersimple2.jpg 150 _
 
 [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=880s][The three fundamental mechanisms for concurrency in Go]] are
 
@@ -179,9 +179,9 @@ The `go` keyword spawns a new goroutine: it causes the function call to which it
   go grindCoffeeBeans(nbBeans)
   go frothMilk()
 
-`go` statements do not block; they _immediately_ yield control to the next instruction.
-
 The function's arguments (if any) are evaluated _before_ the goroutine starts.
+
+`go` statements do not block; they _immediately_ (after all arguments have been evaluated) yield control to the next instruction.
 
 The function's results (if any) are lost, but channels can be used to communicate values between goroutines.
 
@@ -580,7 +580,7 @@ You may only very rarely observe such a data race, but don't be fooled: the prog
 
 * Go's race detector
 
-Go provides a [[https://go.dev/blog/race-detector][race detector]], i.e. a tool that can detect data races during execution. Caution: the race detector is [[https://go.dev/doc/articles/race_detector][not guaranteed to catch _all_ data races]].
+Go provides a [[https://go.dev/blog/race-detector][race detector]]. Note that it reports a data race if one occurs during execution, but [[https://go.dev/doc/articles/race_detector][it doesn't report synchronization bugs!]]
 
   $ go run -race main.go
   0
@@ -1279,8 +1279,7 @@ This bug is particularly insidious because it will only manifest itself under su
 
 5. Adjust `handleCheck`'s implementation:
 
-- If the client provided no username via a query param named "`username`",
-  send an empty response with status code `400`Bad`Request` and terminate the handler.
+- If the client provided no username (or an empty username) via a query param named "`username`", send an empty response with status code `400` and terminate the handler.
 - Otherwise, write your slice of results in the response. Hint: use `fmt.Fprint`.
 
 6. Add a `main` function in `cmd/server/main.go`. In it, register your `handleCheck` handler on pattern `GET`/check`, then start the server on port 8080.
