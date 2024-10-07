@@ -5,18 +5,19 @@ import (
 )
 
 // START OMIT
-func adder() func(int) int {
-	var sum int // HL
-	return func(x int) int {
-		sum += x   // HL
-		return sum // HL
-	}
+func main() {
+	f := falseAfterN(4)
+	fmt.Println(f(), f(), f(), f(), f(), f())
 }
 
-func main() {
-	add := adder()
-	for i := 0; i < 10; i++ {
-		fmt.Printf("index: %d; total: %d\n", i, add(i))
+func falseAfterN(n uint) func() bool {
+	var count uint // captured by the anonymous function below // HL
+	return func() bool {
+		if count < n { // HL
+			count++ // HL
+			return true
+		}
+		return false
 	}
 }
 

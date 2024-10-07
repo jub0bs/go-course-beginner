@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	"sort"
-
-	"golang.org/x/exp/maps"
+	"maps"
+	"slices"
 )
 
 func main() {
 	// START OMIT
-	m := map[string]string{"red": "#ff0000", "blue": "#0000ff", "green": "#00ff00"}
-	keys := maps.Keys(m)
-	sort.Strings(keys)
-	for _, k := range keys {
+	m := map[string]string{
+		"red":   "#ff0000",
+		"blue":  "#0000ff",
+		"green": "#00ff00",
+	}
+	for _, k := range slices.Sorted(maps.Keys(m)) {
 		fmt.Printf("%s: %q\n", k, m[k])
 	}
 	// END OMIT

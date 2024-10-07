@@ -55,7 +55,7 @@ If you haven't already, install Go by following the guidance from [[https://go.d
 You can check which version of Go is installed by running the following shell command:
 
   $ go version
-  go version go1.22.4 darwin/amd64
+  go version go1.23.2 darwin/amd64
 
 To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
 
@@ -133,7 +133,7 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2014: Kubernetes; first GopherCon conference
 - 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
 - 2022: Go 1.18 adds generics to the language.
-- 2024: Go 1.22 (the latest minor version) is released.
+- 2024: Go 1.23 (the latest minor version) is released.
 
 : Russ and ILT joined the Go Team
 : - between 2007 and 2009: https://research.swtch.com/back
@@ -159,8 +159,6 @@ In fact, Go programmers are affectionately known as "Gophers".
 
 * What kind of language is Go?
 
-: Although Go has its roots in C, it is in many ways a more powerful language.
-
 *Concurrent*programming*
 
 Go's [[https://en.wikipedia.org/wiki/Concurrent_computing][concurrency]] features let you cleanly delineate independent tasks in your code.
@@ -178,6 +176,9 @@ Go has no concept of [[https://en.wikipedia.org/wiki/Inheritance_(object-oriente
 *Functional*aspects*
 
 Go supports [[https://en.wikipedia.org/wiki/First-class_function][first-class functions]], multiple function results, [[https://en.wikipedia.org/wiki/Recursion#In_computer_science][recursion]], and [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][closures]].
+
+: Although Go has its roots in C, it is in many ways a more powerful language.
+: memory safety: no pointer arithmetic, no dangling pointers, bounds checks
 
 : Can a language without inheritance be described as object-oriented? Sure!
 : [[https://www.infoworld.com/article/2073649/why-extends-is-evil.html][Allen Holub - Why extends is evil (InfoWorld 2003)]]

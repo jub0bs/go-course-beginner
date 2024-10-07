@@ -153,7 +153,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.22.4
+  go 1.23.2
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
@@ -269,7 +269,7 @@ Go also lacks keywords like `try`, `catch`, and `finally`: this should be no sur
 * Keywords
 
 *defer* allows you to unconditionally execute some code at the end of a function.
-It's useful for cleanup tasks, such as releasing resources.
+It's useful for cleanup tasks, such as releasing _resources_ (i.e. something whose supply is finite and that requires management).
 
 *range*, used in conjunction with `for`, allows you to iterate over various data structures.
 
@@ -483,7 +483,7 @@ or when one of your source files uses multiple major versions of a _module_:
   import "github.com/jub0bs/foo"
   import foov2 "github.com/jub0bs/foo/v2"
 
-: more on this later
+: similar to `import numpy as np` in Python
 
 
 
@@ -692,7 +692,7 @@ However, you cannot omit both the type and the right-hand-side expression, becau
 
 * Short variable declaration with :=
 
-The `:=` operator allows you to declare a variable by specifying only its initial value and letting the compiler infer the type from the right-hand-side expression:
+The `:=` operator lets you declare _initialize_ a variable, whose type is inferred from the right-hand-side expression:
 
   msg := "Hello, World"
 
@@ -1297,6 +1297,9 @@ A [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][_closure_]] is
 
 .play -edit src/function_closure.go /^//START/,/^//END/
 
+: lambdas are sometimes as arrow functions in some ecosystems
+: alternative example: https://go.dev/play/p/iq16zw9kc7Z
+
 
 
 * Recursion
@@ -1359,29 +1362,37 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 * Don't ignore errors
 
-Few errors should be ignored. You can deviate from this general rule in some cases,
-particularly with `fmt.Println` and friends.
+Few errors should be ignored. In some specific cases, you can deviate from this general rule; for instance, even though `fmt.Println` returns an `error` result, you don't typically check that error.
 
-You simply cannot assume success of a fallible function and the soundness of its other results (if any) if you don't check the error it returns!
+  if _, err := fmt.Println("Hello, World!"); err != nil { // unnecessary
 
-Go forces you to think about failure cases. Error handling in Go can be perceived as repetitive and tedious, but that's actually [[https://changelog.com/gotime/16#transcript-68][a strength of the language]]. Many software outages [[https://yonglezh-purdue.github.io/files/osdi14-simpletesting.pdf][can indeed be attributed]] to improper error handling.
+Some fallible functions document that they return partial results even when they fail:
 
-You may hate Go's stance on error handling but, in time, you will grow to love it!
+.play -edit src/partial_results.go /^//START/,/^//END/
+
+However, in general, if a fallible function returns an `error` value that is not `nil`, you should assume that all its other results are unusable!
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+
+
+* Did Go push error handling too far?
+
+Many newcomers perceive error handling in Go as verbose, tedious, and repetitive. In most cases, that's because [[https://www.youtube.com/watch?v=YZhwOWvoR3I][they haven't been handling failures properly in their programs before coming to Go]].
+
+Go, rather than sweeping failure cases under the rug, forces you to think about them and eliminate them as you go.
+
+This approach [[https://changelog.com/gotime/16#transcript-68][arguably is a strength of the language]]. Many software outages [[https://yonglezh-purdue.github.io/files/osdi14-simpletesting.pdf][can indeed be attributed]] to improper error handling.
+
+You may hate Go's approach to error handling right now but, in time, you will grow to love it!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
-: for some functions, a non-nil error may indicate only a partial failure (e.g. Read)
+: in annual survey, frustration with error handling ranks high
+: several abandoned proposals to improve error handling. Good!
 : just restart the container? what if you have long-running jobs (e.g. billing)? that would add latency to your system
 
 
-
-
-  v, err := fallibleFunction()
-  if err == nil {
-    // success; do something interesting with v
-  } else {
-    // failure: handle error
-  }
 
 * Line of sight
 
@@ -1408,7 +1419,7 @@ Don't confine the happy path of your functions to nested "if" branches, or you'l
 
 * Line of sight (cont'd)
 
-Instead, invert the conditions and deal with failure cases first:
+Instead, invert the condition and handle any failure immediately after the operation that may cause it:
 
   v, err := fallibleFunction()
   if err != nil {
@@ -1424,9 +1435,10 @@ Instead, invert the conditions and deal with failure cases first:
   }
   // happy path <--------------
 
-This idiom (applicable to other languages) greatly contributes to the code readability.
+This idiom (applicable to other languages) greatly contributes to code readability.
 
-By avoiding the `else` keyword and eliminating failure cases as they arise, you [[https://go.dev/doc/effective_go#if][keep the happy path on the left]], you [[https://en.wikibooks.org/wiki/Computer_Programming/Coding_Style/Minimize_nesting][minimize nesting]], you [[https://www.youtube.com/watch?v=yd_rtwYaXps&t=33m30s][reduce the cognitive load]] required to read and understand your code.
+By avoiding the `else` keyword and eliminating failure cases as you encounter them,
+you [[https://go.dev/doc/effective_go#if][keep the happy path on the left]] and you [[https://en.wikibooks.org/wiki/Computer_Programming/Coding_Style/Minimize_nesting][minimize nesting]], thereby [[https://www.youtube.com/watch?v=yd_rtwYaXps&t=33m30s][reducing the cognitive load]] required to read and understand your code.
 
 
 
@@ -1450,15 +1462,15 @@ For more about this idiom and its relevance in Go, consult the following resourc
 
 What should you do when a function call returns a non-`nil` error?
 
-  func YourFunction(username string) bool {
-    v, err := foo(username)
+  func IsAvailable(username string) bool {
+    v, err := fallibleFunction(username)
     if err != nil {
       // ???
     }
     // ...
   }
 
-The best course of action depends on the context...
+The best course of action depends on the situation...
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 200 _
 
@@ -1468,23 +1480,31 @@ The best course of action depends on the context...
 
 If your function cannot handle a non-`nil` error value, simply bubble it up to the caller:
 
-  func YourFunction(username string) (bool, error) {
-    v, err := foo(username)
+  func IsAvailable(username string) (bool, error) {
+    v, err := fallibleFunction(username)
     if err != nil {
       return false, err
     }
     // ...
   }
 
-Additionally, you can add some contextual information about the failure by wrapping the error value into a higher-level one, thereby building a chain of errors. In particular, see the documentation of [[https://pkg.go.dev/fmt#Errorf][the `fmt.Errorf` function]] about the `%w` formatting directive.
 
-  func YourFunction(username string) (bool, error) {
-    v, err := foo(username)
+
+* Wrapping errors
+
+In some cases, you may want to add some contextual information to a low-level error while maintaining programmatic access to the latter.
+
+You can do so by wrapping the low-level error value into a higher-level one. The special formatting directive `%w` lets you do that easily with [[https://pkg.go.dev/fmt#Errorf][`fmt.Errorf`]]:
+
+  func IsAvailable(username string) (bool, error) {
+    v, err := fallibleFunction(username)
     if err != nil {
       return false, fmt.Errorf("failure to check %q: %w", username, err)
     }
     // ...
   }
+
+In fact, an `error` value can form, not just an error _chain_, but a whole error _tree_, with lower nodes containing lower-level details about the overall failure; see [[https://x.com/jub0bs/status/1631343923678388225][this example]].
 
 
 
@@ -1492,8 +1512,8 @@ Additionally, you can add some contextual information about the failure by wrapp
 
 In other cases, you may not want to expose the error to the caller and instead absorb/consume it, perhaps by logging it or printing it to stderr:
 
-  func YourFunction(username string) bool {
-    v, err := foo(username)
+  func IsAvailable(username string) bool {
+    v, err := fallibleFunction(username)
     if err != nil {
       log.Println(err)
     }
@@ -1511,8 +1531,8 @@ This approach is best reserved to the `main` function (or, at least, high in the
 
 However you choose to handle a non-`nil` error, do _not_ both report it and consume it!
 
-  func YourFunction(username string) (bool, error) {
-    v, err := foo(username)
+  func IsAvailable(username string) (bool, error) {
+    v, err := fallibleFunction(username)
     if err != nil {
       log.Println(err)
       return false, err
@@ -1531,15 +1551,17 @@ If the caller does the same, and the caller's caller does the same, etc., you wi
 
 * Beyond if err != nil
 
-When you get a non-`nil` error, you can also ask programmatic questions about the nature of that error or the contents of its error chain.
+When you get an `error` value, you can go beyond simply asking whether it's `nil`.
 
-For instance, to find out whether the error chain contains some sentinel error value (such as [[https://pkg.go.dev/context#DeadlineExceeded][`context.DeadlineExceeded`]]), you can use [[https://pkg.go.dev/errors#Is][the `errors.Is` function]]:
+You can ask programmatic questions about the nature of the error or, when applicable, about the error tree that stems from it.
+
+For instance, to find out whether the error tree contains some sentinel error value (such as [[https://pkg.go.dev/context#DeadlineExceeded][`context.DeadlineExceeded`]]), you can use [[https://pkg.go.dev/errors#Is][the `errors.Is` function]]:
 
   if errors.Is(err, context.DeadlineExceeded) {
-    // err (or a node in its error chain) is context.DeadlineExceeded
+    // err (or a node in its error tree) is context.DeadlineExceeded
   }
 
-[[https://pkg.go.dev/errors][The `errors` package]] allows you to ask more sophisticated questions, such as whether an error chain contains an error of some concrete type (see [[https://pkg.go.dev/errors#As][the `errors.As` function]]) , but this is an advanced topic that requires a preliminary understanding of interfaces.
+[[https://pkg.go.dev/errors][The `errors` package]] allows you to ask more sophisticated questions, such as whether an error tree contains an error of some concrete type (see [[https://pkg.go.dev/errors#As][the `errors.As` function]]), but this is an advanced topic that requires a preliminary understanding of interfaces.
 
 
 
@@ -1586,7 +1608,7 @@ Instead, declare your own type and make it behave like an error. More about that
 
 * Panic
 
-A panic is a run-time event that indicates an exceptional and irrecoverable failure. Panics can (but rarely should) be [[https://go.dev/blog/defer-panic-and-recover][_recovered_]].
+A panic is a run-time event that indicates an exceptional and irrecoverable failure. Some panics can be [[https://go.dev/blog/defer-panic-and-recover][_recovered_]], but few should be.
 
 A panic can be triggered by a run-time error or by some direct or indirect call to [[https://pkg.go.dev/builtin#panic][the built-in `panic` function]].
 
@@ -2091,6 +2113,8 @@ Then, to see a browser-based breakdown of the coverage by statement, run
 
 Be careful: a low code coverage is a clear indication that you need to write more tests, but a high code coverage doesn't guarantee the absence of bugs. As [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=7m29s][Russ Cox puts it]], coverage is no substitute for thought.
 
+: Anecdote: in one project, I couldn't hit 100%. This made me realise that one code path was unreachable; I was then able to simplify my implementation.
+
 
 
 * Namecheck project: improve the github package's code coverage
@@ -2126,8 +2150,10 @@ Be careful: a low code coverage is a clear indication that you need to write mor
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
-: don't forget https://pkg.go.dev/net/url#JoinPath
+: use url.JoinPath("https://github.com", url.PathEscape(username)) to avoid hitting off-topic paths on GitHub, which could annoy them
+: important because, if github can be used as a library, IsAvailable can be called separately from IsValid
 : to avoid client-side path traversal (not a big deal with a GET, but could be for a POST)
+
 
 
 * Introducing the defer keyword
@@ -2145,6 +2171,7 @@ The `defer` keyword is like a `finally` keyword on steroids. You'll grow to love
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-balloon.svg 150 _
 
+: resource
 : https://github.com/bradfitz/exp-httpclient/blob/master/problems.md#too-easy-to-not-call-responsebodyclose
 : Along with concurrency primitives and interfaces, this keyword is a highlight of Go!
 
@@ -2197,6 +2224,10 @@ Here is a version of `IsAvailable` that doesn't use `defer` to close the respons
 
 Notice how `resp.Body.Close` must be called at each possible exit point of the function.
 
+: parallels with RAII: https://www.tomdalling.com/blog/software-design/resource-acquisition-is-initialisation-raii-explained/
+: design principle (in C++ and other class-based OOP languages) that mandates cleaning up, in a destructor, all the resources acquired in a constructor
+: defer lets you tie the lifetime of a resource to that of the function that acquired it
+
 
 
 * Why is defer useful? (cont'd)
@@ -2236,10 +2267,9 @@ Imagine a case where the function `processFiles` function is called with many pa
 
 * Gotcha: defer statements inside a loop (cont'd)
 
-Remember that `defer` is function-based, not block-based. In our earlier example,
-the files will all be closed only when `processFiles` terminates!
+Remember that `defer` is function-based, not block-based! This aspect of `defer`'s mechanics is a frequently overlooked [[https://www.youtube.com/watch?v=hWNwI5q01gI&t=3215s][(even by great programmers)]] source of bugs.
 
-One solution is to extract the body of the loop to a smaller function:
+In our earlier example, the files will all be closed only when `processFiles` terminates! One solution consists in extracting the body of the loop to a smaller function:
 
   func processFiles(paths ...string) error {
     for _, path := range paths {
@@ -2393,24 +2423,44 @@ In the code snippet above, during each iteration of the loop,
 - `r` is the current UTF-8-encoded _rune_ (a.k.a. [[https://en.wikipedia.org/wiki/Code_point#In_Unicode][Unicode code point]]) in the string,
 - `i` is the index (in bytes) of the starting position of that rune in the string.
 
+You may declare fewer iteration variables than there are iteration values.
+
+.play -edit src/forrange_fewer_vars.go /^//START/,/^//END/
+
 For more about strings, see [[https://go.dev/blog/strings][Rob Pike - Strings, bytes, runes and characters in Go]].
 
 
 
 * for-range loop over an int (new in Go 1.22)
 
-You will soon be able to also [[https://github.com/golang/go/issues/61405][range over an int]]. Instead of writing the following three-clause loop,
+You can also [[https://github.com/golang/go/issues/61405][range over an int]].
 
-  for i := 0; i < 42; i++ {
-    // ...
+For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), instead of writing the following three-clause loop,
+
+.play -edit src/range_over_int_before.go /^//START/,/^//END/
+
+you can write the following equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
+
+.play -edit src/range_over_int.go /^//START/,/^//END/
+
+
+
+
+* for-range loop over iterators (new in Go 1.23)
+
+An iterator _provides_a_way_to_access_the_elements_of_an_aggregate_object_sequentially_without_exposing_its_underlying_representation_ (according to [[https://en.wikipedia.org/wiki/Design_Patterns][the GoF book]]).
+
+Go 1.23 provides a standard approach for iterators and saw the addition of [[https://pkg.go.dev/iter][the `iter` package]] in the standard library.
+
+You can now range over any value of type `iter.Seq[E]` or `iter.Seq2[K,`V]`
+(where, `E`, `K`, and `V` stand for arbitrary types):
+
+  func AllIn(set Set) iter.Seq[int] { /* omitted */ }
+  // ...
+  for v := range AllIn(set) {
+    fmt.Println(v)
   }
 
-you'll be able to write the following equivalent (but more concise) loop:
-
-  for i := range 42 {
-    // ...
-  }
-
-Try this example on the [[https://go.dev/play/p/2VyjaOK_5pq?v=gotip][Playground]].
+You can also implement custom iterators (e.g. over your own data structures), but that's a more advanced topic; more details are available in [[https://go.dev/blog/range-functions][a recent blog post]].
 
 👉 Enough about loops and strings! Let's learn about arrays and slices.

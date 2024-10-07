@@ -268,15 +268,15 @@ In such cases, provide one or more _factory_functions_, like `regexp.MustCompile
 
 * Exercise: turn functions operating on a binary tree into methods
 
-1. Open [[https://go.dev/play/p/Wwy4gr9Az1_W][the solution]] to the previous exercise on binary trees.
+1. Open [[https://go.dev/play/p/aS99xWC2eh1][the solution]] to the previous exercise on binary trees.
 
-2. Turn the `Size` and `Sum` functions into a methods on type `*Tree`.
+2. Turn the `Size` and `Sum` functions into a methods on type `*Node`.
 
 3. Adjust the `main` function accordingly.
 
-4. Try calling the two methods on a `nil` `*Tree`. Any panic? Explain.
+4. Try calling the two methods on a `nil` `*Node`. Any panic? Explain.
 
-A solution is available on the [[https://go.dev/play/p/Vt6GW4o6MHC][Go Playground]].
+A solution is available on the [[https://go.dev/play/p/7pWbYTN1z-s][Go Playground]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
@@ -756,17 +756,17 @@ This principle isn't specific to Go and is known as [[https://blog.ndepend.com/p
 
 For example, don't do this:
 
-  type Tree struct {...}
-  func (t *Tree) WriteTo(f *os.File) error
+  type Node struct {...}
+  func (t *Node) WriteTo(f *os.File) error
 
 Instead, do that:
 
-  type Tree struct {...}
-  func (t *Tree) WriteTo(w io.Writer) error
+  type Node struct {...}
+  func (t *Node) WriteTo(w io.Writer) error
 
 The latter is more flexible, easier to test, promotes decoupling, and guides you towards the correct implementation.
 
-: os.File has a lot of methods that are not relevant to what Tree's WriteTo is supposed to do
+: os.File has a lot of methods that are not relevant to what Node's WriteTo is supposed to do
 
 
 
@@ -776,11 +776,11 @@ If a function has an interface parameter, that interface type should be as "narr
 
 For example, don't do this:
 
-  func (t *Tree) ReadFrom(rw io.ReadWriter) error
+  func (t *Node) ReadFrom(rw io.ReadWriter) error
 
 Instead, do that:
 
-  func (t *Tree) ReadFrom(r io.Reader) error
+  func (t *Node) ReadFrom(r io.Reader) error
 
 The latter approach promotes flexibility, testability, and correctness.
 
@@ -932,7 +932,7 @@ A sequence of type assertions is annoying to write and hard to read:
 
 .play -edit src/type_assertion_sequence.go /^//START/,/^//END/
 
-Instead, you can use a special switch statement known as a [[https://go.dev/ref/spec#Type_switches][_type_switch_]]:
+A more readable but functionally equivalent alternative consists in using a special form of switch statement known as a [[https://go.dev/ref/spec#Type_switches][_type_switch_]]:
 
 .play -edit src/type_switch.go /^//START/,/^//END/
 

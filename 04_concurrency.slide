@@ -92,25 +92,39 @@ And if well-designed concurrent code _does_ run in parallel, we can reasonably e
 See also
 
 - [[https://www.youtube.com/watch?v=jgVhBThJdXc&t=22m][Rob Pike & Russ Cox - Go Programming (Google I/O 2010)]]
-- [[https://www.youtube.com/watch?v=oV9rvDllKEg][Rob Pike - Concurrency is not Parallelism (2012)]].
+- [[https://www.youtube.com/watch?v=oV9rvDllKEg][Rob Pike - Concurrency is not Parallelism (2012)]]
 - [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=3m42s][Rob Pike - Go proverbs (Gopherfest 2015)]]
+- [[https://research.swtch.com/pcdata][Russ Cox- Storing Data in Control Flow]]
 
 : metaphor: cooking recipe typically has a concurrent component, but whether you can prepare it in parallel depends on the number of cooks/hobs you have!
 
 
 
-* Amdahl law and Gunther's Law
+* Amdahl's law: the limit of parallelism
 
-[[https://en.wikipedia.org/wiki/Amdahl%27s_law][Amdahl's law]] tells us that the potential performance gains enabled by parallelism are bounded by the necessarily sequential portion of the work. In other words, there comes a point in the level of parallelism where you observe diminishing returns.
+[[https://en.wikipedia.org/wiki/Amdahl%27s_law][Amdahl's law]] tells us that the potential performance gains enabled by parallelism are bounded by the necessarily sequential portion of the work.
 
-The [[https://en.wikipedia.org/wiki/Neil_J._Gunther#Universal_Law_of_Computational_Scalability][universal law of computational scalability]] (also simply known as Gunther's law) refines Amdahl's law and shows that there is an inflexion point past which more parallelism actually _harms_ performance:
+For instance, if at most 90% of the work can be parallelized, parallelism will allow you to carry out the work at most 10x as quickly.
+
+.image img/amdahls_law.png 200 _
+
+Parallelism can only get you so far; but there's more to this story...
+
+: https://www.wolframalpha.com/input?i=plot+1%2F%28%281-0.9%29%2B0.9%2Fx%29%2C+x%3D0..80
+
+
+
+* Gunther's Law: the diminishing returns of parallelism
+
+The [[https://en.wikipedia.org/wiki/Neil_J._Gunther#Universal_Law_of_Computational_Scalability][universal law of computational scalability]] (also simply known as Gunther's law) refines Amdahl's law.
+
+It tells us that, due to various overhead, there is an inflexion point past which more parallelism actually leads to diminishing returns and _harms_ performance:
 
 .image img/gunthers_law.png 200 _
 
-Keep Gunther's law in mind. It will help you decide whether making your program more concurrent is the right way to address performance issues.
+Keep Gunther's law in mind. It will help you decide whether throwing more parallelism at the problem is a promising avenue for improving performance.
 
-
-
+: overhead linked to communication between goroutines / context switching / coherency / interprocess communication
 : https://www.wolframalpha.com/input?i=plot+x%2F%281%2B0.047*%28x-1%29%2B+0.021*x*%28x-1%29%29%2C+x%3D0..50
 : values taken from https://speakerdeck.com/drqz/applying-the-universal-scalability-law-to-distributed-systems?slide=59
 
@@ -165,6 +179,7 @@ No need to worry about the intricacies of the Go scheduler yet. For now, simply 
 
 .image https://rrsg.s3.amazonaws.com/wp-content/uploads/2020/03/25180622/90517519_1171371749860657_3506201698723816143_n.jpg 250 _
 
+: goroutines: user-space / green threads
 : goroutines are non-preemptive: they cannot be interrupted
 : switching goroutines is much cheaper than switching OS threads
 : also OS threads typically take 1Mo of memory compared to 2kb
@@ -232,7 +247,7 @@ Therefore, because a goroutine lacks an ID, it cannot readily be _killed_.
 
 * Use the go keyword judiciously
 
-Before spawning a new goroutine, you must understand exactly under what conditions it will terminate. See [[https://go.dev/wiki/CodeReviewComments#goroutine-lifetimes][CodeReviewComments - Goroutine lifetimes]].
+Before deciding to spawn a new goroutine, [[https://dave.cheney.net/2016/12/22/never-start-a-goroutine-without-knowing-how-it-will-stop][you should understand exactly under what conditions it will terminate]]. See [[https://go.dev/wiki/CodeReviewComments#goroutine-lifetimes][CodeReviewComments - Goroutine lifetimes]].
 
 Goroutines may be cheap, but they're not free. If your program carelessly spawns goroutines, it is at risk of _leaking_goroutines_, i.e. accumulating "zombie" goroutines that never terminate!
 
@@ -451,13 +466,13 @@ Though correct, this approach creates a *refactoring*hazard*. If the goroutines 
 
   wg.Add(n)
   for range n {
-    if heads() { // returns true with probability 1/2
+    if heads() { // function head returns true with probability 0.5
       go func() { defer wg.Done(); fmt.Println("Hi!") }() // conditional
     }
   }
   wg.Wait() // possible deadlock here
 
-: refactoring hazard: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Non-capturing_group#avoiding_refactoring_hazards
+: refactoring hazard: source of bugs when refactoring
 
 
 
@@ -487,14 +502,15 @@ Remember this useful distinction (similar to that between concurrency and parall
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
 : eg: data race reproducible only under heavy load
+: 
 
 
 
 * Concurrency safety
 
-_Concurrency_safety_ is a property of an operation on a variable of a given type.
+_Concurrency_safety_ is a property of an operation (usually a function/method call).
 
-An operation is _concurrency-safe_ if it can be carried out in a concurrent fashion (from multiple goroutines) without explicit synchronization and and without introducing synchronization bugs.
+An operation is _concurrency-safe_ if carrying it out concurrently (from multiple goroutines) without any extra synchronization does not cause it to behave incorrectly (i.e. does not introduce any synchronization bugs).
 
 [[https://tip.golang.org/doc/comment#func][By convention]], top-level functions should be designed as concurrency-safe.
 
@@ -537,12 +553,13 @@ To save their users some trouble, some types  even go as far as explicitly docum
 
 However, [[https://go.dev/doc/effective_go.html#goroutines][the onus is on you to be diligent at the application level]]! Go indeed doesn't provide [[https://doc.rust-lang.org/book/ch16-00-concurrency.html][the guarantees about concurrency that Rust does]].
 
-A [[https://en.wikipedia.org/wiki/Race_condition#Data_race][_data_race_]] is a kind of race condition that occurs [[https://go.dev/doc/articles/race_detector#Introduction][when two or more goroutines access the same variable concurrently and at least one of those accesses is a write]]. A data race is always indicative of a severe synchronization bug!
+A [[https://en.wikipedia.org/wiki/Race_condition#Data_race][_data_race_]] is a category of race condition that occurs [[https://go.dev/doc/articles/race_detector#Introduction][when two or more goroutines access the same variable concurrently and at least one of those accesses is a write]]. A data race is always indicative of a severe synchronization bug!
 
 To be free of such synchronization bugs, your programs [[https://go.dev/ref/mem#advice][*must* serialize such access]]; otherwise, their correctness and security cannot be guaranteed. 😬
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
 
+: not everyone agrees about the distinction between data races and race conditions
 : a data race is always indicative of a synchronization bug
 
 
@@ -580,7 +597,7 @@ You may only very rarely observe such a data race, but don't be fooled: the prog
 
 * Go's race detector
 
-Go provides a [[https://go.dev/blog/race-detector][race detector]]. Note that it reports a data race if one occurs during execution, but [[https://go.dev/doc/articles/race_detector][it doesn't report synchronization bugs!]]
+Go provides a [[https://go.dev/blog/race-detector][race detector]], which can be activated via the `-race` flag:
 
   $ go run -race main.go
   0
@@ -601,7 +618,22 @@ Go provides a [[https://go.dev/blog/race-detector][race detector]]. Note that it
   Found 1 data race(s)
   exit status 66
 
-Avoid leaving the race detector on in production: [[https://go.dev/doc/articles/race_detector#Runtime_Overheads][its overhead can be prohibitive]].
+Note that, although the race dectector reports any data race that occurs during execution, [[https://go.dev/doc/articles/race_detector][it's not guaranteed to uncover all synchronization bugs!]]
+
+
+
+* Don't leave the race detector on in production
+
+Because the race detector [[https://www.youtube.com/watch?v=5erqWdlhQLA&t=1200s][involves a lot of bookkeeping]], the overhead associated with it [[https://go.dev/doc/articles/race_detector#Runtime_Overheads][can be prohibitive]]:
+
+- 5-10x as much memory usage (memory usage may in fact grow without bounds),
+- 2-20x as long execution time.
+
+Therefore, [[https://www.youtube.com/watch?v=5erqWdlhQLA&t=2044s][you should only activate the race detector in pre-prod/staging environments]].
+
+Incidentally, if you frequently feel the need to fix synchronization bugs in production environments, you should probably pause to reassess your software-development practices. 😅
+
+For a deep dive into the mechanics of Go's race detector, watch [[https://www.youtube.com/watch?v=5erqWdlhQLA][Kavya Joshi - "go test -race" under the hood (Strange Loop 2016)]].
 
 
 
@@ -661,11 +693,13 @@ The Go community [[https://go.dev/doc/effective_go#sharing][summarizes its prefe
 
 [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=2m42s][_Do_not_communicate_by_sharing_memory;_instead,_share_memory_by_communicating._]]
 
-Channels are indeed more composable and less error-prone than mutexes. [[https://www.youtube.com/watch?v=oV9rvDllKEg&t=18m13s][Rob Pike once illustrated channels' superiority with an elegant load-balancer implementation.]]
+Channels are indeed more composable and less error-prone than mutexes.
 
-As Rob Pike puts it, [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=4m20s][channels orchestrate, whereas mutexes merely serialize]].
+As Rob Pike puts it, [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=4m20s][channels orchestrate, whereas mutexes merely serialize]]. Check out his demonstration of channels' superiority in [[https://www.youtube.com/watch?v=oV9rvDllKEg&t=18m13s][his elegant load-balancer implementation]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/stovepipe-hat-front.svg 200 _
+
+: "transfer of ownership" requires discipline in Go (not enforced at compile time like in Rust); in theory, you could send a value down to a channel and still mutate it on the sending side.
 
 
 
@@ -971,7 +1005,6 @@ Here is a short but instructive program:
 
 A goroutine said to leak if it never terminates. A leaked goroutine is like a "zombie".
 
-
 You should guarantee the absence of goroutine leaks in your program; otherwise, you run the risk of memory leaks, performance degradation, and even program crashes! 😱
 
 Be vigilant about goroutine leaks: the Go runtime doesn't alert you about them.
@@ -1057,15 +1090,13 @@ Similarly, closing a channel doesn't drain it from the elements it contains; and
 
 * Ranging over a channel
 
-Ranging over a channel amounts to iteratively receiving from it:
+Ranging over a channel amounts to continuously receiving from it:
 
   for v := range ch {
     // do something with v
   }
 
-Note that, when ranging over a channel, only one iteration variable is available. It takes the successive values sent on the channel until the channel is both closed and empty.
-
-The code above is exactly equivalent to the following:
+The code snippet above is functionally equivalent to this one:
 
   for {
     v, ok := <-ch
@@ -1075,7 +1106,11 @@ The code above is exactly equivalent to the following:
     // do something with v
   }
 
-: There's no notion of indexing with channels.
+: more concise: for v, ok := <- c; ok ; v, ok = <- c { /* do something with v */ }
+: see https://dave.cheney.net/2014/03/19/channel-axioms
+
+Note that there's no notion of indices with channels. When ranging over a channel, only one iteration variable is available. That iteration variable is assigned the successive values received from the channel until the channel is both closed and empty.
+
 
 
 
@@ -1181,7 +1216,7 @@ However, in cases where a function [[https://go.dev/talks/2012/10things.slide#10
 
 * A simple HTTP handler
 
-You can define a `net/http` handler as a package-level function:
+You can declare a `net/http` handler as a package-level function:
 
   func handleHello(w http.ResponseWriter, _ *http.Request) {
     io.WriteString(w, "Hello, world!")
@@ -1194,11 +1229,11 @@ That function must have two parameters:
 
 
 
-* A simple Web server (Go 1.22)
+* A simple Web server
 
-You can then call [[https://pkg.go.dev/net/http#HandleFunc][function `http.HandleFunc`]] to register a pattern (composed of a HTTP method and a path pattern) and associate it to some handler.
+You can then call [[https://pkg.go.dev/net/http#HandleFunc][function `http.HandleFunc`]] to register a handler for some pattern (composed of a path pattern and, optionally, a HTTP method).
 
-Finally, start the server with [[https://pkg.go.dev/net/http#ListenAndServe][function `http.ListenAndServe`]], which blocks for as long as the server stays up. Don't forget to check the error it returns.
+Finally, you can start the server by calling [[https://pkg.go.dev/net/http#ListenAndServe][function `http.ListenAndServe`]], which blocks for as long as the server stays up. Don't forget to handle the error it returns.
 
 .play -edit src/server_helloworld.go /^//START/,/^//END/
 
@@ -1282,7 +1317,7 @@ This bug is particularly insidious because it will only manifest itself under su
 - If the client provided no username (or an empty username) via a query param named "`username`", send an empty response with status code `400` and terminate the handler.
 - Otherwise, write your slice of results in the response. Hint: use `fmt.Fprint`.
 
-6. Add a `main` function in `cmd/server/main.go`. In it, register your `handleCheck` handler on pattern `GET`/check`, then start the server on port 8080.
+6. Add a `main` function in `cmd/server/main.go`. In it, register your `handleCheck` handler for pattern `GET`/check`, then start the server on port 8080.
 
 7. Run the program and hit the `/check` endpoint, e.g. by visiting [[http://localhost:8080/check?username=jub0bs][http://localhost:8080/check?username=jub0bs]] in your browser.
 
@@ -1342,6 +1377,7 @@ Again, only exported fields are taken into account.
 
 For more about JSON encoding and decoding, see [[https://go.dev/blog/json][Andrew Gerrand - JSON and Go]].
 
+: json.Decoder allows decoding NDJSON / JSON lines in a streaming fashion
 : don't forget to inspect the resulting error
 : The use of a local variable whose type is an anonymous struct is pretty common.
 : curl -v -XPOST -H "Content-Type: application/json" --data '{"name": "Bob"}' http://localhost:8080/admin/new
@@ -1748,16 +1784,16 @@ What could be further improved?
 
 * Communicating by sharing memory
 
-Go encourages you to use channels to communicate data between goroutines.
+Go encourages you to use channels to communicate data between goroutines, i.e. to transfer ownership of data from one goroutine to another.
 
-However, [[https://go.dev/wiki/MutexOrChannel][sharing memory can sometimes be simpler and/or more performant]].
+However, in cases where multiple goroutines must share some state, [[https://go.dev/wiki/MutexOrChannel][you're better off relying on more traditional mechanisms for sharing memory]].
 
-Go's standard library provides two main mechanisms for sharing memory:
+Two main such mechanisms are provided by the standard library:
 
 - [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
 - synchronized operations on fixed-sized integers from [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 200 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
 
 
 
@@ -1771,7 +1807,7 @@ Let's keep track (in memory) of how many times each username has been checked.
 
 3. Declare an additional `handleStats` handler that returns a JSON representation of the variable declared in step 1.
 
-4. Register pattern `GET`/stats` and associate it to your `handleStats` handler.
+4. Register your `handleStats` handler for pattern `GET`/stats`.
 
 5. Run your server and exercise it.
 
@@ -1798,11 +1834,11 @@ One solution: synchronizing access to the map via a mutex.
 
 * Mutual exclusions
 
-A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (a.k.a. _mutex_) is a mechanism for obtaining exclusive access to a shared resource.
+A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (more simply known as _mutex_) is a useful mechanism for obtaining exclusive access to a shared resource.
 
-Sections of a program that are guarded by the same mutex are known as [[https://en.wikipedia.org/wiki/Critical_section][_critical_sections_]] and are guaranteed not to execute concurrently.
+Sections of a program that are guarded by a mutex are known as [[https://en.wikipedia.org/wiki/Critical_section][_critical_sections_]].
 
-Be aware that, to avoid [[https://en.wikipedia.org/wiki/Resource_contention][_contention_]], you should not hold the lock any longer than necessary. In particular, strive to keep critical sections short and free of I/O operations. Otherwise, you risk introducing a performance bottleneck in your program.
+Among the critical sections guarded by a shared mutex, at most one can execute at any given time.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 200 _
 
@@ -1812,7 +1848,7 @@ Be aware that, to avoid [[https://en.wikipedia.org/wiki/Resource_contention][_co
 
 The [[https://pkg.go.dev/sync][`sync` package]] provides two types of mutexes, the simplest of which is [[https://pkg.go.dev/sync#Mutex][`sync.Mutex`]].
 
-That type requires no initialization, because its zero value is readily usable:
+That type requires no initialization; its zero value is readily usable:
 
   var mu sync.Mutex
 
@@ -1831,13 +1867,19 @@ Like a `sync.WaitGroup`, a `sync.Mutex` must not be copied after first use. The 
 
 
 
+* Example: using a mutex to guard a shared counter
+
+.play -edit src/mutex.go /^//START/,/^//END/
+
+
+
 * Clarifying the role of a mutex
 
 If access to some variable or struct field is protected by a mutex, convention dictates that you either declare the mutex nearby (perhaps in the same `var` block):
 
   var (
-    toggle bool
-    mu sync.Mutex
+    count int
+    mu    sync.Mutex
   )
 
 \... or that you leave [[https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/context/context.go;l=640][a clarifying comment]]:
@@ -1848,6 +1890,23 @@ If access to some variable or struct field is protected by a mutex, convention d
 
     deadline time.Time
   }
+
+
+
+* Keep critical sections short and free of I/O
+
+Critical sections should not hold the lock any longer than necessary.
+
+In particular, strive to keep them
+
+- short (by [[https://github.com/jub0bs/cors/blob/01a1b7821d5b1f66e7e958f52bc6403fc819759a/middleware.go#L94C1-L106C2][carrying out as much of the necessary work elsewhere]]), and
+- free of I/O operations (disk access, network access, etc.).
+
+Otherwise, the various critical sections risk having to wait a prohibitively long time for their turn to acquire the lock ([[https://en.wikipedia.org/wiki/Resource_contention][_contention_]]), which will introduce a performance bottleneck in your program.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+: in the example I link to, the call to new config is newInternalConfig is relatively expensive, but doesn't need to be in the critical section.
 
 
 

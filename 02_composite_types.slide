@@ -660,31 +660,28 @@ Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[
 
 
 
-* Ranging over a map in a deterministic order
-
-To range over a map in a certain order, you must
-
-- collect all of the map's keys in a slice,
-- sort the slice of keys as desired (e.g. in lexicographical order),
-- access the map values as you range over the sorted slice of keys.
-
-.code -edit src/map_range_deterministic.go /^//START/,/^//END/
-
-See [[https://go.dev/play/p/UwzU1ZKpVNP][this Playground]].
-
-The `Keys` function (and other useful generic functions that operate on maps) are provided by [[https://pkg.go.dev/golang.org/x/exp/maps][the `golang.org/x/exp/maps` package]].
-
-
-
 * Other operations on maps
 
 [[https://pkg.go.dev/builtin#clear][The built-in `clear` function]] deletes all the elements of its map argument, leaving the map empty.
 
-Also, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for performing usual operations on maps, such as [[https://pkg.go.dev/maps#Equal][testing two maps for equality]], [[https://pkg.go.dev/maps#Clone][copying a map]], [[https://pkg.go.dev/maps#Copy][merging two maps]], etc.
+Moreover, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for performing usual operations on maps, such as
 
-👉 We'll use maps again later in our project. Let's learn about structs.
+- [[https://pkg.go.dev/maps#Keys][deriving an iterator over a map's keys]],
+- [[https://pkg.go.dev/maps#Equal][testing two maps for equality]],
+- [[https://pkg.go.dev/maps#Clone][copying a map]],
+- [[https://pkg.go.dev/maps#Copy][merging two maps]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+
+
+* Ranging over a map in a deterministic order
+
+If you need to range over a map in sorted order of its keys, derive a sorted sequence of the map's keys and iterate over that iterator instead of over the map directly:
+
+.code -edit src/map_range_deterministic.go /^//START/,/^//END/
+
+👉 We'll use maps again later in our project. Let's learn about structs.
 
 
 
@@ -915,17 +912,18 @@ A struct type is comparable only if the types of all its fields are themselves c
 
 * Exercise: design a binary tree
 
-A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of nodes that each contain a value and references to up to two children nodes. Here is an example of a binary tree whose values are integers:
+A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contain some element and references up to two children nodes. Here is an example of a binary tree whose elements are integers:
 
 .image img/binary_tree.svg 250 _
 
 1. Open the Go Playground.
 
-2. Declare a type named `Tree` for representing one node of this kind of binary tree.
+2. Declare a type named `Node` for representing one node of this kind of binary tree. We'll simply model a tree as a `*Node`, here.
 
-3. In your `main` function, declare a `Tree` value that corresponds to the tree shown above, then print that value.
+3. In your `main` function, declare a variable named `tree` that represents the tree shown above; then print that value.
 
 : https://excalidraw.com/#json=b_AryM5iFA9oUa2kMT6sd,saZDan7wON3vgjTYRDYsgQ
+: better: type Tree struct { root *Node }
 
 
 
@@ -933,17 +931,17 @@ A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of nodes
 
 4. Implement the following function:
 
-  func Size(t *Tree) int
+  func Size(t *Node) int
 
 It should return the number of nodes in its argument.
 
 5. Implement the following function:
 
-  func Sum(t *Tree) int
+  func Sum(t *Node) int
 
-It should return the sum of the values of all the nodes in its argument.
+It should return the sum of the elements of all the nodes in its argument.
 
-A solution is available on the [[https://go.dev/play/p/Wwy4gr9Az1_W][Go Playground]]. Is it satisfactory? What if we wanted to use another type for node values? Discuss.
+A solution is available on the [[https://go.dev/play/p/aS99xWC2eh1][Go Playground]]. Is it satisfactory? What if we wanted to use another type for node values? Discuss.
 
 
 

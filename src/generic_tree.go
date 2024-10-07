@@ -4,13 +4,13 @@ import "fmt"
 
 // START OMIT
 // "any" is the type constraint on type parameter E: it means that E can be any arbitrary type
-type Tree[E any] struct { // HL
-	Left  *Tree[E] // HL
+type Node[E any] struct { // HL
+	Left  *Node[E] // HL
 	Elem  E        // HL
-	Right *Tree[E] // HL
+	Right *Node[E] // HL
 }
 
-func Size[E any](t *Tree[E]) int { // HL
+func Size[E any](t *Node[E]) int { // HL
 	if t == nil {
 		return 0
 	}
@@ -18,7 +18,7 @@ func Size[E any](t *Tree[E]) int { // HL
 }
 
 func main() {
-	tree := &Tree[int]{Elem: 3, Left: &Tree[int]{Elem: 13}}
+	tree := &Node[int]{Elem: 3, Left: &Node[int]{Elem: 13}}
 	fmt.Println(Size(tree))
 }
 
