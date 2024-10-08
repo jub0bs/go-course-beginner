@@ -692,7 +692,7 @@ However, you cannot omit both the type and the right-hand-side expression, becau
 
 * Short variable declaration with :=
 
-The `:=` operator lets you declare _initialize_ a variable, whose type is inferred from the right-hand-side expression:
+The `:=` operator lets you declare _and_ initialize a variable, whose type is inferred from the right-hand-side expression:
 
   msg := "Hello, World"
 
@@ -1384,7 +1384,7 @@ Go, rather than sweeping failure cases under the rug, forces you to think about 
 
 This approach [[https://changelog.com/gotime/16#transcript-68][arguably is a strength of the language]]. Many software outages [[https://yonglezh-purdue.github.io/files/osdi14-simpletesting.pdf][can indeed be attributed]] to improper error handling.
 
-You may hate Go's approach to error handling right now but, in time, you will grow to love it!
+You may hate Go's error handling right now but, in time, you will grow to love it!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
@@ -1713,7 +1713,7 @@ A main package produces a single executable. If your project produces several ex
 
 Any package not named "main" is a _library_package_, i.e. a package importable by other packages.
 
-The name od a library package must (in general) match the name of the enclosing folder. For instance, all the source files constituting the `fmt` package are stored on the disk in a folder named "fmt":
+The name of a library package must (in general) match the name of the enclosing folder. For instance, all the source files constituting the `fmt` package are stored on the disk in a folder named "fmt":
 
   fmt
   ├── doc.go
@@ -1722,7 +1722,7 @@ The name od a library package must (in general) match the name of the enclosing 
   ├── print.go
   └── scan.go
 
-There are minor exceptions to this rule, one of which relates to testing. More on that later.
+There are minor exceptions to this rule, one of which relates to testing.
 
 : only should, because _test package exception and also not enforced by tooling, but otherwise confusing
 : in most cases, the last segment of the package path should match the package name as declared in package clause
@@ -2111,7 +2111,7 @@ Then, to see a browser-based breakdown of the coverage by statement, run
 
   $ go tool cover --html="coverage.out"
 
-Be careful: a low code coverage is a clear indication that you need to write more tests, but a high code coverage doesn't guarantee the absence of bugs. As [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=7m29s][Russ Cox puts it]], coverage is no substitute for thought.
+Be careful: a low code coverage is a clear indication that you need to write more tests, but [[https://infosec.exchange/@jub0bs/112369945615900743][a high code coverage doesn't guarantee the absence of bugs]]. As [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=7m29s][Russ Cox puts it]], coverage is no substitute for thought.
 
 : Anecdote: in one project, I couldn't hit 100%. This made me realise that one code path was unreachable; I was then able to simplify my implementation.
 
