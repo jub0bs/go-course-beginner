@@ -364,7 +364,7 @@ Heureka! The `IsAvailable` function can be turned into a method on some `GitHub`
 
 When instantiating the `GitHub` type, users are now free to "inject" the client of their choice, either [[https://pkg.go.dev/net/http#NoBody][`http.DefaultClient`]] or some custom [[https://pkg.go.dev/net/http#Client][`*http.Client`]]:
 
-  gh := github.GitHub {
+  gh := github.GitHub{
     Client: &http.Client{
       Timeout: 5 * time.Second,
     },
@@ -410,9 +410,9 @@ Similar concepts exist in other programming languages (like Java and C#), but [[
 
 * The power of Go interfaces (cont'd)
 
-Rob Pike himself [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=19m13s][considers interfaces _Go's_most_distinctive_and_powerful_feature_]], and [[https://www.youtube.com/watch?v=sln-gJaURzk&t=6m35s][credits the ideas underpinning them for profoundly altering his views on software development]]... even more so than concurrent programming did!
+Rob Pike himself [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=19m13s][considers interfaces _Go's_most_distinctive_and_powerful_feature_]], and [[https://www.youtube.com/watch?v=sln-gJaURzk&t=6m35s][credits the ideas underpinning them for profoundly altering his views on software development]]... even more so than concurrent programming did! 🤯
 
-And Russ Cox, the current head of the Go team, [[https://research.swtch.com/interfaces][considers interfaces "_the_most_exciting_part_of_Go_from_a_language-design_point_of_view_"]].
+And Russ Cox, the current head of the Go team, [[https://research.swtch.com/interfaces][considers interfaces "_the_most_exciting_part_of_Go_from_a_language-design_point_of_view_"]]. 🤩
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-balloon.svg 200 _
 
@@ -832,7 +832,7 @@ Here are some simple examples:
 
 Basic interfaces are comparable.
 
-You may have (correctly) guessed it already, but `error` is an interface type. If `error` weren't comparable, you wouldn't be able to compare arbitrary `error` values:
+As you now know, `error` is an interface type. If `error` weren't comparable, you wouldn't be able to compare arbitrary `error` values:
 
   if err != io.EOF {
     // ...
@@ -954,12 +954,7 @@ Note that we declared our interface types (`Validator`, `Availabler`, and `Check
 
 * Namecheck project: IsAvailable lacks testability
 
-Because the `IsAvailable` method is still tied to concrete type `*http.Client`, it still unconditionally sends a HTTP request to the platform of interest:
-
-  func (gh *GitHub) IsAvailable(username string) (bool, error) {
-    res, err := gh.Client.Get("https://github.com/" + username)
-    // ...
-  }
+Unfortunately, because the `IsAvailable` method is still tied to concrete type `*http.Client`, it still unconditionally sends a HTTP request to the platform of interest.
 
 The current implementation of `IsAvailable` considerably hinders its testability:
 

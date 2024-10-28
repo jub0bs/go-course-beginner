@@ -1275,7 +1275,7 @@ be stored in variables, etc.
 
 Function types are *not* comparable:
 
-.play -edit src/function_uncomparable.go /^//START/,/^//END/
+.play -edit src/function_incomparable.go /^//START/,/^//END/
 
 The zero value of function types is `nil`. Calling a `nil` function causes a panic!
 
@@ -1458,11 +1458,11 @@ For more about this idiom and its relevance in Go, consult the following resourc
 
 
 
-* Handling a non-nil error value
+* Multiple ways of handling an error
 
 What should you do when a function call returns a non-`nil` error?
 
-  func IsAvailable(username string) bool {
+  func YourFunction(username string) bool {
     v, err := fallibleFunction(username)
     if err != nil {
       // ???
@@ -1476,11 +1476,11 @@ The best course of action depends on the situation...
 
 
 
-* Propagating a non-nil error up to the caller
+* Propagating an error up to the caller
 
 If your function cannot handle a non-`nil` error value, simply bubble it up to the caller:
 
-  func IsAvailable(username string) (bool, error) {
+  func YourFunction(username string) (bool, error) {
     v, err := fallibleFunction(username)
     if err != nil {
       return false, err
@@ -1496,7 +1496,7 @@ In some cases, you may want to add some contextual information to a low-level er
 
 You can do so by wrapping the low-level error value into a higher-level one. The special formatting directive `%w` lets you do that easily with [[https://pkg.go.dev/fmt#Errorf][`fmt.Errorf`]]:
 
-  func IsAvailable(username string) (bool, error) {
+  func YourFunction(username string) (bool, error) {
     v, err := fallibleFunction(username)
     if err != nil {
       return false, fmt.Errorf("failure to check %q: %w", username, err)
@@ -1512,7 +1512,7 @@ In fact, an `error` value can form, not just an error _chain_, but a whole error
 
 In other cases, you may not want to expose the error to the caller and instead absorb/consume it, perhaps by logging it or printing it to stderr:
 
-  func IsAvailable(username string) bool {
+  func YourFunction(username string) bool {
     v, err := fallibleFunction(username)
     if err != nil {
       log.Println(err)
@@ -1531,7 +1531,7 @@ This approach is best reserved to the `main` function (or, at least, high in the
 
 However you choose to handle a non-`nil` error, do _not_ both report it and consume it!
 
-  func IsAvailable(username string) (bool, error) {
+  func YourFunction(username string) (bool, error) {
     v, err := fallibleFunction(username)
     if err != nil {
       log.Println(err)
@@ -2218,11 +2218,9 @@ More about how `defer` works in [[https://go.dev/blog/defer-panic-and-recover][A
 
 * Why is defer useful?
 
-Here is a version of `IsAvailable` that doesn't use `defer` to close the response body:
+Without `defer`, notice how you must call `resp.Body.Close` at each possible exit point:
 
 .code src/defer_IsAvailable_without_defer.go /^//START/,/^//END/
-
-Notice how `resp.Body.Close` must be called at each possible exit point of the function.
 
 : parallels with RAII: https://www.tomdalling.com/blog/software-design/resource-acquisition-is-initialisation-raii-explained/
 : design principle (in C++ and other class-based OOP languages) that mandates cleaning up, in a destructor, all the resources acquired in a constructor
@@ -2232,11 +2230,9 @@ Notice how `resp.Body.Close` must be called at each possible exit point of the f
 
 * Why is defer useful? (cont'd)
 
-With `defer`, as soon as we know we got a proper HTTP response, we can program the closure of its body ahead of time and then forget about it!
+The `defer` keyword allows you to [[https://go.dev/doc/effective_go#defer][colocate the acquisition and release of a resource]] in your code, thereby reducing the reader's cognitive load:
 
 .code src/defer_IsAvailable_with_defer.go /^//START/,/^//END/
-
-The `defer` keyword allows you to [[https://go.dev/doc/effective_go#defer][colocate the acquisition and release of a resource]] in your code, thereby reducing the reader's cognitive load.
 
 
 

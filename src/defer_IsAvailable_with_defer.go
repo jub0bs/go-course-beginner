@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"net/url"
 )
 
 func main() {
@@ -10,12 +11,15 @@ func main() {
 
 // START OMIT
 func IsAvailable(username string) (bool, error) {
-	resp, err := http.Get("https://github.com/" + username)
+	addr, err := url.JoinPath("https://github.com", url.PathEscape(username))
 	if err != nil {
 		return false, err
 	}
-	defer resp.Body.Close() // HL
-	// omitted: use the response body // HL
+	resp, err := http.Get(addr)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close() // 😌 // HL
 	switch resp.StatusCode {
 	case http.StatusNotFound:
 		return true, nil

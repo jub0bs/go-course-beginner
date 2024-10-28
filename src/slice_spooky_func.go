@@ -4,13 +4,16 @@ import "fmt"
 
 // START OMIT
 func main() {
-	a := []int{1, 2}
-	updateFirst(a, 0) // HL
-	fmt.Println(a)
+	nums := []int{1, 2}
+	updateFirst(nums, 0) // HL
+	fmt.Println(nums)
 }
 
-func updateFirst(a []int, i int) {
-	a[0] = i // no length check (for brevity)
+func updateFirst(s []int, i int) {
+	if len(s) == 0 {
+		return
+	}
+	s[0] = i // HL
 }
 
 // END OMIT

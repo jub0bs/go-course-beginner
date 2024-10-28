@@ -4,10 +4,10 @@ import "fmt"
 
 func main() {
 	// START OMIT
-	a := []int{1, 2}
-	b := a // b is an "alias" of a
-	fmt.Println(a, b)
-	b[0] = 0 // this change affects both b and a // HL
-	fmt.Println(a, b)
+	blue := []int{1, 2}
+	red := blue // red is an "alias" of blue
+	fmt.Println(blue, red)
+	red[0] = 0 // this change affects both red and blue // HL
+	fmt.Println(blue, red)
 	// END OMIT
 }

@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 type Climber interface {
-	Climb(meters int) // HL
+	Climb(meters int) error // HL
 }
 
 type Mountaineer struct {
@@ -12,7 +12,7 @@ type Mountaineer struct {
 }
 
 // START OMIT
-func (m *Mountaineer) Climb(meters int) { /* ... */ }
+func (m *Mountaineer) Climb(meters int) error { return nil }
 
 func main() {
 	var c Climber = Mountaineer{Name: "Lynn Hill"} // compilation error // HL

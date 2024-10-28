@@ -11,6 +11,6 @@ func main() {
 	i, j = 42, 99
 	fmt.Println(i == j) // false: same dynamic type but different dynamic values
 	i, j = []int{42}, []int{99}
-	fmt.Println(i == j) // panic: runtime error: comparing uncomparable type []int
+	fmt.Println(i == j) // panic: runtime error: comparing incomparable type []int
 	// END OMIT
 }

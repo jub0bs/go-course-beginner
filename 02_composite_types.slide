@@ -321,7 +321,7 @@ However, attempts to re-slice a slice beyond its capacity results in either a co
 
 2. Identify an exported identifier of that package that will allow you to get the program's command-line arguments as a slice of strings.
 
-3. Check the length of that slice; terminate the program (with a friendly error message) if no username was specified.
+3. Check the length of that slice; if no username was specified, print a friendly error message on stderr and exit with status 1.
 
 4. If a username was specified, use it as before in the rest of your program.
 
@@ -481,21 +481,37 @@ Multiple slices may share the same backing array. In this case, a change to an e
 
 .play -edit src/slice_spooky.go  /^//START/,/^//END/
 
+.image img/slice_aliasing.svg 200 _
+
+: https://excalidraw.com/#json=-mlvHgRYnKtKuTDrbtBSw,9CBzzI48q959ZPabKjvqNQ
+
+
+
+* Slice aliasing (cont'd)
+
 In particular, when you pass a slice to a function, the function operates on a copy of that slice, but both the original slice and its copy uses the same backing array:
 
 .play -edit src/slice_spooky_func.go  /^//START/,/^//END/
 
 
 
-* Inavertent slice aliasing and de-aliasing
+* Inadvertent slice aliasing
 
 Bear in mind that inadvertent slice aliasing may introduce subtle bugs in your programs. When needed, resort to [[https://go.dev/wiki/CodeReviewComments#copying][defensive copying]], perhaps via [[https://pkg.go.dev/slices#Clone][the `slices.Clone` function]].
+
+TODO: add example
+
+
+
+* Inadvertent slice aliasing and de-aliasing
 
 Conversely, inadvertent slice de-aliasing is also dangerous. In particular, because the slice parameter and result of `append` may well have different backing arrays, taking the address of a slice element as you're about to append to that slice rarely is a good idea!
 
 .play -edit src/slice_dealiasing.go  /^//START/,/^//END/
 
-: quiz: append in function on previous slide and ask them why this change isn't reflected in main
+.image img/slice_inadvertent_dealiasing.svg 200 _
+
+: https://excalidraw.com/#json=DWUzGy5i9MH3dmAG3YkcX,iGsAWKkmRCmqyZVYnK6jDQ
 
 
 
@@ -559,7 +575,7 @@ A function that takes a map operates on a copy of a pointer to the same underlyi
 
 
 
-* Map are not comparable
+* Maps are not comparable
 
 Regardless of their key and value types, maps are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary map values.
 
@@ -912,9 +928,9 @@ A struct type is comparable only if the types of all its fields are themselves c
 
 * Exercise: design a binary tree
 
-A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contain some element and references up to two children nodes. Here is an example of a binary tree whose elements are integers:
+A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contains some element (e.g. of integer type) and references up to two children nodes.
 
-.image img/binary_tree.svg 250 _
+.image img/binary_tree.svg 200 _
 
 1. Open the Go Playground.
 
