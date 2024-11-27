@@ -8,7 +8,7 @@ func main() {
 	const tmpl = "len: %4d; cap: %4d\n"
 	var s []int
 	fmt.Printf(tmpl, len(s), cap(s))
-	for i := 0; i < n; i++ {
+	for i := range n {
 		s = append(s, i) // HL
 		fmt.Printf(tmpl, len(s), cap(s))
 	}

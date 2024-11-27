@@ -1,13 +1,11 @@
 Introduction to Go
-
 0 - Prelude
 
 Julien Cretel
 
 https://jub0bs.com
-
 https://bsky.app/profile/jub0bs.com
-https://infosec.exchange/@jub0bs
+@jub0bs@infosec.exchange
 
 
 
@@ -55,7 +53,7 @@ If you haven't already, install Go by following the guidance from [[https://go.d
 You can check which version of Go is installed by running the following shell command:
 
   $ go version
-  go version go1.23.2 darwin/amd64
+  go version go1.23.3 darwin/amd64
 
 To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
 

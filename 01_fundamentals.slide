@@ -1,13 +1,11 @@
 Introduction to Go
-
 1 - Fundamentals
 
 Julien Cretel
 
 https://jub0bs.com
-
 https://bsky.app/profile/jub0bs.com
-https://infosec.exchange/@jub0bs
+@jub0bs@infosec.exchange
 
 
 
@@ -153,7 +151,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.23.2
+  go 1.23.3
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.

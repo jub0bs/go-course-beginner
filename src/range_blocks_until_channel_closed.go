@@ -8,7 +8,7 @@ import (
 func main() {
 	ch := make(chan int)
 	go func() {
-		for i := 0; i < 4; i++ {
+		for i := range 8 {
 			ch <- i
 		}
 		// close(ch) // HL

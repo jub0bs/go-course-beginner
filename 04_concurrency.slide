@@ -1,13 +1,11 @@
 Introduction to Go
-
 4 - Concurrency: goroutines, channels, select, mutexes
 
 Julien Cretel
 
 https://jub0bs.com
-
 https://bsky.app/profile/jub0bs.com
-https://infosec.exchange/@jub0bs
+@jub0bs@infosec.exchange
 
 
 
@@ -41,7 +39,7 @@ Go's concurrency model arguably is one of the language's most attractive feature
 
 * A word of warning about concurrency
 
-In the remainder of this course, you'll realize that concurrent programs harder to reason about than sequential ones.
+In the remainder of this course, you'll realize that concurrent programs are harder to reason about than sequential ones.
 
 Concurrent programs also have many pitfalls, including (but not limited to) *synchronization*bugs*, *goroutine*leaks*, *deadlocks*, and *unbounded*parallelism*.
 
@@ -601,7 +599,7 @@ As the following diagram (on which time flows downwards) illustrates, if the gor
            write  |    1                                               write  |     1
    read           |    1                                       read           |     1
 
-You may only very rarely observe such a data race, but don't be fooled: the program really is "racy". [[https://go.dev/play/p/lipJsExYbNX][A more extreme example]] may be sufficient to convince you.
+You may only very rarely observe such a data race, but don't be fooled: the program really is "racy". [[https://go.dev/play/p/g3XMqFXVsjr][A more extreme example]] may be sufficient to convince you.
 
 
 
@@ -1242,7 +1240,7 @@ Finally, you can start the server by calling [[https://pkg.go.dev/net/http#Liste
 .play -edit src/server_helloworld.go /^//START/,/^//END/
 
 : http.HandleFunc registers the handler on the DefaultServeMux (package-level variable)
-: ListenAndServe: it last arg is nil, serves the DefaultServeMux
+: ListenAndServe: if last arg is nil, serves the DefaultServeMux
 : important to capture error from http.ListenAndServe, because otherwise fails silently if port collision (e.g. ":80")
 
 
@@ -1287,7 +1285,7 @@ The following program contains a simple synchronization bug:
 
   func main() {
       http.HandleFunc("POST /increment", handleIncr)
-      if err := http.ListenAndServe(":8080", nil); err != nil {
+      if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
           log.Fatal(err)
       }
   }
@@ -1480,7 +1478,7 @@ Once you actually import package `github.com/jub0bs/cors` in your code, you'll b
 
 Adding/updating a dependency also creates/updates a file named `go.sum`.
 
-That file contains cryptographic hashes of the dependency's source code, which the module system relies on to detect integrity issues.
+That file contains cryptographic hashes of the dependency's source code and of its dependencies, hashes which the module system relies on to detect integrity issues.
 
 Don't forget to track changes to this file in your version-control system!
 
@@ -1522,7 +1520,7 @@ The `select` statement is a multi-way communication selector: it allows you to r
 With goroutines and channels, `select` completes the concurrency trifecta.
 It is very powerful, which is why you should invest time to master it.
 
-.image https://pbs.twimg.com/media/DDWqkrFUMAAbIyL?format=png&name=large 300 _
+.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 300 _
 
 : reminder: channel communication = a channel send or receive
 
@@ -1664,6 +1662,7 @@ The following exercise is a bit contrived but enlightening. Modify your `cmd/ser
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : smallest channel capacity to prevent goroutine leaks: len(checkers) - 1
+:   but program wouldn't be correct: a capacity of 1 or more for errorCh would mean that the select could bypass the error case
 : use a bool variable to control the termination of the loop
 : mangle the domain name in github.Github's IsAvailable method in order to cause an error
 : contrived because we could fail fast by keeping the error bundled in Result
@@ -1672,7 +1671,7 @@ The following exercise is a bit contrived but enlightening. Modify your `cmd/ser
 
 * Only one problem: some goroutines may leak!
 
-If you've written the `check` function as shown below and you've chosen insufficient capacities for the two channels, goroutines may leak. Explain why and how.
+If you've written the `check` function as shown below and the two channels (`resultCh` and `errorCh`) are unbuffered, goroutines may leak. Explain why and how.
 
   func check(checker namecheck.Checker, username string, /* rest omitted */) {
     defer wg.Done()
@@ -1690,7 +1689,7 @@ If you've written the `check` function as shown below and you've chosen insuffic
     resultCh <- res
   }
 
-With this version of the `check` function, what capacities should `resultCh` and `errorCh` have to guarantee that no goroutines leak? Is this approach viable in general, though?
+However, even making channels `errorCh` and `resultCh` sufficiently buffered wouldn't be a viable solution, as it would [[https://go.dev/play/p/W7Gol3_7BKt][compromise the program's correctness]].
 
 
 
@@ -1758,13 +1757,15 @@ By convention, a function that has a `context.Context` parameter should feature 
 
 1. Open this [[https://go.dev/play/p/yWEVD1G7Oix][Playground]]. Note that function `printInts` never terminates.
 
-2. Modify `printInts` to make it cancelable:
+2. Study the documentation of [[https://pkg.go.dev/context][the context package]].
+
+3. Modify `printInts` to make it cancelable:
 
 - add a `context.Context` parameter,
 - wrap the loop's body in the `default` case of a select statement, and
 - in the select statement, add a case that receives on the context's channel.
 
-3. In `main`, [[https://pkg.go.dev/context#WithTimeout][create a context that cancels itself after one second]] and use it to terminate the goroutine. Try spawning two (or more) goroutines `printInts`.
+4. In `main`, [[https://pkg.go.dev/context#WithTimeout][create a context that cancels itself after one second]] and use it to terminate the goroutine. Try spawning two (or more) goroutines `printInts`.
 
 (A solution is available in this [[https://go.dev/play/p/mDEvfgOlR7C][Playground]].)
 
@@ -1795,30 +1796,6 @@ You now know enough about the `context` package to fix the goroutine leak! 💪
 
 
 
-* Bonus exercise: debug this ping-pong game
-
-1. Open [[https://go.dev/play/p/n7XQ_TdOY4t][this Playground]] adapted from a talk by Sameer Ajmani ([[https://www.youtube.com/watch?v=QDDwwePbDtw&t=2m54][video]]; [[https://go.dev/talks/2013/advconc.slide#6][slides]]).
-The program models a simple ping-pong game.
-
-2. The game ends with a deadlock. Can you explain why?
-
-3. Discuss and fix the program.
-
-Two solutions ([[https://go.dev/play/p/xi2-SMe3xyW][1]] and [[https://go.dev/play/p/yblNr3B5yg7][2]]) are available on the Playground.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
-
-: The `main` goroutine plays the role of the umpire.
-: two goroutines exchanging one value over and over
-: pointer element to reduce memory footprint
-: show that deadlock if you never throw the ball on the table
-: one player terminates while the other is left holding the ball
-: one possibility: buffer size of 1, but no guarantee that the same player will play twice in a row
-: non-blocking send by adding a select statement
-: easy solution: referee receive ball from main after cancel()
-
-
-
 * Namecheck project: fix the goroutine leak
 
 1. Add a `context.Context` parameter to the `check` function.
@@ -1827,9 +1804,7 @@ Two solutions ([[https://go.dev/play/p/xi2-SMe3xyW][1]] and [[https://go.dev/pla
 
 3. In the `handleCheck` handler, create a context and pass it to the `check` function. Cancel that context if an error is received on the `errorCh` channel. Also, terminate the loop if you detect a cancelation of the context.
 
-4. Make both `resultCh` and `errorCh` unbuffered channels.
-
-What could be further improved?
+Does context cancelation have any impact on calls to the `IsAvailable` method? If not, what could we do?
 
 : IsAvailable itself isn't cancelable... but we could make it so.
 
@@ -1875,13 +1850,13 @@ Let's keep track (in memory) of how many times each username has been checked.
 
 * One problem: a synchronization bug
 
-Remember: the HTTP server provided by `net/http` is concurrent: it handles each incoming request in a separate goroutine.
+Bear in mind that the HTTP server provided by `net/http` is concurrent: it handles each incoming request in a separate goroutine.
 
-However, maps are *not* concurrency-safe: unsynchronized concurrent reads and writes to a map yield unpredictable results!
+However, maps are *not* concurrency-safe: concurrent accesses (of which at least one is a write) should be synchronized.
 
-The Go runtime [[https://go.dev/doc/go1.6#runtime][may be able to detect concurrent map writes]] and intentionally crash the program (see [[https://go.dev/play/p/NMDVMeaVLLx][this Playground]]), or the runtime may miss the data race and you may silently lose some updates to the map.
+The Go runtime [[https://go.dev/doc/go1.6#runtime][detects data races]] resulting from unsynchronized accesses to a map. When it does, it intentionally crashes the program; see [[https://go.dev/play/p/U4yyndeCBg1][this Playground]].
 
-One solution: synchronizing access to the map via a mutex.
+One solution: use a mutex to synchronize accesses to the map.
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
 
@@ -2044,3 +2019,13 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 - [[https://stackoverflow.com/questions/tagged/go][Stack Overflow]]
 
 : esp. channels #general, #newbies, and #bestpractices
+
+
+
+* Visuals
+
+- [[https://www.instagram.com/reneefrench/][Renée French]]
+- [[https://github.com/egonelbre/gophers][Egon Elbre]]
+- [[https://github.com/ashleymcnamara/gophers][Ashley McNamara]]
+
+.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 300 _

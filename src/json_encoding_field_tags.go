@@ -26,7 +26,7 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	http.HandleFunc("GET /users/{id}", getUser)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }

@@ -31,7 +31,9 @@ func main() {
 	handler := corsMw.Wrap(mux)
 
 	// start the server on port 8080; make sure to use your custom handler
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	if err := http.ListenAndServe(":8080", handler); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }
 
 // END OMIT
