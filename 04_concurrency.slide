@@ -15,7 +15,7 @@ In a realistic Namecheck project, you'd add support for many other platforms (X,
 
 1. In `main.go`, judiciously populate your `[]Checker` slice with twenty pointers to the same `github.GitHub` variable.
 
-2. Similarly, populate your slice of checkers with twenty pointers to the same `reddit.Reddit` instance.
+2. Similarly, populate your slice of checkers with twenty pointers to the same `bluesky.Bluesky` instance.
 
 3. Run your executable. Is it fast enough?
 
@@ -274,6 +274,8 @@ We're about experiment with concurrency inside another `main.go` and within the 
 2. Create a folder named "server" within the `cmd` folder. Create a new `main.go` there.
 
   namecheck
+  ├── bluesky
+  │   └── bluesky.go
   ├── cmd
   │   ├── cli
   │   │   └── main.go
@@ -283,10 +285,7 @@ We're about experiment with concurrency inside another `main.go` and within the 
   │   ├── github.go
   │   └── github_test.go
   ├── go.mod
-  ├── namecheck.go
-  └── reddit
-      ├── reddit.go
-      └── reddit_test.go
+  └── namecheck.go
 
 
 

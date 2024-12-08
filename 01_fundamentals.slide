@@ -2290,13 +2290,13 @@ In our earlier example, the files will all be closed only when `processFiles` te
 
 
 
-* Namecheck project: simulate support for Reddit
+* Namecheck project: simulate support for Bluesky
 
 We could add support for many other social media, but that would take time and distract us from the main topic of this course. For now, we can simulate support for it.
 
-1. Create a `reddit` package.
+1. Create a `bluesky` package.
 
-2. Simply add stub implementations of functions `IsValid` and `IsAvailable` in your `reddit` package:
+2. Simply add stub implementations of functions `IsValid` and `IsAvailable` in your `bluesky` package:
 
   func IsValid(username string) bool { return false }
 
@@ -2306,9 +2306,12 @@ Actually implementing those functions is left as an exercise for after the cours
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
+: validation: 3-18 chars, alphanum and hyphens, no hyphen at the beginning or end
+: availability: https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=jffub0bs.com, HEAD request tolerated, 200/404 status
 
 
-* Namecheck project: check a username on Github and Reddit
+
+* Namecheck project: check a username on Github and Bluesky
 
 Flesh out your `main` function:
 
@@ -2316,7 +2319,7 @@ Flesh out your `main` function:
 
 2. If the username is valid, check its availability on GitHub. Print the error if it's non-`nil` or the boolean result otherwise.
 
-3. Repeat steps 1 & 2 for Reddit.
+3. Repeat steps 1 & 2 for Bluesky.
 
 4. Does the code in your `main` function not suffer from duplication?
 
@@ -2328,7 +2331,7 @@ Flesh out your `main` function:
 
 Our project is starting to take shape, but it still suffers from limitations...
 
-One issue is that, although the `github` and `reddit` packages both export `IsValid` and `IsAvailable` functions with identical signatures, we're missing a common abstraction that would let us call those functions regardless of the package they're declared in.
+One issue is that, although the `github` and `bluesky` packages both export `IsValid` and `IsAvailable` functions with identical signatures, we're missing a common abstraction that would let us call those functions regardless of the package they're declared in.
 
 *Methods* and *interfaces* will allow us to remedy this problem!
 

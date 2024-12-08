@@ -33,7 +33,7 @@ Note that, as illustrated above, receiver types are not limited to struct types.
 
 * Methods are key to interfaces
 
-: We need some abstraction for the similar behaviors provided by our `github` and `reddit` packages. This abstraction will take the form of one or more interface types.
+: We need some abstraction for the similar behaviors provided by our `github` and `bluesky` packages. This abstraction will take the form of one or more interface types.
 
 _Methods_ are the mechanism through which concrete types can satisfy basic interfaces.
 
@@ -382,7 +382,7 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 4. Adjust your tests in `github_test.go` and `main.go` accordingly.
 
-5. Repeat steps 1-3 for the `reddit` package.
+5. Repeat steps 1-3 for the `bluesky` package.
 
 `IsAvailable` has now gained in flexibility but, because it's tied to the concrete type `*http.Client`, it still lacks testability... It's finally time to talk about interfaces! 👉
 
@@ -578,7 +578,7 @@ Many of the interface types provided by Go's standard library only have one meth
     IsValid(string) bool
   }
 
-2. Do `*github.GitHub` and `*reddit.Reddit` satisfy that interface? Explain.
+2. Do `*github.GitHub` and `*bluesky.Bluesky` satisfy that interface? Explain.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -594,7 +594,7 @@ Many of the interface types provided by Go's standard library only have one meth
     IsAvailable(string) (bool, error)
   }
 
-2. Do `*github.GitHub` and `*reddit.Reddit` satisfy that interface? Explain.
+2. Do `*github.GitHub` and `*bluesky.Bluesky` satisfy that interface? Explain.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -654,7 +654,7 @@ The declaration above is equivalent to the one below but requires no code duplic
 - `Validator`
 - `Availabler`
 
-2. Do `*github.GitHub` and `*reddit.Reddit` satisfy that interface? Explain.
+2. Do `*github.GitHub` and `*bluesky.Bluesky` satisfy that interface? Explain.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -665,7 +665,7 @@ The declaration above is equivalent to the one below but requires no code duplic
 1. In your `main` function, create a slice of `Checker` with two elements:
 
 - a pointer to a `github.GitHub`
-- a pointer to a `reddit.Reddit`
+- a pointer to a `bluesky.Bluesky`
 
 2. Simplify the existing code by ranging over the slice of `Checker` values.
 
@@ -681,7 +681,7 @@ In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][
 
 Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
 
-Note that we declared the `github.GitHub` and `reddit.Reddit` struct types first,
+Note that we declared the `github.GitHub` and `bluesky.Bluesky` struct types first,
 and only then did we declare the interface types that pointers to those types satisfy.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
@@ -712,11 +712,11 @@ If a type satisfies `fmt.Stringer`, its `String` method governs the textual repr
 
 * Namecheck project: satisfy the fmt.Stringer
 
-There currently is no way to ask a `Checker` to which platform (GitHub or Reddit) it's dedicated. Let's fix that.
+There currently is no way to ask a `Checker` to which platform (GitHub or Bluesky) it's dedicated. Let's fix that.
 
 1. Modify the declaration of the `Checker` interface so that the latter also be an `fmt.Stringer`.
 
-2. Do `*github.GitHub` and `*reddit.Reddit` still satisfy the `Checker` interface? If not, fix that.
+2. Do `*github.GitHub` and `*bluesky.Bluesky` still satisfy the `Checker` interface? If not, fix that.
 
 3. Make good use of `Checker`'s new ability in your `main` function.
 
@@ -1004,7 +1004,7 @@ If not, is that a problem? Explain. 😏
 
 * Implicit satisfaction facilitates dependency inversion
 
-As you already know, you can declare an interface type that will be satisfied by your own types that already exist. You did this for types `*github.GitHub` and `*reddit.Reddit`.
+As you already know, you can declare an interface type that will be satisfied by your own types that already exist. You did this for types `*github.GitHub` and `*bluesky.Bluesky`.
 
 But there's more! You can even create your own interface type for concrete types that you do not own and for which no useful interface is readily provided!
 
@@ -1028,6 +1028,8 @@ We'll declare our interface type in a new package at the root of the module. But
 2. Create a file `namecheck.go` that belongs to a new package itself named `namecheck`.
 
   namecheck
+  ├── bluesky
+  │   └── bluesky.go
   ├── cmd
   │   └── main.go
   ├── github
@@ -1035,8 +1037,7 @@ We'll declare our interface type in a new package at the root of the module. But
   │   └── github_test.go
   ├── go.mod
   ├── namecheck.go
-  └── reddit
-      └── reddit.go
+  └── namecheck.go
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
@@ -1046,7 +1047,7 @@ We'll declare our interface type in a new package at the root of the module. But
 
 1. In `namecheck.go`, judiciously declare a useful interface named "Getter" that type `*http.Client` already satisfies.
 
-2. In your `GitHub` and `Reddit` struct types, change the type of the field named `Client` from `*http.Client` to `namecheck.Getter`:
+2. In your `GitHub` and `Bluesky` struct types, change the type of the field named `Client` from `*http.Client` to `namecheck.Getter`:
 
   type GitHub struct {
     Client namecheck.Getter
