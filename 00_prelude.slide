@@ -53,7 +53,7 @@ If you haven't already, install Go by following the guidance from [[https://go.d
 You can check which version of Go is installed by running the following shell command:
 
   $ go version
-  go version go1.23.3 darwin/amd64
+  go version go1.23.4 darwin/amd64
 
 To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
 
@@ -150,15 +150,14 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 
 * Logo & mascot
 
-Go's logo may strike you as rather uninspired and unremarkable:
+Go's logo may strike you as uninspired and unremarkable; I'm guessing that the manga-style "speed lines" are meant to convey that Go is intended for [[https://changelog.com/gotime/333#transcript-29][programming at scale]].
 
 .image https://go.dev/blog/go-brand/logos.jpg 150 _
 
-However, [[https://go.dev/blog/gopher][Go's mascot]], a [[https://en.wikipedia.org/wiki/Gopher][gopher]], enjoys worldwide recognition:
+However, [[https://go.dev/blog/gopher][Go's mascot]], a [[https://en.wikipedia.org/wiki/Gopher][gopher]], enjoys worldwide recognition. In fact, "Gopher" is an affectionate name for a Go programmer.
 
 .image https://go.dev/blog/gopher/gopher.png 150 _
 
-In fact, Go programmers are affectionately known as "Gophers".
 
 : Lapins Crétins vibe!
 

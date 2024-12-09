@@ -25,8 +25,9 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 // END OMIT
 
 func main() {
-	http.HandleFunc("GET /users/{id}", getUser)
-	if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /users/{id}", getUser)
+	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }

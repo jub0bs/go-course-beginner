@@ -8,8 +8,9 @@ import (
 
 // START OMIT
 func main() {
-	http.HandleFunc("GET /hello", handleHello) // HL
-	if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
+	mux := http.NewServeMux()                                                  // HL
+	mux.HandleFunc("GET /hello", handleHello)                                  // HL
+	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed { // HL
 		log.Fatal(err)
 	}
 }

@@ -15,12 +15,11 @@ func handleHello(w http.ResponseWriter, _ *http.Request) {
 
 // START OMIT
 func main() {
-	// create a custom HTTP request multiplexer and register your handler to pattern GET /hello
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /hello", handleHello)
 
-	// instantiate a CORS middleware whose config suits your needs
-	corsMw, err := cors.NewMiddleware(cors.Config{
+	// instantiate a CORS middleware whose configuration suits your needs
+	corsMw, err := cors.NewMiddleware(cors.Config{ // HL
 		Origins: []string{"https://example.com"},
 	})
 	if err != nil {
@@ -28,10 +27,10 @@ func main() {
 	}
 
 	// apply your CORS middleware to your HTTP request multiplexer
-	handler := corsMw.Wrap(mux)
+	handler := corsMw.Wrap(mux) // HL
 
-	// start the server on port 8080; make sure to use your custom handler
-	if err := http.ListenAndServe(":8080", handler); err != http.ErrServerClosed {
+	// pass the result to ListenAndServe
+	if err := http.ListenAndServe(":8080", handler); err != http.ErrServerClosed { // HL
 		log.Fatal(err)
 	}
 }

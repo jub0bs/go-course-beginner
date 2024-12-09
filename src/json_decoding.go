@@ -28,8 +28,9 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 // END OMIT
 
 func main() {
-	http.HandleFunc("POST /users", createAdmin)
-	if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /users", createAdmin)
+	if err := http.ListenAndServe(":8080", mux); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 }

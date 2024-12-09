@@ -11,12 +11,12 @@ func main() {
 	fmt.Println(replicatedFetch("Strasbourg", "Paris"))
 }
 
-func replicatedFetch(dc1, dc2 string) string {
+func replicatedFetch(dcs ...string) string {
 	ch := make(chan string)
-	// for brevity, I've omitted the impl. of function fetch (of type func(string) string)
-	go func() { ch <- fetch(dc1) }() // HL
-	go func() { ch <- fetch(dc2) }() // HL
-	return <-ch                      // HL
+	for _, dc := range dcs {
+		go func() { ch <- fetch(dc) }() // fetch is just some func(string) string // HL
+	}
+	return <-ch // HL
 }
 
 // END OMIT

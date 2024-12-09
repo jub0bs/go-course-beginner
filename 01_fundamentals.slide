@@ -100,7 +100,7 @@ The terms _package_ and _module_ are confusingly similar, but don't conflate the
 
 * The path of a module
 
-A module is identified by its _path_, which takes the form of a domain followed by a path where you will release its source code. A module's path should be globally unique.
+A module is identified by its _path_: the fully qualified name to your source-control system, i.e. where you will publish (perhaps only internally to your organization) the module's source code. A module's path should therefore be globally unique.
 
 For instance, if you intend to publish your code on GitHub, the path of your module should have the following format:
 
@@ -111,6 +111,8 @@ A module's path acts as the import path for the module's root directory. It pref
   import "github.com/YOUR_GITHUB_USERNAME/REPO_NAME/SOME_PACKAGE_NAME"
 
 Note the absence of a central server (like [[https://npmjs.com]]) where modules ought to be published! As the Go team [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-11][puts it]]: "Relying on domain names avoided a rush to claim valuable entries in a flat [namespace]."
+
+: note: Bluesky follows a similar approach
 
 
 
@@ -151,7 +153,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.23.3
+  go 1.23.4
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
@@ -1355,7 +1357,7 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 : compare with other languages
 :   C: error codes, in-band, no multiple return values; write more to a volatile location in memory
-:   Java/Scala: exceptions, or Option, Either or some Result type (more functional)
+:   Java/Scala: unchecked exceptions (signature says nothing about potential failure), checked exceptions, Option, Either or some Result type (more functional)
 
 
 
@@ -1828,9 +1830,9 @@ The Go compiler disallows cycles in import graphs. For example, package `foo` ca
 
 .image img/dependency_cycle.svg 150 _
 
-Imports form a _directed_acyclic_graph_, like the graph of commits in a Git repository.
+Imports form a _directed_acyclic_graph_ (just like the graph of commits in a Git repository). Thanks to this [[https://wiki.c2.com/?LiberatingConstraint][liberating design constraint]], elements of the import graph can be [[https://en.wikipedia.org/wiki/Topological_sorting][topologically sorted]], and each imported package needs be compiled only once.
 
-Thanks to this [[https://wiki.c2.com/?LiberatingConstraint][liberating design constraint]], each imported package needs be compiled only once. As a result, the Go compiler is fast [[https://www.youtube.com/watch?v=sln-gJaURzk&t=14m45s][compared to C and C++ compilers]].
+As a result, the Go compiler is fast, [[https://go.dev/talks/2012/splash.article#TOC_5.][especially compared to C and C++ compilers]]; Rob Pike has [[https://www.youtube.com/watch?v=sln-gJaURzk&t=14m45s][a funny anecdote about this]].
 
 .image https://miro.medium.com/max/4800/1*-bo7H329eM0O1eL_ASBVOA.jpeg 150 _
 

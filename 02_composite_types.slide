@@ -102,7 +102,7 @@ Functions that take an array operate on an entire copy of their array argument!
 
 * Arrays are seldom used
 
-[[https://go.dev/doc/effective_go#arrays][Legitimate cases for direct use of arrays do exist]], but are relatively rare.
+Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arrays][do exist]] ([[https://pkg.go.dev/crypto/md5#Sum][esp. for cryptography]]), but remain relatively rare.
 
 .code src/sudoku.go  /^//START/,/^//END
 
@@ -242,7 +242,7 @@ Of course, the specified capacity must be greater or equal to the length, or [[h
 
 Remember: a slice is only a [[https://go.dev/blog/slices-intro#slice-internals][descriptor of an array segment]].
 
-Accordingly, functions that take a slice operate on a copy of their slice argument, but [[https://go.dev/blog/slices#passing-slices-to-functions][this copying doesn't incur any copy of its backing array]]!
+Accordingly, functions that take a slice operate on a copy of their slice argument, but [[https://go.dev/blog/slices#passing-slices-to-functions][this copying doesn't incur any copy of the slice's backing array]]!
 
 .play -edit src/slice_cheap.go  /^//START/,/^//END
 
@@ -262,7 +262,7 @@ Furthermore, updates to elements of a slice argument are visible to the caller:
 
 
 
-* Passing a slice to variadic function
+* Passing a slice to a variadic function
 
 You can "explode" a slice argument into a variadic parameter using a trailing ellipsis:
 
@@ -324,6 +324,8 @@ However, attempts to re-slice a slice beyond its capacity results in either a co
 4. If a username was specified, use it as before in the rest of your program.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+: fmt.Fprintln(os.Stderr, "usage: %s <username>", os.Args[0]); os.Exit(1)
 
 
 
