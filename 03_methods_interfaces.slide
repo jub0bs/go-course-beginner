@@ -1036,7 +1036,6 @@ We'll declare our interface type in a new package at the root of the module. But
   │   ├── github.go
   │   └── github_test.go
   ├── go.mod
-  ├── namecheck.go
   └── namecheck.go
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _

@@ -1347,7 +1347,7 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 "err" is a conventional name for error values and the following nil-check idiom is typical:
 
-  items, _, err := http.Fetch("https://api.jub0bs.com/status")
+  items, _, err := Fetch("https://api.jub0bs.com/status")
   if err != nil {
     // failure (items is unusable): handle err and perhaps return early
   }
@@ -1637,7 +1637,7 @@ For example, [[https://pkg.go.dev/regexp][the `regexp` package]] provides [[http
 
 However, you sometimes want to declare a `*regexp.Regexp` as the package level or, if the pattern isn't valid, simply fail package initialization. Therefore, the `regexp` package also provides [[https://pkg.go.dev/regexp#MustCompile][a panicking wrapper, named `MustCompile`]], around `Compile`:
 
-  func MustCompile(pattern string) *Regexp {
+  func MustCompile(pattern string) *regexp.Regexp {
     re, err := Compile(pattern)
     if err != nil {
       panic(`regexp: Compile(` + quote(pattern) + `): ` + err.Error())
@@ -1834,7 +1834,7 @@ Imports form a _directed_acyclic_graph_ (just like the graph of commits in a Git
 
 As a result, the Go compiler is fast, [[https://go.dev/talks/2012/splash.article#TOC_5.][especially compared to C and C++ compilers]]; Rob Pike has [[https://www.youtube.com/watch?v=sln-gJaURzk&t=14m45s][a funny anecdote about this]].
 
-.image https://miro.medium.com/max/4800/1*-bo7H329eM0O1eL_ASBVOA.jpeg 150 _
+: .image https://miro.medium.com/max/4800/1*-bo7H329eM0O1eL_ASBVOA.jpeg 100 _
 
 : ex: the standard library can be compiled in 10s on a modern machine
 : also Go's grammar is designed to enable a source file to be parsed without type information or any other external inputs
@@ -2308,8 +2308,8 @@ Actually implementing those functions is left as an exercise for after the cours
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
-: validation: 3-18 chars, alphanum and hyphens, no hyphen at the beginning or end
-: availability: https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=jffub0bs.com, HEAD request tolerated, 200/404 status
+: validation: 3-18 chars, alphanum and hyphens and any char allowed in DNS label + period, no hyphen at the beginning or end
+: availability: https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile?actor=jub0bs.com, HEAD request tolerated, 200/400 status
 
 
 
