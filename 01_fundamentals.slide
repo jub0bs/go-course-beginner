@@ -731,26 +731,13 @@ If you only care about some of the results, assign the others to the _blank_iden
 
 * Inadvertent variable shadowing
 
-This mixture of declaration and assignment can lead you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope.
+Be careful: this mixture of declaration and assignment can lead you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope. Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
 
-Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
+.play -edit src/inadvertent_shadowing.go /^//START/,/^//END/
 
-  func BadRead(f *os.File, buf []byte) error {
-    var err error
-    for {
-      n, err := f.Read(buf) // shadows the function variable 'err'
-      if err != nil {
-        break // causes return of wrong value
-      }
-      foo(buf)
-    }
-    return err
-  }
-
-(Don't worry if you cannot follow this example yet. Revisit it later.)
-
-
-When you use the `:=` operator, always ask yourself whether you're declaring new variables or updating existing ones.
+: this example is admittedly a bit contrived
+: Don't worry if you cannot follow this example yet. Revisit it later.
+: When you use the `:=` operator, ask yourself whether you're declaring new variables or updating existing ones.
 
 
 
