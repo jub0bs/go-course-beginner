@@ -268,7 +268,7 @@ You can "explode" a slice argument into a variadic parameter using a trailing el
 
 .play -edit src/slice_explode.go  /^//START/,/^//END/
 
-This functionality is reminiscent of [[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax][JavaScript's spread syntax]], [[https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists][Python's]] and [[https://docs.ruby-lang.org/en/2.0.0/syntax/calling_methods_rdoc.html#label-Array+to+Arguments+Conversion][Ruby's]] "splat" (`*`) operator.
+This functionality is reminiscent of the spread syntax (a.k.a. splat operator) supported by many other languages: [[https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax][JavaScript]], [[https://wiki.php.net/rfc/spread_operator_for_array][PHP]], [[https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists][Python]], [[https://docs.ruby-lang.org/en/2.0.0/syntax/calling_methods_rdoc.html#label-Array+to+Arguments+Conversion][Ruby]], etc.
 
 
 
@@ -313,15 +313,15 @@ However, attempts to re-slice a slice beyond its capacity results in either a co
 
 
 
-* Namecheck project: pass a username as a command-line arg
+* Namecheck project: pass a username as a command-line argument
 
 1. Consult the [[https://pkg.go.dev/os][documentation of the `os` package]].
 
 2. Identify an exported identifier of that package that will allow you to get the program's command-line arguments as a slice of strings.
 
-3. Check the length of that slice; if no username was specified, print a friendly error message on stderr and exit with status 1.
+3. Check the length of that slice; if no command-line argument was specified, print a friendly error message on stderr and exit with status 1.
 
-4. If a username was specified, use it as before in the rest of your program.
+4. If a command-line argument was specified, use it as the username in the remainder of your program.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -729,7 +729,8 @@ A struct type `T` cannot have a field of type `T`:
   type User struct {
     firstName string
     lastName  string
-    spouse    User   // compilation error
+    spouse    User    // compilation error: invalid recursive type: User refers to itself
+    friends   [4]User // compilation error: invalid recursive type: User refers to itself
   }
 
 However, it can have fields of some composite types that involve `T`:
@@ -769,7 +770,7 @@ You can construct a value of this type via a *struct*literal*:
 
   u := User{
     firstName: "Julien",
-    lastName: "Cretel",
+    lastName:  "Cretel",
   }
 
 Fields omitted from the struct literal are zero-valued. In the example above, the `isAdmin` field of `u` is `false`.
@@ -784,11 +785,11 @@ Consider the following struct type and unkeyed and keyed literals of it:
 
 .play -edit src/unkeyed_literals.go /^//START/,/^//END/
 
-[[https://go.dev/doc/go1compat#expectations][You should avoid unkeyed literals]] (esp. of cross-package struct types); in fact, the `vet` subcommand warns you about them.
+Because unkeyed literals of cross-package struct types create maintenance issues, [[https://go.dev/doc/go1compat#expectations][you should avoid them]]. In fact, the `vet` subcommand warns you about them.
 
-Their reliance on the order of the fields in the struct-type declaration makes them less expressive (harder to write and read) and brittle to changes in the declaration ([[https://www.youtube.com/watch?v=v24wrd3RwGo&t=5m2s][addition of a field]], or re-ordering of the fields).
+Their reliance on the order of the fields in the struct-type declaration indeed makes less expressive (harder to write and read) and more brittle to changes in the declaration ([[https://www.youtube.com/watch?v=v24wrd3RwGo&t=5m2s][addition of a field]], or re-ordering of the fields) than keyed literals are.
 
-Support for unkeyed struct literals [[https://www.youtube.com/watch?v=v24wrd3RwGo&t=19m28s][may be removed in a future version of Go]].
+Support for unkeyed struct literals [[https://www.youtube.com/watch?v=v24wrd3RwGo&t=19m28s][may even be removed in a future version of Go]].
 
 : error-prone
 : In struct literals, you can either specify all the...
@@ -813,6 +814,8 @@ This type can take only one value:
 The memory footprint of this value is zero.
 
 Contrary to what you may believe, the empty struct is often useful.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
 : conveys intent that data doesn't matter
 : sets
@@ -877,10 +880,13 @@ Keeping struct fields unexported is the primary mechanism for encapsulation in G
 Completely encapsulated struct types are _opaque_: they export none of their fields.
 For example, see [[https://pkg.go.dev/time#Time][`time.Time`]] or [[https://pkg.go.dev/regexp#Regexp][`regexp.Regexp`]].
 
-Don't export the fields of your package-level struct types unless you have to (e.g. for JSON decoding).
+Don't export the fields of your package-level struct types unless you have to (e.g. for JSON decoding). You'd likely regret designing types as too _transparent_, as [[https://github.com/bradfitz/exp-httpclient/blob/master/problems.md#types-too-transparent][Brad Fitzpatrick does about some types exported by the `net/http` package]].
 
 To allow clients of your package to manipulate values of struct types that have non-exported fields, provide methods (like `*regexp.Regexp`'s `MatchString` method) and,
 if needed, factory functions (like `regexp.Compile` and `regexp.MustCompile`).
+
+: similarly insufficiently encapsulated type in the standard library: time.Timer
+: see https://blogtitle.github.io/go-advanced-concurrency-patterns-part-2-timers/#timetimer-also-known-as-timewhatthefork
 
 
 
@@ -932,15 +938,15 @@ A struct type is comparable only if the types of all its fields are themselves c
 
 * Exercise: design a binary tree
 
+You may think of trees as too academic, but data structures in this family are frequently useful, [[https://github.com/jub0bs/cors/blob/main/internal/origins/radix/radix.go][even for mundane tasks]].
+
 A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contains some element (e.g. of integer type) and references up to two children nodes.
 
 .image img/binary_tree.svg 200 _
 
-1. Open the Go Playground.
+1. In a blank playground, declare a type named `Node` for representing one node of this kind of binary tree. We'll simply model a tree as a `*Node`, here.
 
-2. Declare a type named `Node` for representing one node of this kind of binary tree. We'll simply model a tree as a `*Node`, here.
-
-3. In your `main` function, declare a variable named `tree` that represents the tree shown above; then print that value.
+2. In your `main` function, declare a variable named `tree` that represents the tree shown above; then print that value.
 
 : https://excalidraw.com/#json=b_AryM5iFA9oUa2kMT6sd,saZDan7wON3vgjTYRDYsgQ
 : better: type Tree struct { root *Node }
@@ -949,13 +955,13 @@ A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero 
 
 * Exercise: design a binary tree (cont'd)
 
-4. Implement the following function:
+3. Implement the following function:
 
   func Size(t *Node) int
 
 It should return the number of nodes in its argument.
 
-5. Implement the following function:
+4. Implement the following function:
 
   func Sum(t *Node) int
 

@@ -1,0 +1,90 @@
+Introduction to Go
+5 - Conclusion & additional learning resources
+
+Julien Cretel
+
+https://jub0bs.com
+https://bsky.app/profile/jub0bs.com
+@jub0bs@infosec.exchange
+
+* Conclusion
+
+Congratulations! You've reached the end of the course.
+
+You can now apply what you've learned in your Go projects. Practice regularly for a few weeks or months. Feel free to revisit the course material.
+
+You've learned a lot, but there is [[https://www.humancoders.com/formations/go-avance][more]]...
+
+.image https://go.dev/blog/store/gophers.jpg 400 _
+
+
+
+* Additional learning resources
+
+*Official*:
+
+- [[https://go.dev/ref/spec][the Go programming language specification]]
+- [[https://github.com/golang/go]] (issues, proposals, etc.)
+- [[https://pkg.go.dev]] (documentation of first- and third-party libraries)
+- [[https://go.dev/wiki/CodeReviewComments]] (common comments made during code reviews)
+- [[https://go.dev/blog][the (official) Go blog]]
+
+*Blogs*:
+
+- [[https://www.ardanlabs.com/blog/][ArdanLabs' blog]]
+- [[https://dave.cheney.net/][Dave Cheney's blog]] (no longer active but still good)
+- [[https://rakyll.org/][Rakyll's blog]] (no longer active but still good)
+
+
+
+* Additional learning resources (cont'd)
+
+*Books*
+
+- [[https://katherine.cox-buday.com/concurrency-in-go/][Katherine Cox-Buday - Concurrency in Go]] (2017)
+- [[https://www.gopl.io/][Donovan & Kernighan - The Go programming language]] (2015)
+
+*Weekly*newsletters*
+
+- [[https://newsletter.appliedgo.net/][Applied Go]]
+- [[https://golangweekly.com/][Golang Weekly]]
+
+*Online*community*
+
+- [[https://gophers.slack.com][Gophers Slack]]
+- [[https://groups.google.com/g/golang-nuts][golang-nuts Google group]]
+- [[https://stackoverflow.com/questions/tagged/go][Stack Overflow]]
+
+: esp. channels #general, #newbies, and #bestpractices
+
+
+
+* Additional learning resources (cont'd)
+
+*Podcasts*
+
+- [[https://changelog.com/gotime][Go Time (The Changelog)]] ([[https://changelog.com/posts/a-new-era-for-the-changelog-podcast-universe][no longer active]] but still good)
+- [[https://cupogo.dev/episodes][Cup o' Go]]
+- [[https://fallthrough.transistor.fm][Fallthrough]] (new!)
+
+*Vidcasts*
+
+- [[https://www.youtube.com/c/justforfunc][Francesc Campoy Flores - justforfunc]] (no longer active but still good)
+- [[https://www.youtube.com/@packagemain][Alex Pliutau - package main]]
+
+*Conference*talks*: GopherCon [[https://www.youtube.com/@GopherAcademy][US]], [[https://www.youtube.com/@GopherConEurope][Europe]], [[https://www.youtube.com/@GopherConUK][UK]], etc.
+
+*Video*courses*
+
+💲 [[https://www.oreilly.com/library/view/ultimate-go-programming/9780135261651/][Bill Kennedy - Ultimate Go 2]] (2018)
+💲 [[https://www.oreilly.com/library/view/introduction-to-go/9781491913871/][John Graham-Cumming - Introduction to Go Programming]] (2014)
+
+
+
+* Visuals
+
+- [[https://www.instagram.com/reneefrench/][Renée French]]
+- [[https://github.com/egonelbre/gophers][Egon Elbre]]
+- [[https://github.com/ashleymcnamara/gophers][Ashley McNamara]]
+
+.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 300 _

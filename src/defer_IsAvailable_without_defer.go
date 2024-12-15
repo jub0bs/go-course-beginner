@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"net/url"
 )
 
 func main() {
@@ -11,10 +10,7 @@ func main() {
 
 // START OMIT
 func IsAvailable(username string) (bool, error) {
-	addr, err := url.JoinPath("https://github.com", url.PathEscape(username))
-	if err != nil {
-		return false, err
-	}
+	addr := "https://github.com/" + username
 	resp, err := http.Get(addr)
 	if err != nil {
 		return false, err

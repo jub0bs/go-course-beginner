@@ -39,22 +39,15 @@ _Methods_ are the mechanism through which concrete types can satisfy basic inter
 
 We'll cover interfaces in detail soon, but here is a teaser:
 
-  type Shape interface {
-    Area() float64
-  }
+.code -edit src/shape_interface.go /^//START1/,/^//END1/
 
-  type Rectangle struct { width, height float64 } // satisfies the Shape interface
 
-  func (r Rectangle) Area() float64 {
-    return r.width * r.height
-  }
 
-  type Circle struct { radius float64 }           // satisfies the Shape interface
+* Methods are key to interfaces (cont'd)
 
-  func (c Circle) Area() float64 {
-    return math.Pi * c.radius * c.radius
-  }
+.play -edit src/shape_interface.go /^//START2/,/^//END2/
 
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
 
 * Restrictions on the type of a method's receiver
@@ -239,30 +232,6 @@ Strive for consistency: [[https://go.dev/doc/faq#methods_on_values_or_pointers][
 
 
 
-* Make the zero value readily usable
-
-Remember: every type has a zero value, but Go lacks [[https://en.wikipedia.org/wiki/Constructor_(object-oriented_programming)][_type_constructors_]].
-
-When designing a type and its methods, [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=385s][strive to make its zero value readily usable]]. As a result, the type itself will be comparatively easier to use:
-
-  var buf bytes.Buffer // ok: no initialization required
-  _, err := buf.Write([]byte{'H', 'e', 'y'})
-  // ...
-
-Of course, making the zero value readily usable isn't possible for all types, especially if the type, like `regexp.Regexp`, requires some kind of configuration:
-
-  var re regexp.Regexp     // not ok: a regexp for which no pattern was specified is useless
-  re.MatchString("jub0bs") // panic!
-
-In such cases, provide one or more _factory_functions_, like `regexp.MustCompile`:
-
-  re := regexp.MustCompile("^[A-Z0-9a-z-]{3,39}$") // ok
-  re.MatchString("jub0bs")                         // true
-
-: another example: https://jub0bs.com/posts/2020-07-21-go-bimap/
-
-
-
 * Exercise: turn functions operating on a binary tree into methods
 
 1. Open [[https://go.dev/play/p/aS99xWC2eh1][the solution]] to the previous exercise on binary trees.
@@ -394,11 +363,13 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 * The power of Go interfaces
 
+An interface type defines a *contract*; concrete types (e.g. some struct type) that fulfill that contract are said to _implement_ or _satisfy_ the interface type in question.
+
 Interfaces enable [[https://en.wikipedia.org/wiki/Polymorphism_(computer_science)][_polymorphism_]]: they are abstract types that allow interchangeable use of different concrete types that happen to provide similar functionalities.
 
 By [[https://www.youtube.com/watch?v=yE5Tpp2BSGw&t=1001s][focusing on _behavior_ rather than _data_]], they promote decoupling and composability!
 
-Similar concepts exist in other programming languages (like Java and C#), but [[https://groups.google.com/g/golang-nuts/c/mg-8_jMyasY/m/lo-kDuEd540J][Go interfaces are, in many ways, more powerful]].
+Similar concepts exist in other programming languages (such as Java, C#, PHP, etc.), but [[https://groups.google.com/g/golang-nuts/c/mg-8_jMyasY/m/lo-kDuEd540J][Go interfaces are, in many ways, more powerful]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/arts/ballet.svg 200 _
 
@@ -406,9 +377,9 @@ Similar concepts exist in other programming languages (like Java and C#), but [[
 
 * The power of Go interfaces (cont'd)
 
-Rob Pike himself [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=19m13s][considers interfaces _Go's_most_distinctive_and_powerful_feature_]], and [[https://www.youtube.com/watch?v=sln-gJaURzk&t=6m35s][credits the ideas underpinning them for profoundly altering his views on software development]]... even more so than concurrent programming did! 🤯
+[[https://bsky.app/profile/swtch.com][Russ Cox]], former head of the Go team, [[https://research.swtch.com/interfaces][considers interfaces "_the_most_exciting_part_of_Go_from_a_language-design_point_of_view_"]]. 🤩
 
-And Russ Cox, the current head of the Go team, [[https://research.swtch.com/interfaces][considers interfaces "_the_most_exciting_part_of_Go_from_a_language-design_point_of_view_"]]. 🤩
+And Rob Pike himself [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=19m13s][considers interfaces _Go's_most_distinctive_and_powerful_feature_]], and [[https://www.youtube.com/watch?v=sln-gJaURzk&t=6m35s][credits the ideas underpinning them for profoundly altering his views on software development]]... even more so than concurrent programming did! 🤯
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-balloon.svg 200 _
 
@@ -570,27 +541,12 @@ Many of the interface types provided by Go's standard library only have one meth
 
 
 
-* Namecheck project: declare a Validator interface
+* Namecheck project: declare a Checker interface
 
 1. In `main.go`, declare the following interface type:
 
-  type Validator interface {
+  type Checker interface {
     IsValid(string) bool
-  }
-
-2. Do `*github.GitHub` and `*bluesky.Bluesky` satisfy that interface? Explain.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
-
-: mention that we're defining Validator after the fact!
-
-
-
-* Namecheck project: declare an Availabler interface
-
-1. Still in `main.go`,  declare the following interface type:
-
-  type Availabler interface {
     IsAvailable(string) (bool, error)
   }
 
@@ -598,65 +554,35 @@ Many of the interface types provided by Go's standard library only have one meth
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
+: mention that we're defining Checker after the fact!
 
 
-* Interface composition
 
-Consider the following two elementary interface types:
+* Easy interface composition
 
-  type Reader interface {
-    Read([]byte) (n int, err error)
+Starting from more elementary interface types, you can declare a broader interface type simply by [[https://go.dev/ref/spec#Embedded_interfaces][_embedding_]] the former in the latter. For example, imagine if you had instead started by defining the following two more elementary interface types:
+
+  type Validator interface {
+    IsValid(username string) bool
   }
 
-  type Closer interface {
-    Close() error
+  type Availabler interface {
+    IsAvailable(username string) (bool, error)
   }
 
-To declare an interface type that is both a `Reader` a `Closer`, you could of course just list the required methods:
+You could then have simply declared an interface type (named `Checker`) that is both a `Validator` and an `Availabler` as follows:
 
-  type ReadCloser interface {
-    Read([]byte) (n int, err error)
-    Close() error
+  type Checker interface {
+    Validator
+    Availabler
   }
 
-But no need to repeat yourself! Interface composition is easier than this in Go...
-
-: why not CloseReader? the name order reflects the order of operations
-
-
-
-* Easier interface composition
-
-You can declare a broader interface type simply by [[https://go.dev/ref/spec#Embedded_interfaces][_embedding_]] the constitutive interfaces in it:
-
-  type ReadCloser interface {
-    Reader
-    Closer
-  }
-
-The declaration above is equivalent to the one below but requires no code duplication:
-
-  type ReadCloser interface {
-    Read([]byte) (n int, err error)
-    Close() error
-  }
+On example among many in the standard library: [[https://pkg.go.dev/io#ReadWriteCloser][interface type `io.ReadWriteCloser`]].
 
 .image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 150 _
 
 : A mix of methods and interface names is also allowed:
-
-
-
-* Namecheck project: declare a Checker interface
-
-1. Still in `main.go`, declare an interface type named `Checker` by composition of the following interface types:
-
-- `Validator`
-- `Availabler`
-
-2. Do `*github.GitHub` and `*bluesky.Bluesky` satisfy that interface? Explain.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+: why, for instance, not CloseReadWriter? the name order reflects the order of operations
 
 
 
@@ -668,6 +594,8 @@ The declaration above is equivalent to the one below but requires no code duplic
 - a pointer to a `bluesky.Bluesky`
 
 2. Simplify the existing code by ranging over the slice of `Checker` values.
+
+At this stage, can you still determine which platform you're dealing with during a given iteration?
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -681,8 +609,7 @@ In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][
 
 Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
 
-Note that we declared the `github.GitHub` and `bluesky.Bluesky` struct types first,
-and only then did we declare the interface types that pointers to those types satisfy.
+Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before* declaring interface type `Checker`!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
@@ -692,13 +619,13 @@ and only then did we declare the interface types that pointers to those types sa
 
 * Notable interface types: fmt.Stringer
 
-[[https://pkg.go.dev/fmt#Stringer][`fmt.Stringer`]] is an interface type that requires a single method:
+[[https://pkg.go.dev/fmt#Stringer][`fmt.Stringer`]] is a single-method interface type that governs the default textual representation of a type:
 
   type Stringer interface {
     String() string
   }
 
-If a type satisfies `fmt.Stringer`, its `String` method governs the textual representation used by the functions from the `fmt` package (`fmt.Println` and friends).
+Functions from the `fmt` package (`fmt.Println` and friends) check at run time whether each element of their variadic argument satisfies the `fmt.Stringer` interface. If it does, those functions call its `String` method and use the result in the output.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/witch-learning.svg 200 _
 
@@ -706,19 +633,28 @@ If a type satisfies `fmt.Stringer`, its `String` method governs the textual repr
 
 * Notable interface types: fmt.Stringer (cont'd)
 
+If the type doesn't satisfy `fmt.Stringer`, `fmt.Println` uses a default textual representation for values of that type:
+
+.play -edit src/stringer_before.go /^//START/,/^//END/
+
+
+
+* Notable interface types: fmt.Stringer (cont'd)
+
+
+If the type does satisfy `fmt.Stringer`, `fmt.Println` uses the result of its `String` method as textual representation for values of that type:
+
 .play -edit src/stringer.go /^//START/,/^//END/
 
 
 
 * Namecheck project: satisfy the fmt.Stringer
 
-There currently is no way to ask a `Checker` to which platform (GitHub or Bluesky) it's dedicated. Let's fix that.
+1. Make `*github.GitHub` satisfy the `fmt.Stringer` interface.
 
-1. Modify the declaration of the `Checker` interface so that the latter also be an `fmt.Stringer`.
+2. Make `*bluesky.Bluesky` satisfy the `fmt.Stringer` interface.
 
-2. Do `*github.GitHub` and `*bluesky.Bluesky` still satisfy the `Checker` interface? If not, fix that.
-
-3. Make good use of `Checker`'s new ability in your `main` function.
+3. Make good use of `*github.GitHub` and `*bluesky.Bluesky`'s new capability in your `main` function. Note that you don't need to call the `String` method explicitly, here.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -728,17 +664,19 @@ There currently is no way to ask a `Checker` to which platform (GitHub or Bluesk
 
 The `io` package provides two complementary interface types: `Reader` and `Writer`.
 
-`io.Reader` represents a _source_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
+[[https://pkg.go.dev/io#Reader][`io.Reader`]] represents a _source_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
 
   type Reader interface {
     Read(dst []byte) (int, error)
   }
 
-`io.Writer` represents a _sink_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
+[[https://pkg.go.dev/io#Writer][`io.Writer`]] represents a _sink_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
 
   type Writer interface {
     Write(src []byte) (int, error)
   }
+
+You've already used a function that has an `io.Writer` parameter. Which one?
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/projects/network-side.svg 150 _
 
@@ -944,7 +882,7 @@ However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shou
 
 Gophers can always, for decoupling purposes, declare a custom interface type in such a way that it be satisfied by some concrete type (even one they don't own).
 
-Note that we declared our interface types (`Validator`, `Availabler`, and `Checker`) only in the `main` package, where we actually need and use those abstractions.
+Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use those abstractions.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
@@ -1066,19 +1004,33 @@ Now you have everything you need to create a test double for `namecheck.Getter`!
 
 * Namecheck project: "stub" the HTTP client for testing purposes
 
-1. Create a package named `stub`. In it, declare the following struct type:
+1. In `github_test.go`, declare the following type:
 
-  type SuccessfulGetter struct {
+  type StubClient struct {
     StatusCode int
+    Err        error
   }
 
-2. Make `*stub.SuccessfulGetter` satisfy your `namecheck.Getter` interface. Its `Get` method should unconditionally succeed and return the specified status code.
+2. Make `StubClient` satisfy your `namecheck.Getter` interface. Its `Get` method should work as follows:
 
-3. Because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`. Use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
+- if the method receiver's `Err` field, is non-nil, `Get` should return that a nil `*http.Response` and that error value;
+- otherwise, it should return a `*http.Response` whose status code is equal to the method receiver's `StatusCode` field.
 
-4. Now write a few unit tests for `github.GitHub`'s `IsAvailable` method and run them.
+Careful: because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`; use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
+
+
+* Namecheck project: write unit tests for GitHub's IsAvailable method
+
+1. Using your new `StubClient` type, write unit tests to check the following:
+
+- if an error occurs, `IsAvailable` should return `false` and that error;
+- if the response's status code is `404`, `IsAvailable` should return `true` and `nil`;
+- if the response's status code is `200`, `IsAvailable` should return `false` and `nil`;
+- otherwise, `IsAvailable` should return `false` and some descriptive non-nil error.
+
+2. Run those tests and measure the code coverage again.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
-: https://www.martinfowler.com/articles/mocksArentStubs.html
 : rationale for the package name: https://www.youtube.com/watch?v=cAWlv2SeQus&t=1685s
+: stub is a distinct package from namecheck: don't want that to end up in production binary

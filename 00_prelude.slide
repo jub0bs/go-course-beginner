@@ -65,7 +65,7 @@ Also, make sure you have Git installed.
 
 .image img/difficulty_vs_time.svg 400 _
 
-: https://excalidraw.com/#json=m8YUv7D6vovgtROSA0AnH,zc9t16WYwXH_FDftsmming
+: https://excalidraw.com/#json=V4Iw0GTvHkFeRiWwspH-q,MAwR2wHSoqKEAj4MnxMWrQ
 
 : power through basic stuff: skip/skim
 : - Go history
@@ -165,9 +165,25 @@ However, [[https://go.dev/blog/gopher][Go's mascot]], a [[https://en.wikipedia.o
 
 * What kind of language is Go?
 
+*Compiled*
+
+Go is a compiled language, like C and C++, and unlike Python and PHP.
+
+*Garbage-collected*
+
+You don't need to systematically allocate and free memory. Variables that fall out of scope eventually get garbage-collected.
+
+*Strong*typing*
+
+Every variable has a type. Conversion from one type to another isn't always possible and, when it is, requires an explicit action from the programmer.
+
 *Concurrent*programming*
 
 Go's [[https://en.wikipedia.org/wiki/Concurrent_computing][concurrency]] features let you cleanly delineate independent tasks in your code.
+
+
+
+* What kind of language is Go? (cont'd)
 
 *Object*orientation*
 

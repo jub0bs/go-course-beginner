@@ -287,7 +287,9 @@ We're about experiment with concurrency inside another `main.go` and within the 
   │   ├── github.go
   │   └── github_test.go
   ├── go.mod
-  └── namecheck.go
+  ├── namecheck.go
+  └── stub
+      └── stub.go
 
 
 
@@ -660,8 +662,7 @@ The following function, if compiled with Go 1.22 or later, is fine. But if compi
 
 .code src/per_loop_iteration_variables.go /^//START/,/^//END/
 
-Before v1.22, [[https://go.dev/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables][variables introduced by loops were scoped _per-loop_ rather than _per-iteration_]].
-Therefore, variable `i` was shared between `main` (which updates it) and the ten goroutines (which read it)! 😱
+Before v1.22, [[https://go.dev/wiki/CommonMistakes#using-goroutines-on-loop-iterator-variables][variables introduced by loops were scoped _per-loop_ rather than _per-iteration_]]. Therefore, variable `i` was shared between `main` (which updates it) and the ten goroutines (which read it)! 😱
 
 This unfortunate behavior caused so many bugs that [[https://www.youtube.com/watch?v=v24wrd3RwGo&t=20m38s][the Go team recently decided to take action]] by [[https://go.dev/blog/loopvar-preview][changing the semantics of loop variables in Go 1.22]]. 😌
 
@@ -772,11 +773,15 @@ Naming a channel after the plural form of its element type is also common:
 
 You can pass a channel to a function:
 
-  func Aggregate(results chan Result) Result { /* ... */ }
+  func Aggregate(results chan Result) Result {
+    // ...
+  }
 
 You can return a channel from a function:
 
-  func Generate(upTo int) chan int { /* ... */ }
+  func Generate(upTo int) chan int {
+    // ...
+  }
 
 You can store a channel in a struct type:
 
@@ -1217,7 +1222,7 @@ But you should use directional channels wherever possible. They are great for
 You can declare a `net/http` handler as a package-level function:
 
   func handleHello(w http.ResponseWriter, _ *http.Request) {
-    io.WriteString(w, "Hello, world!")
+    fmt.Fprint(w, "Hello, world!")
   }
 
 That function must have the following two parameters (in that order):
@@ -1480,23 +1485,60 @@ The following directives have been added to your `go.mod` file (exact versions m
   require golang.org/x/net v0.28.0 // indirect
   require golang.org/x/text v0.17.0 // indirect
 
-Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on any of those modules in your code.
-
-Once you actually import package `github.com/jub0bs/cors` in your code, you'll be able to remove its "indirect" comment by running the following command:
+Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on any of those modules in your code. Once you actually import package `github.com/jub0bs/cors` in your code, run the following command:
 
   go mod tidy
+
+After that, the dependencies that are then direct will no longer be marked "indirect":
+
+  require github.com/jub0bs/cors v0.3.1
+
+  require (
+    golang.org/x/net v0.28.0 // indirect
+    golang.org/x/text v0.17.0 // indirect
+  )
 
 
 
 * The go.sum file
 
-Adding/updating a dependency also creates/updates a file named `go.sum`.
+Adding/updating a dependency also creates/updates a file named `go.sum`:
 
-That file contains cryptographic hashes of the dependency's source code and of its dependencies, hashes which the module system relies on to detect integrity issues.
+  namecheck
+  ├── bluesky
+  │   └── bluesky.go
+  ├── cmd
+  │   ├── cli
+  │   │   └── main.go
+  │   └── server
+  │       └── main.go
+  ├── github
+  │   ├── github.go
+  │   └── github_test.go
+  ├── go.mod
+  ├── go.sum <------------------
+  ├── namecheck.go
+  └── stub
+      └── stub.go
+
+
+
+* The go.sum file (cont'd)
+
+That file contains cryptographic hashes of your project's direct and indirect dependencies (exact values may differ):
+
+  github.com/jub0bs/cors v0.3.1 h1:PCT/3LWGnlVIJP6peSWNbE7wcr/IXCCStAE1TnardFQ=
+  github.com/jub0bs/cors v0.3.1/go.mod h1:mU8XwHPNxGuuvDpf3sKF+F0Yi5bZMzd8k0h7a8I9gtY=
+  golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
+  golang.org/x/net v0.28.0/go.mod h1:yqtgsTWOOnlGLG9GFRrK3++bGOUEkNBoHZc8MEDWPNg=
+  golang.org/x/text v0.17.0 h1:XtiM5bkSOt+ewxlOE/aE/AKEHibwj/6gvWMl9Rsh0Qc=
+  golang.org/x/text v0.17.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+
+Those hashes allow Go's modules system to detect integrity issues with the dependencies it downloads. If it does detect such issues, it fails the build.
 
 Don't forget to track changes to this file in your version-control system!
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 150 _
 
 : example of integrity issue: existing version whose content change after release (either accidentally or for malicious reasons)
 
@@ -1950,86 +1992,3 @@ Otherwise, the various critical sections risk having to wait a prohibitively lon
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
 : instead of a package-level map, we could make the handler a method of some API/server struct type in which we inject the mutex
-
-
-
-* Conclusion
-
-Congratulation! You've reached the end of the course.
-
-You can now apply what you've learned in your Go projects. Practice regularly for a few weeks or months. Feel free to revisit the course material.
-
-You've learned a lot, but there is [[https://www.humancoders.com/formations/go-avance][more]]...
-
-.image https://go.dev/blog/store/gophers.jpg 400 _
-
-
-
-* Additional learning resources
-
-*Official*:
-
-- [[https://go.dev/ref/spec][the Go programming language specification]]
-- [[https://github.com/golang/go]] (issues, proposals, etc.)
-- [[https://pkg.go.dev]] (documentation of first- and third-party libraries)
-- [[https://go.dev/wiki/CodeReviewComments]] (common comments made during code reviews)
-- [[https://go.dev/blog][the (official) Go blog]]
-
-*Blogs*:
-
-- [[https://www.ardanlabs.com/blog/][ArdanLabs' blog]]
-- [[https://dave.cheney.net/][Dave Cheney's blog]] (no longer active but still good)
-- [[https://rakyll.org/][Rakyll's blog]] (no longer active but still good)
-
-
-
-* Additional learning resources (cont'd)
-
-*Books*
-
-- [[https://katherine.cox-buday.com/concurrency-in-go/][Katherine Cox-Buday - Concurrency in Go]] (2017)
-- [[https://www.gopl.io/][Donovan & Kernighan - The Go programming language]] (2015)
-
-*Weekly*newsletters*
-
-- [[https://newsletter.appliedgo.net/][Applied Go]]
-- [[https://golangweekly.com/][Golang Weekly]]
-
-*Online*community*
-
-- [[https://gophers.slack.com][Gophers Slack]]
-- [[https://groups.google.com/g/golang-nuts][golang-nuts Google group]]
-- [[https://stackoverflow.com/questions/tagged/go][Stack Overflow]]
-
-: esp. channels #general, #newbies, and #bestpractices
-
-
-
-* Additional learning resources (cont'd)
-
-*Podcasts*
-
-- [[https://changelog.com/gotime][Go Time (The Changelog)]]
-- [[https://cupogo.dev/episodes][Cup o' Go]]
-
-*Vidcasts*
-
-- [[https://www.youtube.com/c/justforfunc][Francesc Campoy Flores - justforfunc]] (no longer active but still good)
-- [[https://www.youtube.com/@packagemain][Alex Pliutau - package main]]
-
-*Conference*talks*: GopherCon [[https://www.youtube.com/@GopherAcademy][US]], [[https://www.youtube.com/@GopherConEurope][Europe]], [[https://www.youtube.com/@GopherConUK][UK]], etc.
-
-*Video*courses*
-
-💲 [[https://www.oreilly.com/library/view/ultimate-go-programming/9780135261651/][Bill Kennedy - Ultimate Go 2]] (2018)
-💲 [[https://www.oreilly.com/library/view/introduction-to-go/9781491913871/][John Graham-Cumming - Introduction to Go Programming]] (2014)
-
-
-
-* Visuals
-
-- [[https://www.instagram.com/reneefrench/][Renée French]]
-- [[https://github.com/egonelbre/gophers][Egon Elbre]]
-- [[https://github.com/ashleymcnamara/gophers][Ashley McNamara]]
-
-.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 300 _

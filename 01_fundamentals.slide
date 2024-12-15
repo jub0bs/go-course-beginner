@@ -336,13 +336,13 @@ Standard-library packages have import paths that are composed of one or more com
 
 Other packages have import paths that take the form of [[https://www.youtube.com/watch?v=BNmxtp26I5s&t=310s][a domain followed by one or more components]]:
 
-  github.com/jub0bs/missilelauncher
+  github.com/jub0bs/iterutil
 
 The _name_ of a package corresponds to the last component of its import path:
 
   fmt
   http
-  missilelauncher
+  iterutil
 
 : "usually": the exception is for a package whose enclosing folder doesn't mach the package name; best avoided
 : also, with versions of modules after v1, it's the second last path component: "rsc.io/quote/v3" => quote
@@ -471,7 +471,7 @@ Named imports allows you to use the imported package under a different name in t
 
 A named import is convenient when you perceive the package name as inappropriate, perhaps because it is too long:
 
-  import ml "github.com/jub0bs/missilelauncher"
+  import tm "github.com/jub0bs/thingamajig"
 
 Moreover, named imports are especially useful when your code imports multiple packages whose names conflict,
 
@@ -569,7 +569,7 @@ Go also provides composite types, which are composed of other existing types. He
 
 * Every type has a zero value
 
-In Go, unlike in C, there is no such thing as an uninitialized variable.
+In Go, unlike in Java, there are no constructors; and unlike in C, there is no such thing as an uninitialized variable.
 
 Every type, whether built-in or user-defined, has a default value called its _zero_value_.
 
@@ -578,9 +578,9 @@ When you declare a variable without initializing it, its value is the zero value
   var i int    // the value of i is 0
   var s string // the value of s is the empty string ""
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 150 _
-
 Several types have `nil` as their zero value: pointers, functions, channels, interfaces, slices, and maps.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/zorro.svg 150 _
 
 : in French: valeur vierge
 : a reference type does not directly hold its contents. Instead a it holds a pointer to an underlying underlying data structure that holds the contents
@@ -631,7 +631,7 @@ However, they are distinct types and are *not* interchangeable.
 
 If two types are "compatible", an expression of one type can be [[https://go.dev/ref/spec#Conversions][converted]] to the other, either implicitly or explicitly.
 
-However, Go requires many conversions from one type to another to be explicit.
+However, remember that Go has *strong*typing* and requires many conversions from one type to another to be explicit.
 
 .play -edit src/type_conversion.go /^//START/,/^//END/
 
@@ -714,11 +714,13 @@ The `:=` operator is convenient for assigning the results of a function to varia
 The `:=` operator allows you to perform [[https://go.dev/doc/effective_go#redeclaration][a mixture of declaration and assignment]]:
 
   i, err := strconv.Atoi("42") // declares i and err
+  // error handling omitted for brevity
   j, err := strconv.Atoi("96") // declares j, but only updates err
 
 However, the `:=` operator must introduce at least one new variable:
 
   i, err := strconv.Atoi("42")
+  // error handling omitted for brevity
   i, err := strconv.Atoi("96") // compilation error: no new variables on left side of :=
 
 If you only care about some of the results, assign the others to the _blank_identifier_:
@@ -729,7 +731,7 @@ If you only care about some of the results, assign the others to the _blank_iden
 
 * Inadvertent variable shadowing
 
-This mixture of declaration and assignment can lead you to accidentally declare a new variable rather than update an existing one declared in an enclosing scope.
+This mixture of declaration and assignment can lead you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope.
 
 Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
 
@@ -983,18 +985,23 @@ Unlike in C and other languages, no `break` keyword is required at the end of ca
 
 A username is deemed [[https://docs.github.com/en/site-policy/other-site-policies/github-username-policy][acceptable by GitHub]] if
 
-- it does not start/end with a hyphen and does not contain two consecutive hyphens;
-- it contains between 3 and 39 alphanumeric or hyphen characters.
+- it contains between 3 and 39 alphanumeric or hyphen characters;
+- it does not start/end with a hyphen and does not contain two consecutive hyphens.
 
-In your `main` function, do the following:
+1. Think of a regular-expression pattern that captures those rules.
 
-1. Using functions from the [[https://pkg.go.dev/strings][strings]] and [[https://pkg.go.dev/regexp][regexp]] packages, check whether your username follows both rules. Ignore any error for the time being; more about error handling later.
+2. Identify a function in the [[https://pkg.go.dev/regexp][regexp]] package that would be useful. In the `main` function, call it to check whether your username matches the pattern you designed in step 1.
 
-2. Only if your username follows both rules, print that username to the screen.
+3. If that function from the `regexp` package returns a non-`nil` error value, the call has failed and its boolean result is unusable; in that case, terminate `main` with [[https://pkg.go.dev/log#Fatal][`log.Fatal`]].
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+3. If your username follows all the rules, print it to the screen.
 
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+
+: tease error handling: need to check whether err is non-nil
+: one regexp to rule them all: ^([[:alnum:]]-?){2,38}[[:alnum:]]$
 : note: regexp compilation is CPU-intensive
+
 
 
 * Namecheck project: validation of GitHub usernames (cont'd)
@@ -1121,14 +1128,17 @@ Manipulating a pointer to a value of some reference type is only [[https://go.de
 
 * Calling a function
 
-To call a function, you must specify one argument for each of the function's positional parameters, in the expected order, and using commas as separators:
-
-.play -edit src/function_call.go /^//START/,/^//END/
+To call a function, you must specify one argument for each of the function's positional parameters, in the expected order, and using commas as separators.
 
 Unlike languages like [[https://docs.python.org/3/glossary.html#term-argument][Python]], Go doesn't allow you to
 
 - specify arguments by name, or
 - omit an argument and rely on some default value for the corresponding parameter.
+
+Consider this example involving [[https://pkg.go.dev/strings#Repeat][function `strings.Repeat`]]:
+
+.play -edit src/function_call.go /^//START/,/^//END/
+
 
 
 
@@ -1199,19 +1209,23 @@ Contrary to more traditional object-oriented languages, Go doesn't allow [[https
 
 
 
-* Namecheck project: validation of GitHub usernames
+* Namecheck project: validation of GitHub usernames in a function
 
 1. Extract the validation logic to a function named `IsValid`; it should return `true` if its string argument is a valid GitHub username, and `false` otherwise:
 
   func IsValid(username string) bool
 
+You should not call `log.Fatal` outside of the `main` function, though. Why not?
+
+But then how should you handle the error returned by `regexp.MatchString` now?
+
+Ignoring errors is hardly ever judicious but, if you can't think of a good solution yet, I allow you to ignore the error for now. We'll learn how to properly handle errors soon!
+
 2. Write a few "tests" for `IsValid` in the `main` function.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+👉 Let's keep learning about functions.
 
-If you're still ignoring errors, do you think that's judicious? You'll eventually need to learn how to properly handle errors.
-
-👉 For now, let's keep learning about functions.
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
 
 
@@ -1292,7 +1306,7 @@ The zero value of function types is `nil`. Calling a `nil` function causes a pan
 
 Go supports anonymous functions but lacks a concise "lambda" notation:
 
-  incr := func(i int) int { return i + 1 }
+.play -edit src/anonymous_function.go /^//START/,/^//END/
 
 A [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][_closure_]] is an anonymous function that references (or "captures" or "closes over") variables from its lexical scope:
 
@@ -1665,16 +1679,21 @@ However, panicking during the initialization of your package is legitimate, if s
 
 
 
-* Namecheck project: properly handle errors (cont'd)
+* Namecheck project: properly handle errors
 
-1. Use `regexp.MustCompile` to declare a variable of type `*regexp.Regexp` at the package level.
+1. Call function `regexp.MustCompile` to initialize a `*regexp.Regexp` variable declared at package level. Note that this function panics if its pattern argument is not a [[https://pkg.go.dev/regexp/syntax][valid regular expression]].
 
-2. Refactor your `IsValid` function to make use of that variable.
+2. At package level, declare a variable to which you assign the result of the function identified in step 1.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+3. Refactor your `IsValid` function to make use of that package-level variable.
+
+4. Test your program. What happens now if the pattern isn't a valid regular expression?
+
+Note that, as a performance side benefit, the pattern is now compiled to a `regexp.Regexp` value only once rather than at each call of `IsAvailable`! ⚡
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : if the regexp is invalid, the package is unusable => communicate that by panicking at initialisation
-: more efficient: regexp compiled at most once
 : the package-level var cannot be a const
 
 
@@ -1826,13 +1845,17 @@ One special case is [[https://go.dev/doc/go1.4#internalpackages][_internal_packa
 
 * Import graphs must be acyclic
 
-The Go compiler disallows cycles in import graphs. For example, package `foo` cannot import package `bar` if `bar` itself imports `foo`:
+The Go compiler disallows cycles in import graphs. In any given project, imports must form a _directed_acyclic_graph_ (just like the graph of commits in a Git repository).
+
+For example, package `foo` cannot import package `bar` if `bar` itself imports `foo`:
 
 .image img/dependency_cycle.svg 150 _
 
-Imports form a _directed_acyclic_graph_ (just like the graph of commits in a Git repository). Thanks to this [[https://wiki.c2.com/?LiberatingConstraint][liberating design constraint]], elements of the import graph can be [[https://en.wikipedia.org/wiki/Topological_sorting][topologically sorted]], and each imported package needs be compiled only once.
+Thanks to this [[https://wiki.c2.com/?LiberatingConstraint][liberating design constraint]], elements of the import graph can be [[https://en.wikipedia.org/wiki/Topological_sorting][topologically sorted]], and each imported package needs be compiled only once.
 
-As a result, the Go compiler is fast, [[https://go.dev/talks/2012/splash.article#TOC_5.][especially compared to C and C++ compilers]]; Rob Pike has [[https://www.youtube.com/watch?v=sln-gJaURzk&t=14m45s][a funny anecdote about this]].
+This is one reason why the Go compiler is fast, [[https://go.dev/talks/2012/splash.article#TOC_5.][especially compared to C and C++ compilers]]; Rob Pike has [[https://www.youtube.com/watch?v=sln-gJaURzk&t=14m45s][a funny anecdote about this]].
+
+: https://excalidraw.com/#json=UPiPOolV7C8p3iXj4jQah,ZY6A-zF6hz94HLWBKnJ44w
 
 : .image https://miro.medium.com/max/4800/1*-bo7H329eM0O1eL_ASBVOA.jpeg 100 _
 
@@ -2131,6 +2154,8 @@ We should really tap into [[https://docs.github.com/en/rest?apiVersion=2022-11-2
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
+: according to Cloudflare, Go is the most popular choice for API clients: https://radar.cloudflare.com/year-in-review/2024#api-client-language-popularity
+
 
 
 * Namecheck project: availability on GitHub (cont'd)
@@ -2144,13 +2169,12 @@ We should really tap into [[https://docs.github.com/en/rest?apiVersion=2022-11-2
 
 5. Exercise `IsAvailable` in your `main` function.
 
-What about testing? As it's currently implemented, is `IsAvailable` unit-testable?
+As currently implemented, is `IsAvailable` flexible enough? Is it unit-testable? Discuss.
 
 👉 Now let's elucidate the important role played by the `defer` keyword.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
-: use url.JoinPath("https://github.com", url.PathEscape(username)) to avoid hitting off-topic paths on GitHub, which could annoy them
 : important because, if github can be used as a library, IsAvailable can be called separately from IsValid
 : to avoid client-side path traversal (not a big deal with a GET, but could be for a POST)
 
@@ -2210,9 +2234,19 @@ The arguments of a deferred function call are evaluated, not when the function c
 
 .play -edit src/defer_eval.go /^//START/,/^//END/
 
-More about how `defer` works in [[https://go.dev/blog/defer-panic-and-recover][Andrew Gerrand - Defer, Panic, and Recover]].
+[[https://go.dev/blog/defer-panic-and-recover][Andrew Gerrand - Defer, Panic, and Recover]] and [[https://victoriametrics.com/blog/defer-in-go/][Phuong Le - Golang Defer: From Basic To Traps]] provide more technical details about `defer`'s mechanics.
 
 : incl. the receiver, if the function is a method
+
+
+
+* Gotcha: untimely evaluation of a deferred function call's argument
+
+Here is a failed attempt at prepending "github: " to the resulting error's message:
+
+.play -edit src/defer_eval_bug.go /^//START/,/^//END/
+
+Explain the issue. How would you fix it? (Note that `defer` is overkill for this, though.)
 
 
 
@@ -2362,7 +2396,7 @@ Go supports several forms of loops, all of which are introduced by the `for` key
     // ...
   }
 
-  // for-range loop
+  // for-range loop (e.g. over a slice)
   for i, n := range numbers {
     // ...
   }

@@ -1,11 +1,11 @@
 package main
 
-// START OMIT
 import (
 	"fmt"
 	"sync"
 )
 
+// START OMIT
 func main() {
 	var wg sync.WaitGroup
 	go func() {

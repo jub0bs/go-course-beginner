@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -16,7 +16,7 @@ func main() {
 }
 
 func handleHello(w http.ResponseWriter, _ *http.Request) {
-	io.WriteString(w, "Hello, world!")
+	fmt.Fprint(w, "Hello, world!")
 }
 
 // END OMIT
