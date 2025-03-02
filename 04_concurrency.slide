@@ -413,33 +413,6 @@ It has three methods (all of which use a pointer receiver):
 
 
 
-* Call Add before starting the corresponding goroutine
-
-Calls to `Add` with a positive delta that occur when the counter is zero must happen *before* the call to `Wait`.
-
-In practice, this rule often implies that calls to `Add` must take place in the *spawning* goroutine (i.e. the `main` function in the example below), not within the child goroutine.
-
-.play -edit src/waitgroup_wrong.go /^//START/,/^//END/
-
-[[https://github.com/golang/go/issues/18022][From Go 1.24 onwards]], the `go`vet` subcommand will alert you about such programming mistakes.
-
-: add a call to runtime.Gosched before the wait to reveal the presence of a sync bug
-: Gosched not to be used to coordinate goroutines
-
-
-
-* Do not copy a wait group after first use
-
-A `sync.WaitGroup` value must not be copied after first use.
-
-Therefore, if a function needs to operate on a wait group that is declared outside the function, pass a *pointer* to that wait group (`*sync.WaitGroup`) to the function.
-
-.play -edit src/waitgroup_wrong2.go /^//START/,/^//END/
-
-The `vet` subcommand [[https://go.dev/play/p/2KzpEuzFO-j][alerts you about such programming mistakes]].
-
-
-
 * Exercise: concurrent coffee making (using a wait group)
 
 Use a wait group to make `main` wait until both `grindCoffeeBeans` and `frothMilk` have terminated before `main` itself can terminate.
@@ -460,28 +433,7 @@ Tip: you can apply the `go` keyword to an anonymous function.
 
 : quiz: What happens if I remove a wg.Done()? deadlock
 : quiz: What happens if I remove a wg.Add(1)? only one of the two goroutine will likely have time execute
-
-
-
-* Deadlock
-
-A Go program is said to be in a [[https://en.wikipedia.org/wiki/Deadlock][deadlock]] when two or more goroutines are waiting on one another to unblock them so they can resume execution.
-
-.image img/deadlocked_carrots.jpg 400 _
-
-
-
-* Deadlock (cont'd)
-
-In the most simple deadlock cases, the Go runtime can detect the deadlock and then deliberately crashes the program. Here is a toy example involving a wait group:
-
-.play -edit src/wg_deadlock.go /^//START/,/^//END/
-
-In more complex cases, though, you'll get no such welcome help from the runtime; the execution of your program may "hang", seemingly making no progress.
-
-.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
-
-: French: interblocage, étreinte fatale
+: wrap in an anonymous function if needed (if function needs to be called synchronously too or if it's third-party)
 
 
 
@@ -508,6 +460,55 @@ Though correct, this approach creates a *refactoring*hazard*. If the goroutines 
   wg.Wait() // possible deadlock here
 
 : refactoring hazard: source of bugs when refactoring
+
+
+
+* Do not copy a wait group after first use
+
+A `sync.WaitGroup` value must not be copied after first use.
+
+Therefore, if a function needs to operate on a wait group that is declared outside the function, pass a *pointer* to that wait group (`*sync.WaitGroup`) to the function.
+
+.play -edit src/waitgroup_wrong2.go /^//START/,/^//END/
+
+The `vet` subcommand [[https://go.dev/play/p/2KzpEuzFO-j][alerts you about such programming mistakes]].
+
+
+
+* Call Add before starting the corresponding goroutine
+
+Calls to `Add` with a positive delta that occur when the counter is zero must happen *before* the call to `Wait`.
+
+In practice, this rule often implies that calls to `Add` must take place in the *spawning* goroutine (i.e. the `main` function in the example below), not within the child goroutine.
+
+.play -edit src/waitgroup_wrong.go /^//START/,/^//END/
+
+[[https://github.com/golang/go/issues/18022][From Go 1.24 onwards]], the `go`vet` subcommand will alert you about such programming mistakes.
+
+: add a call to runtime.Gosched before the wait to reveal the presence of a sync bug
+: Gosched not to be used to coordinate goroutines
+
+
+
+* Deadlock
+
+A Go program is said to be in a [[https://en.wikipedia.org/wiki/Deadlock][deadlock]] when two or more goroutines are waiting on one another to unblock them so they can resume execution.
+
+.image img/deadlocked_carrots.jpg 400 _
+
+
+
+* Deadlock (cont'd)
+
+In the most simple deadlock cases, the Go runtime can detect the deadlock and then deliberately crashes the program. Here is a toy example involving a wait group:
+
+.play -edit src/wg_deadlock.go /^//START/,/^//END/
+
+In more complex cases, though, you'll get no such welcome help from the runtime; the execution of your program may "hang", seemingly making no progress.
+
+.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
+
+: French: interblocage, étreinte fatale
 
 
 
@@ -818,7 +819,7 @@ A channel's capacity corresponds to the size of its _buffer_, i.e. the maximum n
 
 A channel of zero capacity is said to be _unbuffered_ (or _synchronous_); conversely, a channel of positive capacity is said to be _buffered_.
 
-  ints  := make(chan string)       // unbuffered channel of ints
+  ints  := make(chan int)          // unbuffered channel of ints
   bools := make(chan bool, 0)      // unbuffered channel of bools
   strings := make(chan string, 16) //   buffered channel of strings
 
@@ -1015,8 +1016,6 @@ In a bid to minimize latency for clients, `replicatedFetch` sends identical requ
 Unfortunately, calls to `replicatedFetch` may cause goroutines to leak. Why?
 
 Now picture `replicatedFetch` being called, not by `main`, but by some HTTP handler: the server would leak a goroutine every time that handler processes a HTTP request!
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
 : one fewer receive operation than send operations on an unbuffered channel
 : example inspired by Rob Pike's replication pattern; see https://www.youtube.com/watch?v=f6kdp27TYZs&t=1990s
@@ -1815,7 +1814,7 @@ By convention, a function that has a `context.Context` parameter should feature 
 
 1. Open this [[https://go.dev/play/p/yWEVD1G7Oix][Playground]]. Note that function `printInts` never terminates.
 
-2. Peruse the documentation of [[https://pkg.go.dev/context][the context package]].
+2. Peruse the documentation of [[https://pkg.go.dev/context][the `context.WithCancel` function]].
 
 3. Modify `printInts` to make it cancelable:
 
