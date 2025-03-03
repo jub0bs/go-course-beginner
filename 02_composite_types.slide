@@ -295,7 +295,8 @@ The semantics of the slicing operator are that of a [[https://en.wikipedia.org/w
 
 In the slicing expression `s[i:j]`,  indices `i` and `j` must satisfy
 
-  0 <= i <= j <= cap(s)
+  0 <= i <= len(s)
+  i <= j <= cap(s)
 
 Otherwise, a compilation error or a panic will occur.
 
@@ -591,7 +592,7 @@ However, you can use [[https://pkg.go.dev/maps#Equal][the `Equal` function]] fro
 
 
 
-* Accessing a value associated to a map key
+* Looking up the value associated to a key in a map
 
 `m[k]` yields the value associated with a key `k` in a map `m`:
 
@@ -878,7 +879,7 @@ The case of the first letter of a field's name dictates whether that field is ex
 Keeping struct fields unexported is the primary mechanism for encapsulation in Go.
 
 Completely encapsulated struct types are _opaque_: they export none of their fields.
-For example, see [[https://pkg.go.dev/time#Time][`time.Time`]] or [[https://pkg.go.dev/regexp#Regexp][`regexp.Regexp`]].
+For example, see [[https://pkg.go.dev/time#Time][`time.Time`]], [[https://pkg.go.dev/regexp#Regexp][`regexp.Regexp`]], or [[https://go.dev/blog/protobuf-opaque][the newest Protobuf API]].
 
 Don't export the fields of your package-level struct types unless you have to (e.g. for JSON decoding). You'd likely regret designing types as too _transparent_, as [[https://github.com/bradfitz/exp-httpclient/blob/master/problems.md#types-too-transparent][Brad Fitzpatrick does about some types exported by the `net/http` package]].
 

@@ -18,7 +18,7 @@ func createUser(w http.ResponseWriter, r *http.Request) {
 	var user User                             // HL
 	dec := json.NewDecoder(r.Body)            // HL
 	if err := dec.Decode(&user); err != nil { // HL
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	// omitted: save user to the database

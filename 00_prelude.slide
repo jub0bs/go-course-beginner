@@ -37,6 +37,7 @@ Some of these slides contain editable and executable code snippets. If you need 
 - Web-security researcher & consultant
 - occasional bug-bounty hunter
 - trainer on topics such as [[https://www.humancoders.com/formations/go][Go]] and [[https://www.humancoders.com/formations/securite-des-applications-web][Web security]]
+- open-source developer (minor contributor to Go)
 - blogger (at [[https://jub0bs.com][jub0bs.com]])
 
 .image https://habrastorage.org/getpro/habr/post_images/eb1/923/9cc/eb19239cc91d38445932da1ade5a5e7d.png 200 _
@@ -53,7 +54,7 @@ If you haven't already, install Go by following the guidance from [[https://go.d
 You can check which version of Go is installed by running the following shell command:
 
   $ go version
-  go version go1.23.4 darwin/amd64
+  go version go1.24.0 darwin/amd64
 
 To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
 
@@ -67,6 +68,7 @@ Also, make sure you have Git installed.
 
 : https://excalidraw.com/#json=V4Iw0GTvHkFeRiWwspH-q,MAwR2wHSoqKEAj4MnxMWrQ
 
+: aim to start with channels on day 3
 : power through basic stuff: skip/skim
 : - Go history
 : - playground + hello world
@@ -100,9 +102,9 @@ Besides, if you're 😈, you may find this tool useful for [[https://en.wikipedi
 
 Go was created in 2007 at Google by
 
-- *Robert*Griesemer* (worked on [[https://en.wikipedia.org/wiki/V8_(JavaScript_engine)][V8]] and [[https://en.wikipedia.org/wiki/HotSpot_(virtual_machine)][the HotSpot JVM]], studied with [[https://en.wikipedia.org/wiki/Niklaus_Wirth][Niklaus Wirth]]),
-- *Rob*Pike* (worked on [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], and experimental predecessors to Go), and
-- *Ken*Thompson* (worked on [[https://en.wikipedia.org/wiki/Unix][Unix]], [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], [[https://en.wikipedia.org/wiki/Turing_Award][Turing Award]] recipient)
+- *Robert*Griesemer* ([[https://en.wikipedia.org/wiki/V8_(JavaScript_engine)][V8]] and [[https://en.wikipedia.org/wiki/HotSpot_(virtual_machine)][the HotSpot JVM]], studied with [[https://en.wikipedia.org/wiki/Niklaus_Wirth][Niklaus Wirth]]),
+- *Rob*Pike* ([[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], and experimental predecessors to Go), and
+- *Ken*Thompson* ([[https://en.wikipedia.org/wiki/Unix][Unix]], [[https://en.wikipedia.org/wiki/Plan_9_from_Bell_Labs][Plan 9]], [[https://en.wikipedia.org/wiki/UTF-8][UTF-8]], [[https://dl.acm.org/doi/pdf/10.1145/363347.363387][regular expressions]], [[https://en.wikipedia.org/wiki/Turing_Award][Turing Award]] recipient)
 
 .image https://miro.medium.com/max/1256/0*pCC5UI7QqThjdBvm.png _ 600
 
@@ -140,7 +142,7 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2014: Kubernetes; first GopherCon conference
 - 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
 - 2022: Go 1.18 adds generics to the language.
-- 2024: Go 1.23 (the latest minor version) is released.
+- 2025: Go 1.24 (the latest minor version) is released.
 
 : Russ and ILT joined the Go Team
 : - between 2007 and 2009: https://research.swtch.com/back
@@ -157,7 +159,6 @@ Go's logo may strike you as uninspired and unremarkable; I'm guessing that the m
 However, [[https://go.dev/blog/gopher][Go's mascot]], a [[https://en.wikipedia.org/wiki/Gopher][gopher]], enjoys worldwide recognition. In fact, "Gopher" is an affectionate name for a Go programmer.
 
 .image https://go.dev/blog/gopher/gopher.png 150 _
-
 
 : Lapins Crétins vibe!
 
@@ -235,6 +236,7 @@ Go supports [[https://en.wikipedia.org/wiki/First-class_function][first-class fu
 
 : typically run on save
 : gofmt: enforced specific style. flattens learning curve and reduces friction for code reviews
+: Rob Pike about gofmt (no one's favorite, everyone's favorite): https://www.youtube.com/watch?v=yE5Tpp2BSGw&t=660s
 : goimports: imports in canonical order and in alphabetical order per section
 
 

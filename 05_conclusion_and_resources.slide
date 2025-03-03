@@ -43,6 +43,7 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 
 - [[https://katherine.cox-buday.com/concurrency-in-go/][Katherine Cox-Buday - Concurrency in Go]] (2017)
 - [[https://www.gopl.io/][Donovan & Kernighan - The Go programming language]] (2015)
+- [[https://go101.org/][Tapir Liu's e-books]]
 
 *Weekly*newsletters*
 
@@ -65,7 +66,8 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 
 - [[https://changelog.com/gotime][Go Time (The Changelog)]] ([[https://changelog.com/posts/a-new-era-for-the-changelog-podcast-universe][no longer active]] but still good)
 - [[https://cupogo.dev/episodes][Cup o' Go]]
-- [[https://fallthrough.transistor.fm][Fallthrough]] (new!)
+- [[https://gopodcast.dev][go podcast()]]
+- [[https://fallthrough.transistor.fm][Fallthrough]]
 
 *Vidcasts*
 

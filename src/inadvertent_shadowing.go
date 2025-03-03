@@ -1,29 +1,25 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
+	"log"
+	"regexp"
 )
 
 // START OMIT
-func AllParsableAsPositiveInts(inputs ...string) error {
-	var err error // HL
-	for _, str := range inputs {
-		n, err := strconv.Atoi(str) // this err now shadows the one declared in the outer scope // HL
-		if err != nil {
-			break
-		}
-		if n <= 0 {
-			err = errors.New("nonpositive integer") // doesn't update the outer err variable! // HL
-			break
-		}
-	}
-	return err
-}
+var re *regexp.Regexp // HL
 
 func main() {
-	fmt.Println(AllParsableAsPositiveInts("49.3", "-1")) // nil 🤔 // HL
+	re, err := regexp.Compile("^[a-z]{,8}$") // HL
+	if err != nil {
+		log.Fatal(err)
+	}
+	re.Longest()
+	fmt.Println(IsValid("jub0bs"))
+}
+
+func IsValid(username string) bool {
+	return re.MatchString(username) // panic! // HL
 }
 
 // END OMIT

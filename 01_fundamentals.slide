@@ -88,10 +88,10 @@ Go's solution to dependency management is known as the [[https://go.dev/doc/modu
 
 The terms _package_ and _module_ are confusingly similar, but don't conflate the two!
 
-- A _package_ is a unit of code composed of one or more source files.
-- A _module_ is a collection of packages versioned together using [[https://semver.org/][semantic versioning]] (and stored in a file tree with a `go.mod` file at its root).
+- A [[https://go.dev/ref/mod#glos-package][_package_]] is a collection of source files in the same directory that are compiled together.
+- A [[https://go.dev/ref/mod#glos-main-module][_module_]] is a collection of packages that are released, versioned (using [[https://semver.org/][semantic versioning]]), and distributed together.
 
-.image img/modules_vs_packages.svg 250 _
+.image img/modules_vs_packages.svg 200 _
 
 : https://go.dev/blog/using-go-modules
 : https://excalidraw.com/#json=buuEXMFgpGowzDhZMWzi7,5QOjQiY9GoMUNHGHCGL5_w
@@ -126,7 +126,7 @@ To do so, `cd` to the root of your project and run a command of the following fo
 
   $ go mod init <your-module-path>
 
-Initializing a module creates a text file named `go.mod` in the current directory.
+Initializing a module creates a text file named `go.mod` in the current directory. The presence of a `go.mod` file in a file tree marks the root of a module.
 
 Don't forget to track this file in your version-control system, as it contains vital information about your project!
 
@@ -153,7 +153,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.23.4
+  go 1.24
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
@@ -731,11 +731,12 @@ If you only care about some of the results, assign the others to the _blank_iden
 
 * Inadvertent variable shadowing
 
-Be careful: this mixture of declaration and assignment can lead you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope. Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
+This mixture of declaration and assignment made possible by `:=` is convenient but can be error-prone: it may cause you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope.
+
+Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
 
 .play -edit src/inadvertent_shadowing.go /^//START/,/^//END/
 
-: this example is admittedly a bit contrived
 : Don't worry if you cannot follow this example yet. Revisit it later.
 : When you use the `:=` operator, ask yourself whether you're declaring new variables or updating existing ones.
 
@@ -1236,7 +1237,24 @@ The code above is roughly equivalent to the following:
     return count, err
   }
 
-Named results [[https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/context/context.go;l=179][can save you a few lines of code]] but also harm readability. Use named results sparingly for your exported functions, preferably only [[https://go.dev/talks/2014/names.slide#10][when they contribute to the function's documentation]] or [[https://go.dev/wiki/CodeReviewComments#named-result-parameters][when they clarify the roles of identically typed results]].
+
+
+* Named results (cont'd)
+
+Named results can [[https://cs.opensource.google/go/go/+/refs/tags/go1.24.0:src/context/context.go;l=183][shorten code]], as in this example from [[https://pkg.go.dev/context][the context package]]:
+
+  func (emptyCtx) Deadline() (deadline time.Time, ok bool) {
+    return
+  }
+
+However, they can also harm readability. Use them sparingly for your exported functions, preferably only
+
+- [[https://go.dev/talks/2014/names.slide#10][when they contribute to the function's documentation]], and/or
+- [[https://go.dev/wiki/CodeReviewComments#named-result-parameters][when they clarify the roles of identically typed results]].
+
+Here is a good example from [[https://pkg.go.dev/strings][the strings package]]:
+ 
+  func Cut(s, sep string) (before, after string, found bool)
 
 
 
@@ -1364,9 +1382,21 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 * Don't ignore errors
 
-Few errors should be ignored. In some specific cases, you can deviate from this general rule; for instance, even though `fmt.Println` returns an `error` result, you don't typically check that error.
+Few errors should be ignored. Note that the onus is on you to check errors; the compiler itself won't remind you to do so.
+
+You can someteims deviate from this general rule. For instance, even though `fmt.Println` returns an `error` result, you don't typically check that error:
 
   if _, err := fmt.Println("Hello, World!"); err != nil { // unnecessary
+
+In other cases, you can guarantee that the function call cannot fail; you can then ignore its `error` result, but do leave a clarifying comment:
+
+  maxAge, _ := strconv.Atoi(icfg.acma[0]) // safe by construction of icfg
+
+: https://github.com/jub0bs/cors/blob/ec22bec7135311e20d92745e67a68915241ef0b0/config.go#L886
+
+
+
+* Don't ignore errors (cont'd)
 
 Some fallible functions document that they return partial results even when they fail:
 
@@ -1382,7 +1412,7 @@ However, in general, if a fallible function returns an `error` value that is not
 
 Many newcomers perceive error handling in Go as verbose, tedious, and repetitive. In most cases, that's because [[https://www.youtube.com/watch?v=YZhwOWvoR3I][they haven't been handling failures properly in their programs before coming to Go]].
 
-Go, rather than sweeping failure cases under the rug, forces you to think about them and eliminate them as you go.
+Go, rather than sweeping failure cases under the rug, forces you to think about them and eliminate them as you go. It compels you to be cautiously pessimistic.
 
 This approach [[https://changelog.com/gotime/16#transcript-68][arguably is a strength of the language]]. Many software outages [[https://yonglezh-purdue.github.io/files/osdi14-simpletesting.pdf][can indeed be attributed]] to improper error handling.
 
@@ -1553,17 +1583,17 @@ If the caller does the same, and the caller's caller does the same, etc., you wi
 
 * Beyond if err != nil
 
-When you get an `error` value, you can go beyond simply asking whether it's `nil`.
+You can ask more sophisticated questions about the nature of an `error` value:
 
-You can ask programmatic questions about the nature of the error or, when applicable, about the error tree that stems from it.
+  if err := http.ListenAndServe(":8080"); err != http.ErrServerClosed {
+    log.Fatal(err)
+  }
 
-For instance, to find out whether the error tree contains some sentinel error value (such as [[https://pkg.go.dev/context#DeadlineExceeded][`context.DeadlineExceeded`]]), you can use [[https://pkg.go.dev/errors#Is][the `errors.Is` function]]:
+[[https://pkg.go.dev/errors][The `errors` package]] provides two powerful functions, [[https://pkg.go.dev/errors#Is][`errors.Is`]] and [[https://pkg.go.dev/errors#As][`errors.As`]], which let you programmatically traverse the error _tree_ stemming from some `error` value:
 
   if errors.Is(err, context.DeadlineExceeded) {
     // err (or a node in its error tree) is context.DeadlineExceeded
   }
-
-[[https://pkg.go.dev/errors][The `errors` package]] allows you to ask more sophisticated questions, such as whether an error tree contains an error of some concrete type (see [[https://pkg.go.dev/errors#As][the `errors.As` function]]), but this is an advanced topic that requires a preliminary understanding of interfaces.
 
 
 
@@ -2451,7 +2481,7 @@ For more about strings, see [[https://go.dev/blog/strings][Rob Pike - Strings, b
 
 
 
-* for-range loop over an int (new in Go 1.22)
+* for-range loop over an int
 
 You can also [[https://github.com/golang/go/issues/61405][range over an int]].
 
@@ -2459,9 +2489,11 @@ For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), inste
 
 .play -edit src/range_over_int_before.go /^//START/,/^//END/
 
-you can write the following equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
+you can write the more or less equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
 
 .play -edit src/range_over_int.go /^//START/,/^//END/
+
+: contrary to three-clause loop, changes to n during iterations are immaterial
 
 
 
