@@ -7,10 +7,10 @@ import (
 )
 
 // START OMIT
-var re *regexp.Regexp // HL
+var re *regexp.Regexp // pointer to a regexp.Regexp // HL
 
 func main() {
-	re, err := regexp.Compile("^[a-z]{,8}$") // HL
+	re, err := regexp.Compile("^[0-9a-z]{,8}$") // HL
 	if err != nil {
 		log.Fatal(err)
 	}

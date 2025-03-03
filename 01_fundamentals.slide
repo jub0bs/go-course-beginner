@@ -206,9 +206,9 @@ If you just want to quickly execute the program without retaining an executable,
 
 which is roughly equivalent (on *nix systems) to
 
-  $ go build main.go
-  $ ./main
-  $ rm main
+  $ go build
+  $ ./namecheck
+  $ rm namecheck
 
 For various reasons, the `run` subcommand isn't appropriate for production, though.
 
@@ -226,7 +226,7 @@ An OS/architecture pair is known in the Go world as a [[https://pkg.go.dev/about
 
 By default, the Go compiler produces an executable for your own build context, but you can target a different one simply by setting a couple of environment variables:
 
-  $ GOOS=windows GOARCH=amd64 go build main.go
+  $ GOOS=windows GOARCH=amd64 go build
 
 The following command lists all the build contexts supported by the compiler:
 
@@ -285,7 +285,7 @@ It's useful for cleanup tasks, such as releasing _resources_ (i.e. something who
 
 * Predeclared names
 
-Go comes with several predeclared names accessible from anywhere in your code. We will cover some of them, but only as needed.
+Go comes with several predeclared names accessible from anywhere in your code. They're documented in a "fake" package named [[https://pkg.go.dev/builtin][builtin]].
 
 *Constants*
 
@@ -973,18 +973,16 @@ Unlike in C and other languages, no `break` keyword is required at the end of ca
 
 A username is deemed [[https://docs.github.com/en/site-policy/other-site-policies/github-username-policy][acceptable by GitHub]] if
 
-- it contains between 3 and 39 alphanumeric or hyphen characters;
-- it does not start/end with a hyphen and does not contain two consecutive hyphens.
+- it does not start/end with a hyphen and does not contain two consecutive hyphens;
+- it contains between 3 and 39 alphanumeric or hyphen characters.
 
-1. Think of a regular-expression pattern that captures those rules.
+In your `main` function, do the following:
 
-2. Identify a function in the [[https://pkg.go.dev/regexp][regexp]] package that would be useful. In the `main` function, call it to check whether your username matches the pattern you designed in step 1.
+1. Using functions from the [[https://pkg.go.dev/strings][strings]] and [[https://pkg.go.dev/regexp][regexp]] packages, check whether your username follows both rules. If you call a function that returns a non-`nil` `error` value, terminate `main` with [[https://pkg.go.dev/log#Fatal][`log.Fatal`]].
 
-3. If that function from the `regexp` package returns a non-`nil` error value, the call has failed and its boolean result is unusable; in that case, terminate `main` with [[https://pkg.go.dev/log#Fatal][`log.Fatal`]].
+2. If your username follows all the rules, print it to the screen.
 
-3. If your username follows all the rules, print it to the screen.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : tease error handling: need to check whether err is non-nil
 : one regexp to rule them all: ^([[:alnum:]]-?){2,38}[[:alnum:]]$
@@ -1203,11 +1201,7 @@ Contrary to more traditional object-oriented languages, Go doesn't allow [[https
 
   func IsValid(username string) bool
 
-You should not call `log.Fatal` outside of the `main` function, though. Why not?
-
-But then how should you handle the error returned by `regexp.MatchString` now?
-
-Ignoring errors is hardly ever judicious but, if you can't think of a good solution yet, I allow you to ignore the error for now. We'll learn how to properly handle errors soon!
+But how should you now handle errors returned by `regexp` functions? Do what you think is best for now; we'll soon learn how to properly handle errors.
 
 2. Write a few "tests" for `IsValid` in the `main` function.
 
@@ -2340,6 +2334,19 @@ In our earlier example, the files will all be closed only when `processFiles` te
 : defer is not block-based but function-based!
 : If we pass a large number of files to the `processFiles` function, we could run out of file descriptors.
 : ulimit -n
+
+
+
+* Gotcha: function call unduly deferred
+
+Below is a more complex example of a function call getting executed too late because of `defer`:
+
+.play -edit src/defer_undue.go /^//START/,/^//END/
+
+Can you explain why some bytes get lost?
+
+: Method `enc.Close` flushes any data left in the encoder to the byte buffer. However, because it's called too late (i.e. after the call to the `buf.String`), some trailing bytes get lost.
+: adapted from https://gophers.slack.com/archives/C029RQSEE/p1737587228725509
 
 
 
