@@ -1,6 +1,6 @@
 module whatever
 
-go 1.23.4
+go 1.24
 
 require github.com/jub0bs/cors v0.3.1
 
