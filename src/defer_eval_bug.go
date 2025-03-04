@@ -16,15 +16,13 @@ func main() {
 }
 
 func IsAvailable(username string) (avail bool, err error) {
-	defer func(e error) { // HL
-		err = fmt.Errorf("github: %w", e) // HL
+	defer func(err1 error) { // HL
+		if err1 != nil {
+			err = fmt.Errorf("github: %w", err1) // HL
+		}
 	}(err) // HL
 	// real implementation omitted
-	switch {
-	// other cases omitted
-	default:
-		return false, errors.New("unknown availability")
-	}
+	return false, errors.New("unknown availability")
 }
 
 // END OMIT

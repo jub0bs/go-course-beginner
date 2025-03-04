@@ -706,7 +706,7 @@ Be careful: most types are _not_ concurrency-safe!
 
 You should not assume a type is concurrency-safe [[https://tip.golang.org/doc/comment#type][unless it's documented as such]].
 
-In fact, some types even go as far as explicitly documenting their lack of concurrency safety. See, for instance, [[https://pkg.go.dev/math/rand#Source][the documentation of `rand.Source`]] (which represents a source of randomness).
+In fact, some types even go as far as explicitly documenting their lack of concurrency safety. See, for instance, [[https://pkg.go.dev/math/rand/v2#Source][the documentation of `rand.Source`]] (which represents a source of randomness).
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
 

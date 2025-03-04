@@ -2,13 +2,8 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
+	"math/rand/v2"
 )
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 // START OMIT
 func heads() bool {

@@ -475,8 +475,8 @@ A named import is convenient when you perceive the package name as inappropriate
 
 Moreover, named imports are especially useful when your code imports multiple packages whose names conflict,
 
-  import "math/rand"
-  import crand "crypto/rand"
+  import "text/template"
+  import htempl "html/template"
 
 or when one of your source files uses multiple major versions of a _module_:
 
@@ -804,20 +804,6 @@ In some cases, you have no option but to use the `var` keyword...
   }
 
 : a nil value carries no type information (could be a map, a function, a slice, a pointer)
-
-
-
-* Namecheck project: validation of GitHub usernames
-
-In your `main` function, do the following:
-
-1. Assign your prospective username to a string variable named `username`.
-
-2. Which variable declaration syntax did you choose? Justify your choice.
-
-3. Print the username variable to the screen.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
 
 
@@ -2343,7 +2329,7 @@ Below is a more complex example of a function call getting executed too late bec
 
 .play -edit src/defer_undue.go /^//START/,/^//END/
 
-Can you explain why some bytes get lost?
+Follow [[https://gchq.github.io/CyberChef/#recipe=To_Base64('A-Za-z0-9%2B/%3D')&input=Zm9vYmFy][this link]] to see the expected output. Can you explain why some bytes get lost?
 
 : Method `enc.Close` flushes any data left in the encoder to the byte buffer. However, because it's called too late (i.e. after the call to the `buf.String`), some trailing bytes get lost.
 : adapted from https://gophers.slack.com/archives/C029RQSEE/p1737587228725509
@@ -2441,6 +2427,22 @@ Contrary to C, though, no parentheses are allowed around the three clauses.
 
 
 
+* for-range loop over an int
+
+Since Go 1.22, you can also [[https://github.com/golang/go/issues/61405][range over an int]].
+
+For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), instead of writing the following three-clause loop,
+
+.play -edit src/range_over_int_before.go /^//START/,/^//END/
+
+you can write the more or less equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
+
+.play -edit src/range_over_int.go /^//START/,/^//END/
+
+: contrary to three-clause loop, changes to n during iterations are immaterial
+
+
+
 * "While" loop
 
 Recall that Go has no `while` keyword. All loops are introduced by the `for` keyword:
@@ -2488,24 +2490,7 @@ For more about strings, see [[https://go.dev/blog/strings][Rob Pike - Strings, b
 
 
 
-* for-range loop over an int
-
-You can also [[https://github.com/golang/go/issues/61405][range over an int]].
-
-For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), instead of writing the following three-clause loop,
-
-.play -edit src/range_over_int_before.go /^//START/,/^//END/
-
-you can write the more or less equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
-
-.play -edit src/range_over_int.go /^//START/,/^//END/
-
-: contrary to three-clause loop, changes to n during iterations are immaterial
-
-
-
-
-* for-range loop over iterators (new in Go 1.23)
+* for-range loop over iterators
 
 An iterator _provides_a_way_to_access_the_elements_of_an_aggregate_object_sequentially_without_exposing_its_underlying_representation_ (according to [[https://en.wikipedia.org/wiki/Design_Patterns][the GoF book]]).
 
