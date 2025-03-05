@@ -16,19 +16,16 @@ func frothMilk() {
 // START OMIT
 func main() {
 	var wg sync.WaitGroup // HL
-
-	wg.Add(1) // HL
+	wg.Add(1)             // HL
 	go func() {
 		defer wg.Done() // HL
 		grindCoffeeBeans()
 	}()
-
 	wg.Add(1) // HL
 	go func() {
 		defer wg.Done() // HL
 		frothMilk()
 	}()
-
 	wg.Wait() // HL
 }
 

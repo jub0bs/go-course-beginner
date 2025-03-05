@@ -1,13 +1,12 @@
 package main
 
-import (
-	"sync"
-)
+import "sync"
 
+// START OMIT
 func main() {
-	// START OMIT
 	var wg sync.WaitGroup
 	wg.Add(1)
 	wg.Wait()
-	// END OMIT
 }
+
+// END OMIT

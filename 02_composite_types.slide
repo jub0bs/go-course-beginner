@@ -364,7 +364,8 @@ One use case for slices is [[https://go.dev/blog/subtests#table-driven-tests-usi
     for _, tc := range testCases {
       got := github.IsValid(tc.username)
       if got != tc.want {
-        t.Errorf("%s: github.IsValid(%q): got %t; want %t", tc.desc, tc.username, got, tc.want)
+        const tmpl = "%s: github.IsValid(%q): got %t; want %t"
+        t.Errorf(tmpl, tc.desc, tc.username, got, tc.want)
       }
     }
   }
@@ -396,7 +397,8 @@ An improvement over table-driven tests is [[https://go.dev/blog/subtests#table-d
     f := func(t *testing.T) {
       got := github.IsValid(tc.username)
       if got != tc.want {
-        t.Errorf("github.IsValid(%q): got %t; want %t", tc.username, got, tc.want)
+        const tmpl = "github.IsValid(%q): got %t; want %t"
+        t.Errorf(tmpl, tc.username, got, tc.want)
       }
     }
     t.Run(tc.desc, f)
@@ -833,7 +835,6 @@ Field access uses the usual dot syntax present in many languages:
     lastName  string
     isAdmin   bool
   }
-
 
   func main() {
     u := User{firstName: "Julien"}

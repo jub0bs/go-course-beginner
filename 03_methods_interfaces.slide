@@ -603,7 +603,7 @@ At this stage, can you still determine which platform you're dealing with during
 
 * Avoid premature abstraction
 
-An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don’t design with interfaces, discover them.]]
+An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don't design with interfaces; discover them.]]
 
 In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][resist the temptation to declare interface types upfront]].
 
@@ -614,6 +614,20 @@ Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
 : another good comment from ILT: https://github.com/golang/go/discussions/47331#discussioncomment-1060105
+
+
+
+* Declare interface types where they're actually needed
+
+Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; see [[https://pkg.go.dev/context#Context][`context.Context`]] for an example.
+
+However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shouldn't systematically export interface types for their concrete types]].
+
+Gophers can always, for decoupling purposes, declare a custom interface type in such a way that it be satisfied by some concrete type (even one they don't own).
+
+Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use this abstraction.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
 
 
@@ -820,9 +834,27 @@ An alternative form exists, but should generally be avoided because it panics if
 
 * Type-asserting on behavior
 
-Consider [[https://pkg.go.dev/net#Error][the `net.Error` interface]], which is broader than `error`:
+You can use a type assertion to determine whether the dynamic type stored in an interface value satisfies other interface types.
 
-  package net
+In fact, this is what functions from the `fmt` package do under the hood. Here is an idealized view of `fmt.Println`:
+
+  func Println(a ...any) (int, error) {
+    for _, v := range a {
+      if stringer, ok := v.(fmt.Stringer); ok {
+        s := stringer.String()
+        // print s to the screen
+        return len(s), nil
+      }
+      // print some other textual representation of v
+      // -snip-
+    }
+
+
+
+* Type-asserting on behavior (cont'd)
+
+Here is another example. Consider [[https://pkg.go.dev/net#Error][the `net.Error` interface]], which is 
+broader than `error`: 
 
   type Error interface {
     error
@@ -871,20 +903,6 @@ A sequence of type assertions is annoying to write and hard to read:
 A more readable but functionally equivalent alternative consists in using a special form of switch statement known as a [[https://go.dev/ref/spec#Type_switches][_type_switch_]]:
 
 .play -edit src/type_switch.go /^//START/,/^//END/
-
-
-
-* Declare interface types only when needed
-
-Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; see [[https://pkg.go.dev/context#Context][`context.Context`]] for an example.
-
-However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shouldn't systematically export interface types for their concrete types]].
-
-Gophers can always, for decoupling purposes, declare a custom interface type in such a way that it be satisfied by some concrete type (even one they don't own).
-
-Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use those abstractions.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
 
 
@@ -1011,7 +1029,7 @@ Now you have everything you need to create a test double for `namecheck.Getter`!
     Err        error
   }
 
-2. Make `StubClient` satisfy your `namecheck.Getter` interface. Its `Get` method should work as follows:
+2. Make `*StubClient` satisfy your `namecheck.Getter` interface. Its `Get` method should work as follows:
 
 - if the method receiver's `Err` field, is non-nil, `Get` should return that a nil `*http.Response` and that error value;
 - otherwise, it should return a `*http.Response` whose status code is equal to the method receiver's `StatusCode` field.
