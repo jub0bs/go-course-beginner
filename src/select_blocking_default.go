@@ -13,6 +13,8 @@ func main() {
 		fmt.Println("send case")
 	case <-in: // blocking // HL
 		fmt.Println("receive case")
+	default: // HL
+		fmt.Println("default case")
 	}
 }
 

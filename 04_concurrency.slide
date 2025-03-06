@@ -1437,7 +1437,9 @@ Adding a module as a dependency to your project is as simple as running
 
   go get <module-path-of-3rd-party-module>
 
-This command downloads and caches the module locally in `$GOPATH/pkg/mod`.
+The command above downloads and caches the module locally, in a folder shown in the output of the following command:
+
+  go env GOMODCACHE
 
 .image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 150 _
 
@@ -1449,23 +1451,23 @@ I've deployed a minimalistic Web page to [[https://jub0bs.github.io]] that is de
 
 However, because your server isn't configured for [[https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS][CORS]], that page doesn't work (yet):
 
-.image img/cors_before.svg _ 800
+.image img/cors_before.svg _ 900
 
-Let's fix that!
-
-: before: https://excalidraw.com/#json=YukZicbJn913F0kau3AUU,07Tv-E-IXlO7qdJZbk-Fsw
+: before: https://excalidraw.com/#json=rg6r6A6qQOXW4li1TjXV2,4b4e6-RBAdTACNYwOzhT5g
 
 
 
 * Cross-origin clients require CORS (cont'd)
 
-.image img/cors_after.svg _ 800
+We need to configure the server for CORS, so that the client can read the response:
 
-Implementing CORS "by hand" is error-prone. Instead, rely on a dependable CORS middleware library. The most popular one for Go may be [[https://github.com/rs/cors][github.com/rs/cors]], but I [[https://jub0bs.com/posts/2023-02-08-fearless-cors/][strongly recommend]] my own: [[https://github.com/jub0bs/cors][github.com/jub0bs/cors]]. 😇
+.image img/cors_after.svg _ 900
+
+Implementing CORS "by hand" is tempting, but error-prone. Instead, rely on a dependable CORS middleware library. The most popular one for Go may be [[https://github.com/rs/cors][github.com/rs/cors]], but I [[https://jub0bs.com/posts/2023-02-08-fearless-cors/][strongly recommend]] my own: [[https://github.com/jub0bs/cors][github.com/jub0bs/cors]]. 😇
 
 : don't use Brave (which blocks requests to localhost) to visit the page
 
-: after: https://excalidraw.com/#json=jtYbpAlnZH-Jiq6-Dw7Tx,chxvK-_CxhdY3RbFRGaUrA
+: after: https://excalidraw.com/#json=_nkLBKLmHXf_u1lCjhfV3,k5B5FsPVA2M5ynQ1a7gNfg
 
 
 
@@ -1558,7 +1560,7 @@ Don't forget to track changes to this file in your version-control system!
 
 * Namecheck project: configure your server for CORS
 
-1. Hang your routes on a custom [[https://pkg.go.dev/net/http#ServeMux][HTTP request multiplexer]] rather than the default one.
+1. If you don't already do so, hang your routes on a custom [[https://pkg.go.dev/net/http#ServeMux][HTTP request multiplexer]] rather than the default one.
 
 2. In your main function, instantiate a CORS middleware configured to
 
@@ -1571,7 +1573,7 @@ Don't forget to track changes to this file in your version-control system!
 
 5. Run your server, visit [[https://jub0bs.github.io]], and check a username of your choice.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
 : PNA only enforced in Chrome at this stage
 
@@ -1631,37 +1633,43 @@ When program execution reaches a select statement, what happens is governed by
 
 
 
-* Semantics of the select statement (cont'd)
+* All cases blocking, default case
 
-Let's consider the situation where all the cases of the select statement are blocking.
+If all the cases of the select statement are blocking and a `default` case is present, the statements associated to that case are executed:
 
-If a `default` case is present, the statements associated to that case are executed:
+.play -edit src/select_blocking_default.go /^//START/,/^//END/
+
+
+
+* All cases blocking, no default case
+
+If all the cases of the select statement are blocking and the `select` statement lacks a `default` case, the `select` statement itself blocks until at least one of its cases becomes non-blocking:
 
 .play -edit src/select_blocking.go /^//START/,/^//END/
 
-Otherwise (if the `select` statement lacks a `default` case), the `select` statement itself blocks until at least one of its cases becomes non-blocking.
 
 
-
-* Semantics of the select statement (cont'd)
-
-Now let's consider the situation where one or more cases are non-blocking; the presence or absence of a `default` case then doesn't dictate what happens.
+* One non-blocking case
 
 If only one case is non-blocking, that case gets _selected_, i.e. the channel communication occurs and the associated statements are executed:
 
 .play -edit src/select_nonblocking_one.go /^//START/,/^//END/
 
+(The presence or absence of a `default` case then doesn't impact the select statement's behavior in this situation.)
 
 
-* Semantics of the select statement (cont'd)
 
-Otherwise (if more than one cases are non-blocking), one of those cases gets selected in a pseudo-random uniform fashion.
+* Multiple non-blocking cases
+
+If more than one cases are non-blocking, one of those cases gets selected in a pseudo-random uniform fashion:
 
 .play -edit src/select_nonblocking_more.go /^//START/,/^//END/
 
+(The presence or absence of a `default` case then doesn't impact the select statement's behavior in this situation.)
 
 
-* Event loop: a select nested inside a loop
+
+* Event loop: a select statement nested in a loop
 
 `select` is often used in conjunction with `for` to form a so-called _event_loop_.
 
@@ -1777,13 +1785,13 @@ However, you may want to force that goroutine to terminate that goroutine earlie
 
   func cancelable(done <-chan struct{}) {
     for {
-        select {
-        case <-done:
-          return
-        default:
-          fmt.Println("still alive...")
-          time.Sleep(500 * time.Millisecond)
-        }
+      select {
+      case <-done:
+        return
+      default:
+        fmt.Println("still alive...")
+        time.Sleep(500 * time.Millisecond)
+      }
     }
   }
 
@@ -1821,7 +1829,7 @@ By convention, a function that has a `context.Context` parameter should feature 
 
 1. Open this [[https://go.dev/play/p/yWEVD1G7Oix][playground]]. Note that function `printInts` never terminates.
 
-2. Peruse the documentation of [[https://pkg.go.dev/context][the `context.WithCancel` function]].
+2. Peruse the documentation of [[https://pkg.go.dev/context#WithTimeout][the `context.WithTimeout` function]].
 
 3. Modify `printInts` to make it cancelable:
 
@@ -1886,7 +1894,7 @@ However, in cases where multiple goroutines must share some state, [[https://go.
 Two main such mechanisms are provided by the standard library:
 
 - [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
-- synchronized operations on fixed-sized integers from [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
+- synchronized operations on fixed-sized integers, provided by [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
 

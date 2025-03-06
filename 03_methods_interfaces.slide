@@ -601,36 +601,6 @@ At this stage, can you still determine which platform you're dealing with during
 
 
 
-* Avoid premature abstraction
-
-An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don't design with interfaces; discover them.]]
-
-In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][resist the temptation to declare interface types upfront]].
-
-Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
-
-Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before* declaring interface type `Checker`!
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
-
-: another good comment from ILT: https://github.com/golang/go/discussions/47331#discussioncomment-1060105
-
-
-
-* Declare interface types where they're actually needed
-
-Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; see [[https://pkg.go.dev/context#Context][`context.Context`]] for an example.
-
-However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shouldn't systematically export interface types for their concrete types]].
-
-Gophers can always, for decoupling purposes, declare a custom interface type in such a way that it be satisfied by some concrete type (even one they don't own).
-
-Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use this abstraction.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
-
-
-
 * Notable interface types: fmt.Stringer
 
 [[https://pkg.go.dev/fmt#Stringer][`fmt.Stringer`]] is a single-method interface type that governs the default textual representation of a type:
@@ -668,9 +638,41 @@ If the type does satisfy `fmt.Stringer`, `fmt.Println` uses the result of its `S
 
 2. Make `*bluesky.Bluesky` satisfy the `fmt.Stringer` interface.
 
-3. Make good use of `*github.GitHub` and `*bluesky.Bluesky`'s new capability in your `main` function. Note that you don't need to call the `String` method explicitly, here.
+3. Using interface composition, augment the declaration of your `Checker` interface in such a way that a `Checker` be an `fmt.Stringer`. (We don't really need this right now, but we will further down the road.)
+
+4. Make good use of `*github.GitHub` and `*bluesky.Bluesky`'s new capability in your `main` function. Note that you don't need to call the `String` method explicitly, here.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+
+
+* Avoid premature abstraction
+
+An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don't design with interfaces; discover them.]]
+
+In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][resist the temptation to declare interface types upfront]].
+
+Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
+
+Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before* declaring interface type `Checker`!
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+: another good comment from ILT: https://github.com/golang/go/discussions/47331#discussioncomment-1060105
+
+
+
+* Declare interface types where they're actually needed
+
+Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; see [[https://pkg.go.dev/context#Context][`context.Context`]] for an example.
+
+However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shouldn't systematically export interface types for their concrete types]].
+
+Gophers can always, for decoupling purposes, declare a custom interface type in such a way that it be satisfied by some concrete type (even one they don't own).
+
+Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use this abstraction.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
 
 
@@ -836,7 +838,7 @@ An alternative form exists, but should generally be avoided because it panics if
 
 You can use a type assertion to determine whether the dynamic type stored in an interface value satisfies other interface types.
 
-In fact, this is what functions from the `fmt` package do under the hood. Here is an idealized view of `fmt.Println`:
+In fact, this is what functions from the `fmt` package do under the hood. Here is an idealized view of `fmt.Println`'s implementation:
 
   func Println(a ...any) (int, error) {
     for _, v := range a {
