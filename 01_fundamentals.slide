@@ -1754,7 +1754,7 @@ A package is composed of one to several source files.
 
 All of a package's source files must be placed in the same folder. In general (there's one exception), source files from different packages cannot be in the same folder.
 
-All of the package's exported identifiers are accessible to all of the package's source files.
+All of the package's unexported identifiers are accessible to all of the package's source files.
 
 Each source file must import the packages that it needs.
 
