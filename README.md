@@ -47,7 +47,7 @@ You can run the slide deck on your machine after following a few simple steps:
     The directory in question is usually given by the following command:
 
     ```shell
-    echo `go env GOBIN`
+    go env GOBIN
     ```
 
 3. Install the [`present`][present] tool:

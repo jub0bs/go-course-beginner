@@ -1,6 +1,6 @@
-github.com/jub0bs/cors v0.3.1 h1:PCT/3LWGnlVIJP6peSWNbE7wcr/IXCCStAE1TnardFQ=
-github.com/jub0bs/cors v0.3.1/go.mod h1:mU8XwHPNxGuuvDpf3sKF+F0Yi5bZMzd8k0h7a8I9gtY=
-golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
-golang.org/x/net v0.28.0/go.mod h1:yqtgsTWOOnlGLG9GFRrK3++bGOUEkNBoHZc8MEDWPNg=
-golang.org/x/text v0.17.0 h1:XtiM5bkSOt+ewxlOE/aE/AKEHibwj/6gvWMl9Rsh0Qc=
-golang.org/x/text v0.17.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+github.com/jub0bs/cors v0.5.9 h1:DZcrSGvh8xiDT2OjWPCOw6JGNQsy8FhgWk8EZgEvbTM=
+github.com/jub0bs/cors v0.5.9/go.mod h1:nvEts2Hrlwj3bHxTAXX0oglPQ0V4P+Ymq1z33ks77Z8=
+golang.org/x/net v0.39.0 h1:ZCu7HMWDxpXpaiKdhzIfaltL9Lp31x/3fCP11bc6/fY=
+golang.org/x/net v0.39.0/go.mod h1:X7NRbYVEA+ewNkCNyJ513WmMdQ3BineSwVtN2zD/d+E=
+golang.org/x/text v0.24.0 h1:dd5Bzh4yt5KYA8f9CJHCP4FB4D51c2c6JvN37xJJkJ0=
+golang.org/x/text v0.24.0/go.mod h1:L8rBsPeo2pSS+xqN0d5u2ikmjtmoJbDBT1b7nHvFCdU=
