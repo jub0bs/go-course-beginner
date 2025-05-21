@@ -1234,7 +1234,7 @@ However, they can also harm readability. Use them sparingly for your exported fu
 
 Here is a good example from [[https://pkg.go.dev/strings][the strings package]]:
  
-  func Cut(s, sep string) (before, after string, found bool)
+  func Cut(s, sep string) (before string, after string, found bool)
 
 
 
@@ -1563,7 +1563,7 @@ However you choose to handle a non-`nil` error, do _not_ both report it and cons
 
 You can ask more sophisticated questions about the nature of an `error` value:
 
-  if err := http.ListenAndServe(":8080"); err != http.ErrServerClosed {
+  if err := http.ListenAndServe(":8080", nil); err != http.ErrServerClosed {
     log.Fatal(err)
   }
 
@@ -1684,7 +1684,7 @@ However, panicking during the initialization of your package is legitimate, if s
 
 4. Test your program. What happens now if the pattern isn't a valid regular expression?
 
-Note that, as a performance side benefit, the pattern is now compiled to a `regexp.Regexp` value only once rather than at each call of `IsAvailable`! ⚡
+Note that, as a performance side benefit, the pattern is now compiled to a `regexp.Regexp` value only once rather than at each call of `IsValid`! ⚡
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
