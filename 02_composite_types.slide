@@ -156,7 +156,7 @@ A `nil` slice is distinct from, but functionally equivalent to, an empty slice. 
 
 * Slices are not comparable
 
-Regardless of their element type, slices are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary slice values.
+Regardless of their element type, slices are not comparable ([[https://go.dev/doc/go1#equality][for good reasons]]): the compiler won't allow you to use the `==` operator to test the equality of two arbitrary slice values.
 
 The only legal comparison is to a literal `nil` value.
 

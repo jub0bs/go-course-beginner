@@ -110,10 +110,7 @@ A module's path acts as the import path for the module's root directory. It pref
 
   import "github.com/YOUR_GITHUB_USERNAME/REPO_NAME/SOME_PACKAGE_NAME"
 
-Note the absence of a central server (like [[https://npmjs.com]]) where modules ought to be published! As the Go team [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-11][puts it]]: "Relying on domain names avoided a rush to claim valuable entries in a flat [namespace]." Examples:
-
-- Daniel Martí's `benchinit` tool lives at [[https://mvdan.cc/benchinit][mvdan.cc/benchinit]];
-- Russ Cox's `uncover` tool lives at [[https://rsc.io/uncover][rsc.io/uncover]].
+Note the absence of a central server (like [[https://npmjs.com]]) where modules ought to be published! As the Go team [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-11][puts it]]: "Relying on domain names avoided a rush to claim valuable entries in a flat [namespace]." Examples: [[https://mvdan.cc/benchinit][mvdan.cc/benchinit]], [[https://rsc.io/uncover][rsc.io/uncover]].
 
 : note: Bluesky follows a similar approach
 
@@ -498,7 +495,7 @@ A [[https://go.dev/wiki/CodeReviewComments#import-blank][blank import]] uses the
 
 A blank import makes none of the imported package's exported identifiers available in the importing package.
 
-The sole reason for using a blank import to import a package is the side effects carried out during [[https://go.dev/ref/spec#Package_initialization][the package's initialization]].
+The main reason for using a blank import to import a package is the side effects carried out during [[https://go.dev/ref/spec#Package_initialization][the package's initialization]]; but [[https://cs.opensource.google/go/go/+/refs/tags/go1.24.3:src/net/http/request.go;l=29][more esoteric reasons exist]].
 
 Blank imports play a part in the controversial _registration_pattern_, which is used in subpackages of the `image` package (such as [[https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/image/png/reader.go;l=1059][`image/png`]]) and in third-party SQL drivers like [[https://github.com/go-sql-driver/mysql][github.com/go-sql-driver/mysql]].
 
@@ -942,9 +939,7 @@ This form of `switch` statement is preferred to a long if-else chain.
 
 * More general switch statement
 
-The switch expression is evaluated once.
-
-The case expressions must be comparable to the switch expression and are evaluated left-to-right and top-to-bottom and tested for equality against the switch expression until a match is found.
+The switch expression is evaluated once. The case expressions must be comparable to the switch expression and are evaluated left-to-right and top-to-bottom and tested for equality against the switch expression until a match is found.
 
 The case clause of the first match gets executed. If no match is found, the default case clause (if any) gets executed.
 
@@ -1369,7 +1364,7 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 Few errors should be ignored. Note that the onus is on you to check errors; the compiler itself won't remind you to do so.
 
-You can someteims deviate from this general rule. For instance, even though `fmt.Println` returns an `error` result, you don't typically check that error:
+You can sometimes deviate from this general rule. For instance, even though `fmt.Println` returns an `error` result, you don't typically check that error:
 
   if _, err := fmt.Println("Hello, World!"); err != nil { // unnecessary
 
@@ -1543,7 +1538,6 @@ This approach is best reserved to the `main` function (or, at least, high in the
 
 
 
-
 * Bubbling up or consuming a non-nil error? Don't do both!
 
 However you choose to handle a non-`nil` error, do _not_ both report it and consume it!
@@ -1557,8 +1551,7 @@ However you choose to handle a non-`nil` error, do _not_ both report it and cons
     // ...
   }
 
-If the caller does the same, and the caller's caller does the same, etc., you will end up with multiple entries for the same error in your logs.
-
+[[https://dave.cheney.net/2016/04/27/dont-just-check-errors-handle-them-gracefully#handle-errors-once][As Dave Cheney puts it]], _only_handle_errors_once_.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 150 _
 
