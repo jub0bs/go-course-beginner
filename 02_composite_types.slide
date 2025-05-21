@@ -210,7 +210,7 @@ Under the hood, a slice is a data structure simply composed of three machine wor
 
 A slice is only a window into a backing array. In particular, the backing array may extend past the end of the slice, hence [[https://go.dev/ref/spec#Length_and_capacity][the notion of _capacity_]] in addition to that of _length_.
 
-The capacity of a slice is the maximum length the slice may assume before running out of space in the backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for more elements.
+The capacity of a slice is the maximum length the slice may assume before requiring a new (longer) backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for more elements.
 
 .image img/slice_capacity.svg 200 _
 

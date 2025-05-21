@@ -110,7 +110,10 @@ A module's path acts as the import path for the module's root directory. It pref
 
   import "github.com/YOUR_GITHUB_USERNAME/REPO_NAME/SOME_PACKAGE_NAME"
 
-Note the absence of a central server (like [[https://npmjs.com]]) where modules ought to be published! As the Go team [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-11][puts it]]: "Relying on domain names avoided a rush to claim valuable entries in a flat [namespace]."
+Note the absence of a central server (like [[https://npmjs.com]]) where modules ought to be published! As the Go team [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-11][puts it]]: "Relying on domain names avoided a rush to claim valuable entries in a flat [namespace]." Examples:
+
+- Daniel Martí's `benchinit` tool lives at [[https://mvdan.cc/benchinit][mvdan.cc/benchinit]];
+- Russ Cox's `uncover` tool lives at [[https://rsc.io/uncover][rsc.io/uncover]].
 
 : note: Bluesky follows a similar approach
 
@@ -519,6 +522,7 @@ Dot imports can be convenient in test code (see [[https://cs.opensource.google/g
 : similar to Java's static imports
 : used in conjunction with external test packages to pretend that we're still in the same package
 : another example: https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/net/http/client_test.go;l=20
+: sometimes useful to break cycles
 
 
 
@@ -597,7 +601,7 @@ for equality (with operator `==`) or inequality (with operator `!=`).
 All basic types are comparable, but not all composite types are comparable;
 for instance, functions, slices, and maps are not.
 
-In some places (map keys, switch expressions, etc.), only comparable types can be used.
+In some places (map keys, switch-case expressions, etc.), only comparable types can be used.
 
 .image https://golangforall.com/assets/kanat.svg 200 _
 
@@ -938,9 +942,9 @@ This form of `switch` statement is preferred to a long if-else chain.
 
 * More general switch statement
 
-The switch expression, whose type must be comparable, is evaluated once.
+The switch expression is evaluated once.
 
-The case expressions (not necessarily constants), are evaluated left-to-right and top-to-bottom and tested for equality against the switch expression until a match is found.
+The case expressions must be comparable to the switch expression and are evaluated left-to-right and top-to-bottom and tested for equality against the switch expression until a match is found.
 
 The case clause of the first match gets executed. If no match is found, the default case clause (if any) gets executed.
 
@@ -951,6 +955,7 @@ Unlike in C and other languages, no `break` keyword is required at the end of ca
 : A short-variable-declaration statement can precede the switch condition.
 : The default clause can occur at any place among the the normal cases.
 : There is another form of switch known as _type_switch_, which you can ignore for now.
+: The switch expression itself needs not be of a comparable type: https://go.dev/play/p/ApsaM5uhokB
 
 
 
@@ -1891,6 +1896,8 @@ Note: at the end of the course, compare the structure of your project to these d
 
 Under pressure from the community, the Go team recently issued [[https://go.dev/doc/modules/layout][some general guidance about how to structure a module]]; it's a good start.
 
+Ignore [[https://github.com/golang-standards/project-layout][github.com/golang-standards/project-layout]]; this repo masquerades as official guidance, but [[https://github.com/golang-standards/project-layout/issues/117][it's not]].
+
 The best layout very much depends on the problem space of the project considered, but here are a few more useful tips:
 
 ✌️ Avoid analysis paralysis. Simply start with a single package, and create new packages only as structure naturally emerges.
@@ -2061,7 +2068,7 @@ The `*testing.T` type provides methods (such as `Errorf`) that allow you to indi
 
   <function-call>: got <actual-results>; want <expected-results>
 
-Some assertion libraries (like [[https://github.com/stretchr/testify/][github.com/stretchr/testify]]) are available but dispensable.
+Some assertion libraries (like [[https://github.com/stretchr/testify/][github.com/stretchr/testify]]) are available but [[https://go.dev/wiki/TestComments#assert-libraries][dispensable]]. In fact, [[https://google.github.io/styleguide/go/guide#local-consistency][their use is banned in Google's Go projects]].
 
 
 
@@ -2106,7 +2113,7 @@ You can also selectively run some test functions by specifying a regexp, e.g.:
 
 * Measuring code coverage
 
-Code coverage is metric measuring the fraction of your production code that's covered by tests. Use it [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=6m][as a guide for augmenting your test suite]].
+Code coverage measures the fraction of the code paths that are exercised by tests. Use it [[https://www.youtube.com/watch?v=X4rxi9jStLo&t=6m][as a guide for augmenting your test suite]].
 
 To generate a code-coverage report in a file named `coverage.out`, first run
 
@@ -2174,6 +2181,7 @@ As currently implemented, is `IsAvailable` flexible enough? Is it unit-testable?
 
 : important because, if github can be used as a library, IsAvailable can be called separately from IsValid
 : to avoid client-side path traversal (not a big deal with a GET, but could be for a POST)
+: not ideal: https://github.com/substack returns 404, but username "substack" is in fact unavailable; but good enough for this course
 
 
 
@@ -2440,6 +2448,8 @@ you can write the more or less equivalent (but [[https://github.com/golang/go/is
 .play -edit src/range_over_int.go /^//START/,/^//END/
 
 : contrary to three-clause loop, changes to n during iterations are immaterial
+:    => range-over-int loop cannot replace classic three-clause loop if the body of the loop also updates the loop var
+: also range-over-int without loop vars; see strings.Replace
 
 
 

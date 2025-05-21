@@ -37,7 +37,7 @@ Some of these slides contain editable and executable code snippets. If you need 
 - Web-security researcher & consultant
 - occasional bug-bounty hunter
 - trainer on topics such as [[https://www.humancoders.com/formations/go][Go]] and [[https://www.humancoders.com/formations/securite-des-applications-web][Web security]]
-- open-source developer (minor contributor to Go)
+- open-source developer ([[https://github.com/golang/go/commits?author=jub0bs][minor contributor to Go]])
 - blogger (at [[https://jub0bs.com][jub0bs.com]])
 
 .image https://habrastorage.org/getpro/habr/post_images/eb1/923/9cc/eb19239cc91d38445932da1ade5a5e7d.png 150 _
@@ -137,12 +137,13 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2007: Griesemer, Pike & Thompson start working on Go.
 - 2008: Ian Lance Taylor & Russ Cox (both from Google) join the Go team.
 - 2009: Go is open-sourced.
-- 2012: [[https://go.dev/blog/go1][Go 1.0 is released]]. [[https://go.dev/doc/go1compat][The language becomes stable.]] [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=34m15s][Adoption rises sharply.]]
+- 2012: [[https://go.dev/doc/go1][Go 1.0 is released]]. [[https://go.dev/doc/go1compat][The language becomes stable.]] [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=34m15s][Adoption rises sharply.]]
 - 2013: Docker
 - 2014: Kubernetes; first GopherCon conference
 - 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
-- 2022: Go 1.18 adds generics to the language.
-- 2025: Go 1.24 (the latest minor version) is released.
+- 2022: [[https://go.dev/doc/go1.18][Go 1.18]] adds generics to the language.
+- 2025: [[https://go.dev/doc/go1.24][Go 1.24]] (the latest minor version) is released.
+- 2025: Microsoft [[https://devblogs.microsoft.com/typescript/typescript-native-port/][announces]] a port of the TypeScript compiler to Go, hinting at a 10x compilation speedup
 
 : Russ and ILT joined the Go Team
 : - between 2007 and 2009: https://research.swtch.com/back
@@ -243,13 +244,20 @@ Go supports [[https://en.wikipedia.org/wiki/First-class_function][first-class fu
 
 * Go development pays well
 
-See the results of the Stack Overflow developer survey ([[https://survey.stackoverflow.co/2023/#top-paying-technologies][2023]], [[https://survey.stackoverflow.co/2022/#technology-top-paying-technologies][2022]], [[https://insights.stackoverflow.com/survey/2021#technology-top-paying-technologies][2021]], [[https://insights.stackoverflow.com/survey/2020#technology-what-languages-are-associated-with-the-highest-salaries-worldwide-global][2020]]).
+See the results of the Stack Overflow developer survey ([[https://survey.stackoverflow.co/2024/technology/#top-paying-technologies][2024]], [[https://survey.stackoverflow.co/2023/#top-paying-technologies][2023]], [[https://survey.stackoverflow.co/2022/#technology-top-paying-technologies][2022]], [[https://insights.stackoverflow.com/survey/2021#technology-top-paying-technologies][2021]], [[https://insights.stackoverflow.com/survey/2020#technology-what-languages-are-associated-with-the-highest-salaries-worldwide-global][2020]]).
+
+See also
+
+- [[https://plrank.com/][Programming-language rankings]]
+- [[https://spectrum.ieee.org/top-programming-languages-2024][The top programming languages 2024 (IEEE Spectrum)]]
+- [[https://redmonk.com/sogrady/2024/09/12/language-rankings-6-24/][The RedMonk Programming Language Rankings]]
+- [[https://www.jetbrains.com/lp/devecosystem-2024/][State-of-developer-ecosystem report 2024 (Jetbrains)]]
 
 Even if don't stay at your current job for much longer, learning Go is not a waste of time!
 
 : https://insights.stackoverflow.com/survey/2021#technology-top-paying-technologies
 
-.image https://go.dev/blog/gophergala/fancygopher.jpg 300 _
+.image https://go.dev/blog/gophergala/fancygopher.jpg 200 _
 
 
 
