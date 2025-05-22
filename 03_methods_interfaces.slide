@@ -21,7 +21,7 @@ Methods distinguish themselves from _package-level_functions_ by the presence (b
 
 This special parameter is known as the *method's*receiver*.
 
-If the method needs not access its receiver parameter, you can omit to specify a name for the receiver in the method declaration:
+If the method needs not access its receiver parameter, you can ([[https://dmitri.shuralyov.com/idiomatic-go#avoid-unused-method-receiver-names][and should]]) omit to specify a name for the receiver in the method declaration:
 
   func (Counter) SayHello() { fmt.Println("Hello!") }
 
@@ -48,6 +48,7 @@ We'll cover interfaces in detail soon, but here is a teaser:
 .play -edit src/shape_interface.go /^//START2/,/^//END2/
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
 
 
 * Restrictions on the type of a method's receiver
@@ -165,6 +166,8 @@ Idiomatic names for a method receiver are [[https://go.dev/wiki/CodeReviewCommen
   func (c Counter) Incr() Counter { return c + 1 }
   func (c Counter) Decr() Counter { return c - 1 }
 
+: more examples https://google.github.io/styleguide/go/decisions#receiver-names
+
 
 
 * Calling a method
@@ -199,6 +202,7 @@ However, in cases where updates to the receiver need to be visible outside the m
 .play -edit src/method_pointer_receiver.go /^//START/,/^//END/
 
 : anything surprising?
+: can't have two methods of the same name, one using value receiver and the other using pointer receiver; just a special case of method overloading, really
 
 
 
@@ -445,7 +449,7 @@ Not so in Go, and that's one reason why interfaces are one of the most fascinati
 
 * Interface satisfaction in Go
 
-In Go, interface satisfaction is _implicitly_ verified at compile time. If a concrete type has _all_ the methods required by the interface, the former automatically satisfies the latter:
+In Go, interface satisfaction is _implicitly_ verified at compile time. If a concrete type provides (at least) _all_ the methods required by the interface, the former automatically satisfies the latter:
 
 .play -edit src/interface_sat.go /^//START/,/^//END/
 
@@ -831,6 +835,8 @@ If the assertion holds, `ok` is true. Otherwise, `ok` is `false` and `t`'s value
 An alternative form exists, but should generally be avoided because it panics if the assertion doesn't hold:
 
   t := v.(T) // possible panic here
+
+: if you need to access the concrete type but don't know what it is, you need reflection
 
 
 

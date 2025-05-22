@@ -2061,7 +2061,7 @@ The `*testing.T` type provides methods (such as `Errorf`) that allow you to indi
 
   <function-call>: got <actual-results>; want <expected-results>
 
-Some assertion libraries (like [[https://github.com/stretchr/testify/][github.com/stretchr/testify]]) are available but [[https://go.dev/wiki/TestComments#assert-libraries][dispensable]]. In fact, [[https://google.github.io/styleguide/go/guide#local-consistency][their use is banned in Google's Go projects]].
+Third-party assertion libraries [[https://github.com/stretchr/testify/][exist]] but are [[https://go.dev/wiki/TestComments#assert-libraries][dispensable]] and [[https://google.github.io/styleguide/go/guide#local-consistency][sometimes even banned]].
 
 
 
@@ -2326,11 +2326,11 @@ In our earlier example, the files will all be closed only when `processFiles` te
 
 * Gotcha: function call unduly deferred
 
-Below is a more complex example of a function call getting executed too late because of `defer`:
+Below is an example of a function call getting executed too late because of `defer`:
 
 .play -edit src/defer_undue.go /^//START/,/^//END/
 
-Follow [[https://gchq.github.io/CyberChef/#recipe=To_Base64('A-Za-z0-9%2B/%3D')&input=Zm9vYmFy][this link]] to see the expected output. Can you explain why some bytes get lost?
+Follow [[https://gchq.github.io/CyberChef/#recipe=To_Base64('A-Za-z0-9%2B/%3D')&input=Zm9vYmFy][this link]] to see the expected output. Why do some bytes get lost?
 
 : Method `enc.Close` flushes any data left in the encoder to the byte buffer. However, because it's called too late (i.e. after the call to the `buf.String`), some trailing bytes get lost.
 : adapted from https://gophers.slack.com/archives/C029RQSEE/p1737587228725509
@@ -2368,23 +2368,11 @@ Flesh out your `main` function:
 
 3. Repeat steps 1 & 2 for Bluesky.
 
-4. Does the code in your `main` function not suffer from duplication?
+Does the code in your `main` function not suffer from duplication? Using a loop here here would make sense.
+
+👉 Let's learn about loops, then!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
-
-
-
-* Namecheck project: missing abstraction
-
-Our project is starting to take shape, but it still suffers from limitations...
-
-One issue is that, although the `github` and `bluesky` packages both export `IsValid` and `IsAvailable` functions with identical signatures, we're missing a common abstraction that would let us call those functions regardless of the package they're declared in.
-
-*Methods* and *interfaces* will allow us to remedy this problem!
-
-👉 For now, let's learn about loops.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 200 _
 
 
 
@@ -2436,9 +2424,13 @@ For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), inste
 
 .play -edit src/range_over_int_before.go /^//START/,/^//END/
 
-you can write the more or less equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
+you can write an equivalent (but [[https://github.com/golang/go/issues/61405#issuecomment-1646961976][more concise and more readable]]) loop:
 
 .play -edit src/range_over_int.go /^//START/,/^//END/
+
+Here is another example, in which we declare no loop variables:
+
+.play -edit src/empty_range_over_int.go /^//START/,/^//END/
 
 : contrary to three-clause loop, changes to n during iterations are immaterial
 :    => range-over-int loop cannot replace classic three-clause loop if the body of the loop also updates the loop var
@@ -2509,4 +2501,18 @@ You can now range over any `iter.Seq[E]` value (where `E` stands for some type):
 
 You can also provide iterators over your own data structures, but this is an advanced topic that requires familiarity with generics; more details in [[https://go.dev/blog/range-functions][a recent blog post]].
 
-👉 Enough about loops; let's learn about arrays and slices.
+
+
+* Namecheck project: missing abstraction
+
+Unfortunately, we cannot (yet) use a loop to reduce code duplication in the `main` function.
+
+Although our project is starting to take shape, it still suffers from limitations...
+
+One issue is that, although the `github` and `bluesky` packages both export `IsValid` and `IsAvailable` functions with identical signatures, we're missing a common abstraction that would let us call those functions regardless of the package they're declared in.
+
+*Methods* and *interfaces* will allow us to remedy this problem!
+
+👉 But first, let's learn about arrays and slices.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 200 _

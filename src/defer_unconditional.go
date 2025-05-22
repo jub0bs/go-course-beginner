@@ -6,7 +6,7 @@ import (
 )
 
 func heads() bool {
-	return rand.Intn(2) == 0 // true half the time
+	return rand.IntN(2) == 0 // true half the time
 }
 
 // START OMIT

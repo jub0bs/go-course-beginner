@@ -23,6 +23,8 @@ Since we only care about receiving all the responses, not the order in which we 
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
+: an embarrassingly concurrent workload: clear how to decompose it into independent subtasks
+
 
 
 * What is concurrency?
@@ -77,7 +79,7 @@ If you've got help in the kitchen, you can _parallelize_ and finish the dish fas
 
 - the art of structuring a program in terms of *independent* computations
 - a property of the program's *code*
-- fundamentally about program design
+- [[https://www.youtube.com/watch?v=HxaD_trXwRE&t=39m][an act of program design]]
 
 *Parallelism*
 
@@ -438,7 +440,7 @@ If changing the signature of the function is impossible (because you don't own i
 
 
 
-* Coalesce Add calls if you want, but beware...
+* Coalesce calls to Add if you want, but beware...
 
 If, during each iteration of a loop of fixed size `n`, you unconditionally start a goroutine, you may replace the multiple `Add` calls within the loop by a single one before the loop:
 
@@ -529,6 +531,37 @@ What if, instead of printing the results, we wanted to somehow aggregate them?
 
 
 
+* A new method for sync.WaitGroup (new in Go 1.25)
+
+`sync.WaitGroup` [[https://github.com/golang/go/issues/63796][will]] see the addition of an alternative to methods `Add` and `Done`:
+
+  func (*WaitGroup) Go(task func())
+
+For instance, instead of writing
+
+  var wg sync.WaitGroup
+  for i := range 10 {
+    wg.Add(1)
+    go func() {
+      defer wg.Done()
+      fmt.Println(i)
+    }()
+  }
+  wg.Wait()
+
+you will [[https://go.dev/play/p/ocDzOt0IiS-?v=gotip][soon]] be able to write
+
+  var wg sync.WaitGroup
+  for i := range 10 {
+    wg.Go(func() { fmt.Println(i) })
+  }
+  wg.Wait()
+
+: should reduce the potential for mistakes
+: Whether this alternative will gain traction in the Go community is unclear.
+
+
+
 * Deadlock
 
 A Go program is said to be in a [[https://en.wikipedia.org/wiki/Deadlock][deadlock]] when two or more goroutines are waiting on one another to unblock them so they can resume execution.
@@ -575,13 +608,13 @@ Remember this useful distinction (similar to that between concurrency and parall
 
 * Data races: a subtype of race conditions that you cannot ignore
 
-[[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-6][Goroutines share the same memory address space]]: multiple goroutines can access some shared memory without triggering an access violation at the OS level.
+[[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-6][Goroutines share the same memory address space]]: multiple goroutines can access the same memory location without triggering an access violation at the OS level.
 
 However, [[https://go.dev/doc/effective_go.html#goroutines][the onus is on you to be diligent at the application level]]! Go indeed doesn't provide [[https://doc.rust-lang.org/book/ch16-00-concurrency.html][the guarantees about concurrency that Rust does]].
 
-A [[https://en.wikipedia.org/wiki/Race_condition#Data_race][_data_race_]] is a category of race condition that occurs [[https://go.dev/doc/articles/race_detector#Introduction][when two or more goroutines access the same variable concurrently and at least one of those accesses is a write]]. A data race is always symptomatic of a severe synchronization bug!
+A [[https://en.wikipedia.org/wiki/Race_condition#Data_race][_data_race_]] is a category of race condition that occurs [[https://go.dev/doc/articles/race_detector#Introduction][when two or more goroutines access the same memory location concurrently and at least one of those accesses is a write]]. A data race is _always_ symptomatic of a severe synchronization bug!
 
-To be free of such synchronization bugs, your programs [[https://go.dev/ref/mem#advice][*must* serialize such access]]; otherwise, their correctness and security cannot be guaranteed. 😬
+To be free of such synchronization bugs, your programs [[https://go.dev/ref/mem#advice][*must* serialize such access]]; otherwise, their correctness (and security) cannot be guaranteed. 😬
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
 
@@ -762,6 +795,8 @@ Channels only exist within the confines of your program; they cannot be used to 
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 200 _
 
+: channels are comparable
+
 
 
 * Naming conventions for channels
@@ -776,31 +811,6 @@ Naming a channel after the plural form of its element type is also common:
   tasks := make(chan Task)
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/witch-learning.svg 200 _
-
-
-
-* Channels are first-class values
-
-You can pass a channel to a function:
-
-  func Aggregate(results chan Result) Result {
-    // ...
-  }
-
-You can return a channel from a function:
-
-  func Generate(upTo int) chan int {
-    // ...
-  }
-
-You can store a channel in a struct type:
-
-  type Request struct {
-      fn func() int  // The operation to perform.
-      c  chan bool    // The channel to return the result.
-  }
-
-Channels are comparable.
 
 
 
@@ -1038,7 +1048,7 @@ A freshly initialized channel starts its life in an "open" state.
 
   ch := make(chan string) // ch is open (until closed)
 
-You can _close_ a channel simply by passing it to the built-in `close` function:
+You can _close_ a channel simply by passing it to [[https://pkg.go.dev/builtin#close][the built-in `close` function]]:
 
   close(ch)
 
@@ -1046,7 +1056,8 @@ Closing a channel
 
 - is not a blocking operation;
 - is definitive (a closed channel cannot be "re-opened");
-- does *not* make the channel `nil`.
+- does *not* make the channel `nil`;
+- should be not be performed on the receiver's side, but [[https://go.dev/doc/go1#close][on the sender's side]].
 
 Why close a channel? It's a powerful (!) way to *broadcast*a*signal*to*all*receivers* on the channel that no more items will be sent to that channel.
 
@@ -1161,6 +1172,7 @@ Therefore, operations on a channel or on one of its copies produce the same resu
 : subsidairy question: how would you implement the fan-out/fan-in without a wait group?
 :   simply loop as many times as len(checkers)
 :   within loop: receive one result and append to slice
+: printing Result.Err to HTTP response isn't ideal, but ok
 
 
 
@@ -1268,9 +1280,11 @@ The Go community has produced several Web frameworks but, in my opinion, they ty
 
 My advice ([[https://www.youtube.com/watch?v=Jm8UJ6cVYMw][and others']]) is to resist the temptation to reach for a Web framework, at least at first. The lowly `net/http` package actually goes a long way, especially since Go 1.22, which [[https://tip.golang.org/doc/go1.22#enhanced_routing_patterns][welcomed more powerful routing features]].
 
-If needed, seek additional (possibly third-party) middleware libraries that do one thing (e.g. CSRF protection, [[https://pkg.go.dev/github.com/jub0bs/cors][CORS]], etc.) and do it well. [[https://en.wikipedia.org/wiki/Unix_philosophy][Unix philosophy]] for the win!
+If needed, seek additional (possibly third-party) middleware libraries that do one thing (e.g. [[https://pkg.go.dev/github.com/jub0bs/cors][CORS]]) and do it well. [[https://en.wikipedia.org/wiki/Unix_philosophy][Unix philosophy]] for the win!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 100 _
+
+: a somewhat dated review of Web frameworks for Go: https://www.youtube.com/watch?v=Jm8UJ6cVYMw
 
 
 
@@ -1633,7 +1647,7 @@ When program execution reaches a select statement, what happens is governed by
 
 
 
-* All cases blocking, default case
+* All cases blocking, default case present
 
 If all the cases of the select statement are blocking and a `default` case is present, the statements associated to that case are executed:
 
@@ -1937,7 +1951,7 @@ One solution: use a mutex to synchronize accesses to the map.
 
 * Mutual exclusions
 
-A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (more simply known as _mutex_) is a useful mechanism for obtaining exclusive access to a shared resource.
+A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (more simply known as _mutex_) is a useful mechanism for mediating access to a shared resource.
 
 Sections of a program that are guarded by a mutex are known as [[https://en.wikipedia.org/wiki/Critical_section][_critical_sections_]].
 
@@ -1985,11 +1999,13 @@ In particular, strive to keep them
 - short (by [[https://github.com/jub0bs/cors/blob/01a1b7821d5b1f66e7e958f52bc6403fc819759a/middleware.go#L94C1-L106C2][carrying out as much of the necessary work elsewhere]]), and
 - free of I/O operations (disk access, network access, etc.).
 
-Otherwise, the various critical sections risk having to wait a prohibitively long time for their turn to acquire the lock ([[https://en.wikipedia.org/wiki/Resource_contention][_contention_]]), which will introduce a performance bottleneck in your program.
+Otherwise, the goroutines containing critical sections risk having to wait a prohibitively long time for their turn to acquire the lock ([[https://en.wikipedia.org/wiki/Resource_contention][_contention_]]), which will introduce a performance bottleneck in your program.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
 : in the example I link to, the call to new config is newInternalConfig is relatively expensive, but doesn't need to be in the critical section.
+
+V] contend over a lock
 
 
 

@@ -667,6 +667,8 @@ the key and value.
 
 Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-9][specified as nondeterministic]]! Try running the code snippet above a few times: the iteration order will typically change from one program execution to the next. See [[https://www.hyrumslaw.com/][Hyrum's Law]].
 
+: rationale also explained in https://go.dev/doc/go1#iteration
+
 
 
 * Namecheck project: table-driven subtests using a map
@@ -823,6 +825,7 @@ Contrary to what you may believe, the empty struct is often useful.
 : conveys intent that data doesn't matter
 : sets
 : signalling with channels
+: slice of empty structs in tests (takes no memory): https://www.youtube.com/watch?v=X4rxi9jStLo&t=870s
 
 
 
