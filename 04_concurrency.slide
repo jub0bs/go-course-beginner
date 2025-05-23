@@ -1576,14 +1576,11 @@ Don't forget to track changes to this file in your version-control system!
 
 1. If you don't already do so, hang your routes on a custom [[https://pkg.go.dev/net/http#ServeMux][HTTP request multiplexer]] rather than the default one.
 
-2. In your main function, instantiate a CORS middleware configured to
-
-- [[https://pkg.go.dev/github.com/jub0bs/cors#hdr-Origins-Config][allow access from Web origin `https://namecheck.jub0bs.dev`]],
-- [[https://pkg.go.dev/github.com/jub0bs/cors#hdr-PrivateNetworkAccess-ExtraConfig][enable _Private_Network_Access_]] (because your server currently runs on `localhost`, i.e. in an IP address space _less_public_ than the client's IP address space).
+2. In your main function, instantiate a CORS middleware configured to [[https://pkg.go.dev/github.com/jub0bs/cors#hdr-Origins-Config][allow access from Web origin `https://namecheck.jub0bs.dev`]].
 
 3. [[https://pkg.go.dev/github.com/jub0bs/cors#Middleware.Wrap][Apply your CORS middleware]] to your HTTP request multiplexer.
 
-4. Now that your code does depend on the CORS library, tidy your `go.mod` file.
+4. Now that your code does depend on the CORS library, _tidy_ your `go.mod` file.
 
 5. Run your server, visit [[https://namecheck.jub0bs.dev]], and check a username of your choice.
 
