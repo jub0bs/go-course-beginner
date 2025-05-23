@@ -2005,7 +2005,7 @@ Otherwise, the goroutines containing critical sections risk having to wait a pro
 
 : in the example I link to, the call to new config is newInternalConfig is relatively expensive, but doesn't need to be in the critical section.
 
-V] contend over a lock
+: V] contend over a lock
 
 
 

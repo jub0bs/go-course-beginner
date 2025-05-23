@@ -771,149 +771,6 @@ When convenient, you can make some of your own types satisfy the `error` interfa
 
 
 
-* The nature of interface values
-
-An interface value essentially [[https://research.swtch.com/interfaces][holds two pieces of information]]:
-
-- its _dynamic_type_, and
-- its _dynamic_value_.
-
-Here are some simple examples:
-
-.play -edit src/interface_nature.go /^//START/,/^//END/
-
-
-
-* Interface types are comparable, but beware...
-
-Basic interfaces are comparable.
-
-As you now know, `error` is an interface type. If `error` weren't comparable, you wouldn't be able to compare arbitrary `error` values:
-
-  if err != io.EOF {
-    // ...
-  }
-
-Beware, though: comparing two interface values sharing the same dynamic type causes a panic if that dynamic type is not itself comparable:
-
-.play -edit src/interface_comparable.go /^//START/,/^//END/
-
-
-
-* Interfaces' zero value... and a common source of confusion
-
-The zero value of basic interfaces is `nil`. A `nil` interface value has no dynamic type.
-
- var i any // dynamic type: none; dynamic value: nil
- i == nil  // true
-
-However, an interface value is equal to `nil` only if it has no dynamic type! An interface value that holds a `nil` value of some concrete type is not itself equal to `nil`! 🤯
-
-  var checker Checker = (*github.GitHub)(nil) // dynamic type: *github.GitHub; dynamic value: nil
-  checker == nil                              // false!
-
-This subtlety is a major source of initial confusion for newcomers to the language.
-If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]], especially in connection with error handling.
-
-.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
-
-
-
-* Type assertion
-
-A [[https://go.dev/ref/spec#Type_assertions][type assertion]] allows you to ask, at run time, two types of questions about the dynamic type of an interface value `v`:
-
-- Does the dynamic type of `v` satisfy a different interface type `T`?
-- Does `v` contain a value of concrete type `T`?
-
-As when accessing a value in a map, you can use the comma-ok idiom:
-
-  t, ok := v.(T)
-
-If the assertion holds, `ok` is true. Otherwise, `ok` is `false` and `t`'s value is `T`'s zero value.
-
-An alternative form exists, but should generally be avoided because it panics if the assertion doesn't hold:
-
-  t := v.(T) // possible panic here
-
-: if you need to access the concrete type but don't know what it is, you need reflection
-
-
-
-* Type-asserting on behavior
-
-You can use a type assertion to determine whether the dynamic type stored in an interface value satisfies other interface types.
-
-In fact, this is what functions from the `fmt` package do under the hood. Here is an idealized view of `fmt.Println`'s implementation:
-
-  func Println(a ...any) (int, error) {
-    for _, v := range a {
-      if stringer, ok := v.(fmt.Stringer); ok {
-        s := stringer.String()
-        // print s to the screen
-        return len(s), nil
-      }
-      // print some other textual representation of v
-      // -snip-
-    }
-
-
-
-* Type-asserting on behavior (cont'd)
-
-Here is another example. Consider [[https://pkg.go.dev/net#Error][the `net.Error` interface]], which is 
-broader than `error`: 
-
-  type Error interface {
-    error
-    Timeout() bool // Is the error a timeout?
-    // ...
-  }
-
-Upon getting a non-`nil` `error`, you could [[https://blog.golang.org/error-handling-and-go][enquire whether it stemmed from a timeout]]:
-
-  res, err := http.Get("https://example.com")
-  if err != nil {
-    if err, ok := err.(interface { Timeout() bool }); ok && err.Timeout() {
-      // the error was caused by a timeout... retry
-    }
-    return err
-  }
-
-See also [[https://pkg.go.dev/errors#As][`errors.As`]], a function more powerful than a simple type assertion on an error.
-
-
-
-* Type-assertion on data
-
-Type assertions also allow you to probe into an interface value for its dynamic type and its dynamic value:
-
-  gh, ok := checker.(*github.GitHub)
-  if ok {
-    fmt.Println("GitHub")
-    // possibly access gh's fields
-  }
-
-However, such type assertions undermine polymorphism and introduce coupling to concrete types. Therefore, you should avoid type assertions to concrete types, especially ones you do not own!
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
-
-: closest analogue in Java: instanceof operator
-
-
-
-* Type switch
-
-A sequence of type assertions is annoying to write and hard to read:
-
-.play -edit src/type_assertion_sequence.go /^//START/,/^//END/
-
-A more readable but functionally equivalent alternative consists in using a special form of switch statement known as a [[https://go.dev/ref/spec#Type_switches][_type_switch_]]:
-
-.play -edit src/type_switch.go /^//START/,/^//END/
-
-
-
 * Namecheck project: IsAvailable lacks testability
 
 Unfortunately, because the `IsAvailable` method is still tied to concrete type `*http.Client`, it still unconditionally sends a HTTP request to the platform of interest.
@@ -1060,3 +917,149 @@ Careful: because your `IsAvailable` method calls the `Close` method on the respo
 
 : rationale for the package name: https://www.youtube.com/watch?v=cAWlv2SeQus&t=1685s
 : stub is a distinct package from namecheck: don't want that to end up in production binary
+
+
+
+* The nature of interface values
+
+An interface value essentially [[https://research.swtch.com/interfaces][holds two pieces of information]]:
+
+- its _dynamic_type_, and
+- its _dynamic_value_.
+
+Here are some simple examples:
+
+.play -edit src/interface_nature.go /^//START/,/^//END/
+
+
+
+* Interface types are comparable, but beware...
+
+Basic interfaces are comparable.
+
+As you now know, `error` is an interface type. If `error` weren't comparable, you wouldn't be able to compare arbitrary `error` values:
+
+  if err != io.EOF {
+    // ...
+  }
+
+Beware, though: comparing two interface values sharing the same dynamic type causes a panic if that dynamic type is not itself comparable:
+
+.play -edit src/interface_comparable.go /^//START/,/^//END/
+
+
+
+* Interfaces' zero value... and a common source of confusion
+
+The zero value of basic interfaces is `nil`. A `nil` interface value has no dynamic type.
+
+ var i any // dynamic type: none; dynamic value: nil
+ i == nil  // true
+
+However, an interface value is equal to `nil` only if it has no dynamic type! An interface value that holds a `nil` value of some concrete type is not itself equal to `nil`! 🤯
+
+  var checker Checker = (*github.GitHub)(nil) // dynamic type: *github.GitHub; dynamic value: nil
+  checker == nil                              // false!
+
+This subtlety is a major source of initial confusion for newcomers to the language.
+If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]], especially in connection with error handling.
+
+.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
+
+
+
+* Type assertion
+
+A [[https://go.dev/ref/spec#Type_assertions][type assertion]] allows you to ask, at run time, two types of questions about the dynamic type of an interface value `v`:
+
+- Does the dynamic type of `v` satisfy a different interface type `T`?
+- Does `v` contain a value of concrete type `T`?
+
+As when accessing a value in a map, you can use the comma-ok idiom:
+
+  t, ok := v.(T)
+
+If the assertion holds, `ok` is true. Otherwise, `ok` is `false` and `t`'s value is `T`'s zero value.
+
+An alternative form exists, but should generally be avoided because it panics if the assertion doesn't hold:
+
+  t := v.(T) // possible panic here
+
+: if you need to access the concrete type but don't know what it is, you need reflection
+
+
+
+* Type-asserting on behavior
+
+You can use a type assertion to determine whether the dynamic type stored in an interface value satisfies other interface types.
+
+In fact, this is what functions from the `fmt` package do under the hood. Here is an idealized view of `fmt.Println`'s implementation:
+
+  func Println(a ...any) (int, error) {
+    for _, v := range a {
+      if stringer, ok := v.(fmt.Stringer); ok {
+        s := stringer.String()
+        // print s to the screen
+        return len(s), nil
+      }
+      // print some other textual representation of v
+      // -snip-
+    }
+
+
+
+* Type-asserting on behavior (cont'd)
+
+Here is another example. Consider [[https://pkg.go.dev/net#Error][the `net.Error` interface]], which is 
+broader than `error`: 
+
+  type Error interface {
+    error
+    Timeout() bool // Is the error a timeout?
+    // ...
+  }
+
+Upon getting a non-`nil` `error`, you could [[https://blog.golang.org/error-handling-and-go][enquire whether it stemmed from a timeout]]:
+
+  res, err := http.Get("https://example.com")
+  if err != nil {
+    if err, ok := err.(interface { Timeout() bool }); ok && err.Timeout() {
+      // the error was caused by a timeout... retry
+    }
+    return err
+  }
+
+See also [[https://pkg.go.dev/errors#As][`errors.As`]], a function more powerful than a simple type assertion on an error.
+
+
+
+* Type-assertion on data
+
+Type assertions also allow you to probe into an interface value for its dynamic type and its dynamic value:
+
+  gh, ok := checker.(*github.GitHub)
+  if ok {
+    fmt.Println("GitHub")
+    // possibly access gh's fields
+  }
+
+However, such type assertions undermine polymorphism and introduce coupling to concrete types. Therefore, you should avoid type assertions to concrete types, especially ones you do not own!
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+: closest analogue in Java: instanceof operator
+
+
+
+* Type switch
+
+A sequence of type assertions is annoying to write and hard to read:
+
+.play -edit src/type_assertion_sequence.go /^//START/,/^//END/
+
+A more readable but functionally equivalent alternative consists in using a special form of switch statement known as a [[https://go.dev/ref/spec#Type_switches][_type_switch_]]:
+
+.play -edit src/type_switch.go /^//START/,/^//END/
+
+
+
