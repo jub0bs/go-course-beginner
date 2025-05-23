@@ -1467,7 +1467,7 @@ However, because your server isn't configured for [[https://developer.mozilla.or
 
 .image img/cors_before.svg _ 900
 
-: before: https://excalidraw.com/#json=rg6r6A6qQOXW4li1TjXV2,4b4e6-RBAdTACNYwOzhT5g
+: before: https://excalidraw.com/#json=vi3wILWPasIXOi5yF_bAo,G42MnIAJi4R7HnR4TsdDog
 
 
 
@@ -1481,7 +1481,7 @@ Implementing CORS "by hand" is tempting, but error-prone. Instead, rely on a dep
 
 : don't use Brave (which blocks requests to localhost) to visit the page
 
-: after: https://excalidraw.com/#json=_nkLBKLmHXf_u1lCjhfV3,k5B5FsPVA2M5ynQ1a7gNfg
+: after: https://excalidraw.com/#json=xfZ77GOOcsVyKdFJNxNUQ,VnMqBfVxsYxNCPOpCVPJLA
 
 
 
