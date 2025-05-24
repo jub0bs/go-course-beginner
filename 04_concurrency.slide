@@ -1815,7 +1815,7 @@ If function `cancelable` is launched as a goroutine, you can trigger its eventua
 
 * Canceling goroutines with context
 
-The [[https://pkg.go.dev/context#Context][`context.Context` interface]] [[https://go.dev/talks/2014/gotham-context.slide#10][formalizes and expands upon this "done channel" trick]] and can be used to terminate goroutines via cancelations or timeouts.
+The [[https://pkg.go.dev/context#Context][`context.Context` interface]] [[https://go.dev/talks/2014/gotham-context.slide#10][formalizes and expands upon this "done channel" trick]] and can be used to terminate goroutines via cancellations or timeouts.
 
 Its `Done` method returns the channel in question, and its `Err` method returns a non-`nil` error value when the context is [[https://pkg.go.dev/context#Canceled][canceled]] or [[https://pkg.go.dev/context#DeadlineExceeded][times out]]:
 
@@ -1865,7 +1865,7 @@ Remember: a send operation on a channel may block.
 
   resultCh <- res
 
-To make a channel send cancelable, you can wrap it in a select and add a case in which you detect a context's cancelation:
+To make a channel send cancelable, you can wrap it in a select and add a case in which you detect a context's cancellation:
 
   select {
     case <-ctx.Done():
@@ -1885,9 +1885,9 @@ You now know enough about the `context` package to fix the goroutine leak! 💪
 
 2. Modify the `check` function so that, even if sends on either or both of the two channels block, canceling the context forces the function to terminate.
 
-3. In the `handleCheck` handler, create a context and pass it to the `check` function. Cancel that context if an error is received on the `errorCh` channel. Also, terminate the loop if you detect a cancelation of the context.
+3. In the `handleCheck` handler, create a context and pass it to the `check` function. Cancel that context if an error is received on the `errorCh` channel. Also, terminate the loop if you detect a cancellation of the context.
 
-Does context cancelation have any impact on calls to the `IsAvailable` method? If not, what could we do?
+Does context cancellation have any impact on calls to the `IsAvailable` method? If not, what could we do?
 
 : IsAvailable itself isn't cancelable... but we could make it so.
 : also, you could declare a generic cancelable send function to reduce code duplication a bit: https://go.dev/play/p/orRVTOJeCBS
