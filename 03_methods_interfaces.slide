@@ -31,26 +31,6 @@ Note that, as illustrated above, receiver types are not limited to struct types.
 
 
 
-* Methods are key to interfaces
-
-: We need some abstraction for the similar behaviors provided by our `github` and `bluesky` packages. This abstraction will take the form of one or more interface types.
-
-_Methods_ are the mechanism through which concrete types can satisfy basic interfaces.
-
-We'll cover interfaces in detail soon, but here is a teaser:
-
-.code -edit src/shape_interface.go /^//START1/,/^//END1/
-
-
-
-* Methods are key to interfaces (cont'd)
-
-.play -edit src/shape_interface.go /^//START2/,/^//END2/
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
-
-
-
 * Restrictions on the type of a method's receiver
 
 The type that appears in a method's receiver must be a package-level defined type:
@@ -230,7 +210,7 @@ Some types (such as [[https://pkg.go.dev/time#Time][`time.Time`]]), because they
 
 Strive for consistency: [[https://go.dev/doc/faq#methods_on_values_or_pointers][if some of the methods of the type have pointer receivers, the others should too]]. Types that contravene this rule of thumb tend to be hard to use.
 
-[[https://go.dev/wiki/CodeReviewComments#receiver-types][More detailed guidance on this topic]] is available in Go's official wiki.
+[[https://go.dev/wiki/CodeReviewComments#receiver-type][More detailed guidance on this topic]] is available in Go's official wiki.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
@@ -341,7 +321,7 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
   avail, err := gh.IsAvailable("jub0bs")
   // ...
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 150 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 200 _
 
 
 
@@ -399,7 +379,7 @@ A [[https://go.dev/ref/spec#Basic_interfaces][_basic_ interface]] defines a set 
     Climb(meters int) error
   }
 
-The names of method parameters and results are inconsequential and may be omitted in interface-type declarations:
+The names of method parameters (if any) are inconsequential and may be omitted in interface-type declarations:
 
   type Climber interface {
     Climb(int) error
@@ -445,13 +425,17 @@ Not so in Go, and that's one reason why interfaces are one of the most fascinati
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/liberty.svg 250 _
 
+: We need some abstraction for the similar behaviors provided by our `github` and `bluesky` packages. This abstraction will take the form of one or more interface types. TODO: move this where it belongs
+
 
 
 * Interface satisfaction in Go
 
-In Go, interface satisfaction is _implicitly_ verified at compile time. If a concrete type provides (at least) _all_ the methods required by the interface, the former automatically satisfies the latter:
+In Go, interface satisfaction is _implicitly_ verified at compile time.
 
-.play -edit src/interface_sat.go /^//START/,/^//END/
+If a concrete type provides (at least) _all_ the methods required by the interface, the former automatically implements/satisfies the latter:
+
+.code -edit src/shape_interface.go /^//START1/,/^//END1/
 
 : A value of that concrete type can then be used wherever an interface value is expected.
 : structural typing as opposed to nominal subtyping
@@ -462,13 +446,21 @@ In Go, interface satisfaction is _implicitly_ verified at compile time. If a con
 
 
 
+* Interface satisfaction in Go (cont'd)
+
+.play -edit src/shape_interface.go /^//START2/,/^//END2/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+
+
 * Method sets revisited
 
-Note that `*Mountaineer` satisfies the `Climber` interface but `Mountaineer` does not!
+Note that `*Rectangle` satisfies the `Shape` interface but `Rectangle` does not!
 
-.play -edit src/interface_sat2.go /^//START/,/^//END/
+.play -edit src/method_sets.go /^//START/,/^//END/
 
-This shouldn't be too surprising to you at this stage if you understand method sets, though. The method set of `Mountaineer` indeed does _not_ contain method `Climb`:
+This shouldn't be too surprising to you at this stage if you understand method sets, though. The method set of `Rectangle` indeed does _not_ contain method `Shape`:
 
 .image img/method_sets_interface.svg 250 _
 
@@ -520,7 +512,7 @@ If you declare a function that has a parameter of type `any`, Go's type checker 
 
 Therefore, peppering empty interfaces all over the business layer of your application (where being very specific pays off) is not a good idea...
 
-.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
+.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
 
 : a bit like *void in C
 : in
@@ -913,7 +905,7 @@ Careful: because your `IsAvailable` method calls the `Close` method on the respo
 
 2. Run those tests and measure the code coverage again.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : rationale for the package name: https://www.youtube.com/watch?v=cAWlv2SeQus&t=1685s
 : stub is a distinct package from namecheck: don't want that to end up in production binary

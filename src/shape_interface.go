@@ -12,13 +12,13 @@ type Shape interface { // HL
 
 type Rectangle struct{ width, height float64 }
 
-func (r Rectangle) Area() float64 { // enough for Rectangle to implement Shape! // HL
+func (r *Rectangle) Area() float64 { // enough for *Rectangle to implement Shape! // HL
 	return r.width * r.height
 }
 
 type Circle struct{ radius float64 }
 
-func (c Circle) Area() float64 { // enough for Circle to implement Shape! // HL
+func (c *Circle) Area() float64 { // enough for *Circle to implement Shape! // HL
 	return math.Pi * c.radius * c.radius
 }
 
@@ -34,7 +34,7 @@ func PrintAreas(shapes ...Shape) { // HL
 func main() {
 	rect := Rectangle{width: 16, height: 9}
 	circle := Circle{radius: 10}
-	PrintAreas(rect, circle) // HL
+	PrintAreas(&rect, &circle) // HL
 }
 
 // END2 OMIT

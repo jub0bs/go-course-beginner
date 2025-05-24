@@ -120,7 +120,7 @@ A slice represents a variable-length sequence of elements of the same type.
 
 The type of a slice of elements of type `T` is denoted by `[]T`.
 
-Note that, contrary to arrays, slices do not have a length specified in their type name, simply because the length of a slice variable isn't fixed and may change over time.
+Note that, contrary to array types, slice types do not specify any length; two variables of the same slice type may indeed have different lengths.
 
 Fun fact: [[https://go.dev/blog/slices#strings][Go strings actually are read-only slices of bytes with a bit of syntactic sugar.]]
 
@@ -146,7 +146,9 @@ You can also use the built-in `make` function to initialize a slice of a desired
 
 Slice are "reference types". Their zero value is `nil`.
 
-A `nil` slice is distinct from, but functionally equivalent to, an empty slice. [[https://go.dev/wiki/CodeReviewComments#declaring-empty-slices][Convention]] dictates that you not differentiate a `nil` slice from a non-`nil` empty slice in your code.
+A `nil` slice is distinct from but functionally equivalent to an empty slice.
+
+[[https://go.dev/wiki/CodeReviewComments#declaring-empty-slices][Convention]] dictates that you not differentiate a `nil` slice from a non-`nil` empty slice in your code. To check whether a slice is either nil or empty, instead of comparing it to `nil`, check whether its length is `0`:
 
 .play -edit src/slice_zero.go  /^//START/,/^//END/
 
@@ -192,7 +194,7 @@ A slice is essentially a resizable view (or window) into a backing array.
 
 Under the hood, a slice is a data structure simply composed of three machine words:
 
-- a pointer to the backing array
+- a pointer to a slot of a backing array
 - an int corresponding to the _length_ of the slice (given by built-in function `len`)
 - an int corresponding to the _capacity_ of the slice (given by built-in function `cap`)
 
@@ -210,7 +212,7 @@ Under the hood, a slice is a data structure simply composed of three machine wor
 
 A slice is only a window into a backing array. In particular, the backing array may extend past the end of the slice, hence [[https://go.dev/ref/spec#Length_and_capacity][the notion of _capacity_]] in addition to that of _length_.
 
-The capacity of a slice is the maximum length the slice may assume before requiring a new (longer) backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for more elements.
+The capacity of a slice is the maximum length the slice may assume before requiring a new (longer) backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for additional elements.
 
 .image img/slice_capacity.svg 200 _
 
@@ -316,13 +318,11 @@ However, attempts to re-slice a slice beyond its capacity results in either a co
 
 * Namecheck project: pass a username as a command-line argument
 
-1. Consult the [[https://pkg.go.dev/os][documentation of the `os` package]].
+1. [[https://pkg.go.dev/os][The `os` package]] exports [[https://pkg.go.dev/os#Args][a variable named `Args`]], which is a slice of strings that contains the program's command-line arguments; look up its documentation.
 
-2. Identify an exported identifier of that package that will allow you to get the program's command-line arguments as a slice of strings.
+2. Check the length of that slice; if no command-line argument was specified, print a friendly error message on stderr (see [[https://pkg.go.dev/fmt#Fprintln][function `fmt.Fprintln`]] and [[https://pkg.go.dev/os#Stderr][variable `os.Stderr`]]) and exit with status 1 (see [[][function `os.Exit`]]).
 
-3. Check the length of that slice; if no command-line argument was specified, print a friendly error message on stderr and exit with status 1.
-
-4. If a command-line argument was specified, use it as the username in the remainder of your program.
+3. If a command-line argument was specified, use it as the username in the remainder of your program.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -673,6 +673,8 @@ Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[
 
 * Namecheck project: table-driven subtests using a map
 
+Storing subtests in a map rather than a slice has at least one benefit: because the iteration order is random, the subtests will be run in some random order. This may highlight some unsuspected and undesirable dependence on execution order.
+
 1. Remove the field named `desc` from the declaration of your `TestCase` struct type.
 
 2. In your `TestIsValid` function, range over a `map[string]TestCase` instead of a `[]TestCase`.
@@ -708,12 +710,29 @@ Moreover, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for
 
 
 
-* Declaring a named struct type
+* Namecheck project: accept multiple usernames but dedup them
+
+1. Create a commit now (we won't keep the changes carried out for this exercise).
+
+2. Modify your `main.go` to allow users to specify, not just one, but arbitrary many usernames as command-line arguments.
+
+3. Use a map to deduplicate the specified usernames before checking their validity and availability on the supported platforms.
+
+4. Exercise the program by specifying multiple usernames to check.
+
+5. Create another commit if you want to keep a trace of your solution to this exercise, but undo those changes.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+
+: a map is a bit overkill; slices.Sort followed by slices.Compact would likely be fast enough and simpler
+
+
+
+* Structs
 
 A [[https://go.dev/ref/spec#Struct_types][struct type]] is a sequence of _fields_.
 
-Each field typically has both a name and a type (and sometimes a _tag_):
-
+In the declaration of a string type, each field typically has both a name and a type (and sometimes a _tag_):
 
   type User struct {
     firstName string

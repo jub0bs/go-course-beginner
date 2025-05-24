@@ -1584,7 +1584,7 @@ Don't forget to track changes to this file in your version-control system!
 
 5. Run your server, visit [[https://namecheck.jub0bs.dev]], and check a username of your choice.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : PNA only enforced in Chrome at this stage
 
@@ -1595,9 +1595,10 @@ Don't forget to track changes to this file in your version-control system!
 The `select` statement is a multi-way communication selector: it allows you to randomly select one among several channel communications.
 
 With goroutines and channels, `select` completes the concurrency trifecta.
+
 It is very powerful, which is why you should invest time to master it.
 
-.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 300 _
+.image https://raw.githubusercontent.com/ashleymcnamara/gophers/master/GopherLink.png 200 _
 
 : reminder: channel communication = a channel send or receive
 
@@ -1842,7 +1843,7 @@ By convention, a function that has a `context.Context` parameter should feature 
 
 2. Peruse the documentation of [[https://pkg.go.dev/context#WithTimeout][the `context.WithTimeout` function]].
 
-3. Modify `printInts` to make it cancelable:
+3. Modify `printInts` to render it cancelable:
 
 - add a `context.Context` parameter,
 - wrap the loop's body in the `default` case of a select statement, and
@@ -1859,13 +1860,13 @@ By convention, a function that has a `context.Context` parameter should feature 
 
 
 
-* Making a channel send cancelable
+* Rendering a channel send cancelable
 
 Remember: a send operation on a channel may block.
 
   resultCh <- res
 
-To make a channel send cancelable, you can wrap it in a select and add a case in which you detect a context's cancellation:
+To render a channel send cancelable, you can wrap it in a select and add a case in which you detect a context's cancellation:
 
   select {
     case <-ctx.Done():
@@ -1873,7 +1874,7 @@ To make a channel send cancelable, you can wrap it in a select and add a case in
     case resultCh <- res:
   }
 
-You can use a similar trick to make a channel receive cancelable.
+You can use a similar trick to render a channel receive cancelable.
 
 You now know enough about the `context` package to fix the goroutine leak! 💪
 
