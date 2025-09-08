@@ -231,6 +231,7 @@ Just don't forget to invoke it!
   } // missing parentheses
 
 : goroutine terminology: spawning/spawned, parent/child
+: parallel in JS: https://developer.mozilla.org/en-US/docs/Glossary/IIFE
 
 
 
@@ -535,7 +536,7 @@ What if, instead of printing the results, we wanted to somehow aggregate them?
 
 `sync.WaitGroup` [[https://github.com/golang/go/issues/63796][will]] see the addition of an alternative to methods `Add` and `Done`:
 
-  func (*WaitGroup) Go(task func())
+  func (*WaitGroup) Go(f func()) // caveat: f must not panic
 
 For instance, instead of writing
 
@@ -549,7 +550,7 @@ For instance, instead of writing
   }
   wg.Wait()
 
-you will [[https://go.dev/play/p/ocDzOt0IiS-?v=gotip][soon]] be able to write
+you're [[https://tip.golang.org/doc/go1.25#syncpkgsync][now]] able to write
 
   var wg sync.WaitGroup
   for i := range 10 {
@@ -1503,9 +1504,9 @@ Implementing CORS "by hand" is tempting, but error-prone. Instead, rely on a dep
 
 The following directives have been added to your `go.mod` file (exact versions may differ):
 
-  require github.com/jub0bs/cors v0.5.6 // indirect
-  require golang.org/x/net v0.35.0 // indirect
-  require golang.org/x/text v0.22.0 // indirect
+  require github.com/jub0bs/cors v0.9.0 // indirect
+  require golang.org/x/net v0.43.0 // indirect
+  require golang.org/x/text v0.28.0 // indirect
 
 Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on any of those modules in your code. Once you actually import package `github.com/jub0bs/cors` in your code, run the following command:
 
@@ -1513,11 +1514,11 @@ Note the presence of an "indirect" comment, which indicates that you're not (yet
 
 After that, the dependencies that are then direct will no longer be marked "indirect":
 
-  require github.com/jub0bs/cors v0.5.6
+  require github.com/jub0bs/cors v0.9.0
 
   require (
-    golang.org/x/net v0.35.0 // indirect
-    golang.org/x/text v0.22.0 // indirect
+    golang.org/x/net v0.43.0 // indirect
+    golang.org/x/text v0.28.0 // indirect
   )
 
 

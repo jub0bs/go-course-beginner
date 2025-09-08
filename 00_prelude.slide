@@ -54,7 +54,7 @@ If you haven't already, install Go by following the guidance from [[https://go.d
 You can check which version of Go is installed by running the following shell command:
 
   $ go version
-  go version go1.24.3 darwin/amd64
+  go version go1.25.1 darwin/amd64
 
 To cut your teeth on Go, I recommend [[https://code.visualstudio.com/][Visual Studio Code]] and its [[https://marketplace.visualstudio.com/items?itemName=golang.Go][Go extension]], which embarks a number of utilities such as `goimports` and `gofmt`.
 
@@ -142,8 +142,8 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2014: Kubernetes; first GopherCon conference
 - 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
 - 2022: [[https://go.dev/doc/go1.18][Go 1.18]] adds generics to the language.
-- 2025: [[https://go.dev/doc/go1.24][Go 1.24]] (the latest minor version) is released.
 - 2025: Microsoft [[https://devblogs.microsoft.com/typescript/typescript-native-port/][announces]] a port of the TypeScript compiler to Go, hinting at a 10x compilation speedup
+- 2025: [[https://go.dev/doc/go1.25][Go 1.25]] (the latest minor version) is released.
 
 : Russ and ILT joined the Go Team
 : - between 2007 and 2009: https://research.swtch.com/back
