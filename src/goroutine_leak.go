@@ -14,7 +14,7 @@ func main() {
 func replicatedFetch(dc1, dc2 string) string {
 	ch := make(chan string)
 	go func() { ch <- fetch(dc1) }() // fetch is just some func(string) string
-	go func() { ch <- fetch(dc2) }() // fetch is just some func(string) string
+	go func() { ch <- fetch(dc2) }()
 	return <-ch
 }
 

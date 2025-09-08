@@ -1197,7 +1197,7 @@ In the first example below, `ch` is a _send-only_channel_; the `produce` functio
 
 In the second example below, `ch` is a _receive-only_channel_; the `consume` function can only receive values from it, but neither send values to it nor close it:
 
-  func consume(ch <-chan string) {} // ch is receive-only
+  func consume(ch <-chan string) {}
 
 In this third example, the channel result of function `Done` is receive-only:
 
@@ -1550,12 +1550,12 @@ Adding/updating a dependency also creates/updates a file named `go.sum`:
 
 That file contains cryptographic hashes of your project's direct and indirect dependencies (exact values may differ):
 
-  github.com/jub0bs/cors v0.3.1 h1:PCT/3LWGnlVIJP6peSWNbE7wcr/IXCCStAE1TnardFQ=
-  github.com/jub0bs/cors v0.3.1/go.mod h1:mU8XwHPNxGuuvDpf3sKF+F0Yi5bZMzd8k0h7a8I9gtY=
-  golang.org/x/net v0.28.0 h1:a9JDOJc5GMUJ0+UDqmLT86WiEy7iWyIhz8gz8E4e5hE=
-  golang.org/x/net v0.28.0/go.mod h1:yqtgsTWOOnlGLG9GFRrK3++bGOUEkNBoHZc8MEDWPNg=
-  golang.org/x/text v0.17.0 h1:XtiM5bkSOt+ewxlOE/aE/AKEHibwj/6gvWMl9Rsh0Qc=
-  golang.org/x/text v0.17.0/go.mod h1:BuEKDfySbSR4drPmRPG/7iBdf8hvFMuRexcpahXilzY=
+github.com/jub0bs/cors v0.9.0 h1:GxAK4bDTusxkR7vsJXXE4PET9ONUtrKz3dpoREaMHSM=
+github.com/jub0bs/cors v0.9.0/go.mod h1:idWiWQcUhqa4Bc1JSwS4z6+TcGmdrN6mQyWF+4aX+60=
+golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=
+golang.org/x/net v0.43.0/go.mod h1:vhO1fvI4dGsIjh73sWfUVjj3N7CA9WkKJNQm2svM6Jg=
+golang.org/x/text v0.28.0 h1:rhazDwis8INMIwQ4tpjLDzUhx6RlXqZNPEM0huQojng=
+golang.org/x/text v0.28.0/go.mod h1:U8nCwOR8jO/marOQ0QbDiOngZVEBB7MAiitBuMjXiNU=
 
 Those hashes allow Go's modules system to detect integrity issues with the dependencies it downloads. If it does detect such issues, it fails the build.
 
