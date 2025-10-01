@@ -13,11 +13,9 @@ https://bsky.app/profile/jub0bs.com
 
 In a realistic Namecheck project, you'd add support for many other platforms (X, Stack Overflow, etc.), but that takes time. Instead, let's simulate support for many platforms.
 
-1. In `main.go`, judiciously populate your `[]Checker` slice with twenty pointers to the same `github.GitHub` variable.
+1. In `main.go`, judiciously populate your `[]Checker` slice with twenty pointers to the same `github.GitHub` variable. No `bluesky.Bluesky` this time.
 
-2. Similarly, populate your slice of checkers with twenty pointers to the same `bluesky.Bluesky` instance.
-
-3. Run your executable. Is it fast enough?
+2. Run your executable. Is it fast enough?
 
 Since we only care about receiving all the responses, not the order in which we receive them, we could treat platforms, not sequentially, but concurrently!
 
@@ -298,14 +296,16 @@ We're about to experiment with concurrency inside another `main.go` and within t
 
 * Exercise: concurrent coffee making
 
-Write two functions, `grindCoffeeBeans` and `frothMilk`, that
+1. In `cmd/server/main.go`, write two functions named `grindCoffeeBeans` and `frothMilk` that
 
 - have no parameters and return no results,
 - simply write an informative message to stdout.
 
-Call them concurrently in the `main` function.
+2. Call them concurrently in the `main` function.
 
-.image https://i.pinimg.com/originals/41/8b/9c/418b9cb037389f7c5b6783ced8a7156b.jpg 300 _
+3. Run the program. What do you observe?
+
+.image https://i.pinimg.com/originals/41/8b/9c/418b9cb037389f7c5b6783ced8a7156b.jpg 200 _
 
 : Q: Which message will be printed first? We can't tell. in an indeterminate order. Up to the scheduler.
 
@@ -852,15 +852,14 @@ Contrary to what you may believe, unbuffered channels are very useful!
 
 
 
-* An imperfect but useful metaphor for a channel: a serving hatch
+* An imperfect but useful metaphor for a channel: a kitchen pass
 
-Think of goroutines as cooks and waiters on either side of a serving hatch,
+Think of goroutines as cooks and waiters on either side of a [[https://yourpilla.com/glossary/kitchen-pass][_kitchen_pass_]],
 which represents a channel.
 
-The channel's capacity corresponds to the number of plates that can fit
-on the serving hatch's platform at any one time.
+The channel's capacity corresponds to the number of plates that can fit on the platform at any one time.
 
-.image https://josephdmcnamee.files.wordpress.com/2012/01/serving-hatch1.jpg 350 _
+.image https://i.pinimg.com/1200x/ef/d2/25/efd2251bf5191bc5fa2a6d829b260aa6.jpg 350 _
 
 : what does a channel of capacity 0 correspond to?
 : An unbuffered channel has a capacity of zero and so it’s already full before any writes
@@ -1550,12 +1549,12 @@ Adding/updating a dependency also creates/updates a file named `go.sum`:
 
 That file contains cryptographic hashes of your project's direct and indirect dependencies (exact values may differ):
 
-github.com/jub0bs/cors v0.9.0 h1:GxAK4bDTusxkR7vsJXXE4PET9ONUtrKz3dpoREaMHSM=
-github.com/jub0bs/cors v0.9.0/go.mod h1:idWiWQcUhqa4Bc1JSwS4z6+TcGmdrN6mQyWF+4aX+60=
-golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=
-golang.org/x/net v0.43.0/go.mod h1:vhO1fvI4dGsIjh73sWfUVjj3N7CA9WkKJNQm2svM6Jg=
-golang.org/x/text v0.28.0 h1:rhazDwis8INMIwQ4tpjLDzUhx6RlXqZNPEM0huQojng=
-golang.org/x/text v0.28.0/go.mod h1:U8nCwOR8jO/marOQ0QbDiOngZVEBB7MAiitBuMjXiNU=
+  github.com/jub0bs/cors v0.9.0 h1:GxAK4bDTusxkR7vsJXXE4PET9ONUtrKz3dpoREaMHSM=
+  github.com/jub0bs/cors v0.9.0/go.mod h1:idWiWQcUhqa4Bc1JSwS4z6+TcGmdrN6mQyWF+4aX+60=
+  golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=
+  golang.org/x/net v0.43.0/go.mod h1:vhO1fvI4dGsIjh73sWfUVjj3N7CA9WkKJNQm2svM6Jg=
+  golang.org/x/text v0.28.0 h1:rhazDwis8INMIwQ4tpjLDzUhx6RlXqZNPEM0huQojng=
+  golang.org/x/text v0.28.0/go.mod h1:U8nCwOR8jO/marOQ0QbDiOngZVEBB7MAiitBuMjXiNU=
 
 Those hashes allow Go's modules system to detect integrity issues with the dependencies it downloads. If it does detect such issues, it fails the build.
 
