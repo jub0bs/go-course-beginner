@@ -1503,9 +1503,9 @@ Implementing CORS "by hand" is tempting, but error-prone. Instead, rely on a dep
 
 The following directives have been added to your `go.mod` file (exact versions may differ):
 
-  require github.com/jub0bs/cors v0.9.0 // indirect
-  require golang.org/x/net v0.43.0 // indirect
-  require golang.org/x/text v0.28.0 // indirect
+  require github.com/jub0bs/cors v0.9.2 // indirect
+  require golang.org/x/net v0.46.0 // indirect
+  require golang.org/x/text v0.30.0 // indirect
 
 Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on any of those modules in your code. Once you actually import package `github.com/jub0bs/cors` in your code, run the following command:
 
@@ -1513,11 +1513,11 @@ Note the presence of an "indirect" comment, which indicates that you're not (yet
 
 After that, the dependencies that are then direct will no longer be marked "indirect":
 
-  require github.com/jub0bs/cors v0.9.0
+  require github.com/jub0bs/cors v0.9.2
 
   require (
-    golang.org/x/net v0.43.0 // indirect
-    golang.org/x/text v0.28.0 // indirect
+    golang.org/x/net v0.46.0 // indirect
+    golang.org/x/text v0.30.0 // indirect
   )
 
 
@@ -1549,12 +1549,12 @@ Adding/updating a dependency also creates/updates a file named `go.sum`:
 
 That file contains cryptographic hashes of your project's direct and indirect dependencies (exact values may differ):
 
-  github.com/jub0bs/cors v0.9.0 h1:GxAK4bDTusxkR7vsJXXE4PET9ONUtrKz3dpoREaMHSM=
-  github.com/jub0bs/cors v0.9.0/go.mod h1:idWiWQcUhqa4Bc1JSwS4z6+TcGmdrN6mQyWF+4aX+60=
-  golang.org/x/net v0.43.0 h1:lat02VYK2j4aLzMzecihNvTlJNQUq316m2Mr9rnM6YE=
-  golang.org/x/net v0.43.0/go.mod h1:vhO1fvI4dGsIjh73sWfUVjj3N7CA9WkKJNQm2svM6Jg=
-  golang.org/x/text v0.28.0 h1:rhazDwis8INMIwQ4tpjLDzUhx6RlXqZNPEM0huQojng=
-  golang.org/x/text v0.28.0/go.mod h1:U8nCwOR8jO/marOQ0QbDiOngZVEBB7MAiitBuMjXiNU=
+  github.com/jub0bs/cors v0.9.2 h1:zFoTqIj3yDJaS9lWfdUPxHPG/FIPfaMNxvE6VJ1opjY=
+  github.com/jub0bs/cors v0.9.2/go.mod h1:WXVXh5+jlUi0dVjsiZkYqNwjnLIZsD3Lke+qtTDQbYU=
+  golang.org/x/net v0.46.0 h1:giFlY12I07fugqwPuWJi68oOnpfqFnJIJzaIIm2JVV4=
+  golang.org/x/net v0.46.0/go.mod h1:Q9BGdFy1y4nkUwiLvT5qtyhAnEHgnQ/zd8PfU6nc210=
+  golang.org/x/text v0.30.0 h1:yznKA/E9zq54KzlzBEAWn1NXSQ8DIp/NYMy88xJjl4k=
+  golang.org/x/text v0.30.0/go.mod h1:yDdHFIX9t+tORqspjENWgzaCVXgk0yYnYuSZ8UzzBVM=
 
 Those hashes allow Go's modules system to detect integrity issues with the dependencies it downloads. If it does detect such issues, it fails the build.
 
