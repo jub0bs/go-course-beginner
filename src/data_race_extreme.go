@@ -7,7 +7,7 @@ import (
 
 // START OMIT
 func main() {
-	const n = 2
+	const n = 2048
 	var count int
 	var wg sync.WaitGroup
 	wg.Add(n)
@@ -18,7 +18,7 @@ func main() {
 		}()
 	}
 	wg.Wait()
-	fmt.Println(count)
+	fmt.Println(count) // not guaranteed to print the value of n :((((
 }
 
 // END OMIT

@@ -619,34 +619,44 @@ To be free of such synchronization bugs, your programs [[https://go.dev/ref/mem#
 
 * A synchronization bug and a rare data race
 
-The following (naive) program purports to print either "0" or nothing to the screen:
+You could naively think that the following program is guaranteed to print "2":
 
 .play -edit src/data_race.go /^//START/,/^//END/
 
-However, this program suffers from a synchronization bug.
-
-Because the spawned goroutine reads variable `count` while the `main` function updates it without any synchronization, a data race may occur, and "1" may be printed to the screen instead of "0". Can you explain how?
-
-: to smoke out the sync bug, insert a call to runtime.Gosched at the top of the if statement
+However, because the program contains a synchronization bug, there is no such guarantee. Can you explain why?
 
 
 
 * A synchronization bug and a rare data race (cont'd)
 
-The `main` function involves two reads of variable `count`, and the spawned goroutine involves one read followed by one write.
+Recall that `count++` is functionally equivalent to two accesses (one read followed by one write) performed in a non-[[https://en.wikipedia.org/wiki/Linearizability][_atomic_]] fashion:
 
-But because neither function carries out its work in an [[https://en.wikipedia.org/wiki/Linearizability][_atomic_]] fashion, the `main` function's accesses may interleave with the goroutine's accesses.
+  count = count + 1
 
-As the following diagram (on which time flows downwards) illustrates, if the goroutine's write gets sandwiched between `main`'s two reads, "1" will be printed to the screen.
+Because the two goroutines spawned perform this work without any synchronization, a data race occurs if one goroutine's accesses interleave with the other one's.
 
-  (main)  (func)  |  count                or...               (main)  (func)  |   count
-                  |                                                           |
-           read   |    0                                       read           |     0
-   read           |    0                                               read   |     0
-           write  |    1                                               write  |     1
-   read           |    1                                       read           |     1
+  (funcA)  (funcB)  |  count                or...               (funcA)  (funcB)  |   count
+                    |                                                             |
+              R     |    0                                         R              |     0
+     R              |    0                                                  R     |     0
+              W     |    1                                                  W     |     1
+     W              |    1                                         W              |     1
 
-You may only very rarely observe such a data race, but don't be fooled: the program really is "racy". [[https://go.dev/play/p/g3XMqFXVsjr][A more extreme example]] may be sufficient to convince you.
+Then "1" may be printed to the screen instead of "2". 
+
+(Admittedly, this explanation is a bit simplistic, but it does illustrate the consequences of a lack of synchronization on program correctness.)
+
+: hard to reproduce; use runtime.Gosched: https://go.dev/play/p/6ZDPlFRR6QM
+
+
+
+* A synchronization bug and a (not so rare) data race
+
+This synchronization bug may only very rarely manifest itself as a data race, but don't be fooled: the program really is "racy"!
+
+A more extreme example, involving more goroutines all competing to update the shared count without any synchronization, may be sufficient to convince you:
+
+.play -edit src/data_race_extreme.go /^//START/,/^//END/
 
 
 
@@ -655,31 +665,26 @@ You may only very rarely observe such a data race, but don't be fooled: the prog
 Go provides a [[https://go.dev/blog/race-detector][race detector]], which can be activated via the `-race` flag:
 
   $ go run -race main.go
-  0
   ==================
   WARNING: DATA RACE
-  Write at 0x00c0000120d8 by goroutine 6:
+  Read at 0x00c00010e038 by goroutine 8:
     main.main.func1()
-        ~/Desktop/go-course-beginner/main.go:8 +0x44
+        REDACTED/main.go:16 +0x7b
 
-  Previous read at 0x00c0000120d8 by main goroutine:
-    main.main()
-        ~/Desktop/go-course-beginner/main.go:10 +0xb0
-
-  Goroutine 6 (running) created at:
-    main.main()
-        ~/Desktop/go-course-beginner/main.go:7 +0xa6
-  ==================
-  Found 1 data race(s)
-  exit status 66
+  Previous write at 0x00c00010e038 by goroutine 7:
+    main.main.func1()
+        REDACTED/main.go:16 +0x8d
+  -snip-
 
 Note that, although the race dectector reports any data race that occurs during execution, [[https://go.dev/doc/articles/race_detector][it's not guaranteed to uncover all synchronization bugs!]]
+
+: prints 2 even when the data race occurs
 
 
 
 * Exercise: activate the race detector
 
-1. Overwrite your `server/main.go` file with the previous program ([[https://go.dev/play/p/kiSW39zX-o9][playground]]).
+1. Overwrite your `server/main.go` file with the "racy" program ([[https://go.dev/play/p/DaEPlb2ixuO][playground]]).
 
 2. Run the program with the race detector activated.
 
@@ -706,7 +711,7 @@ For a deep dive into the mechanics of Go's race detector, watch [[https://www.yo
 
 * Concurrency safety
 
-_Concurrency_safety_ is a property of an operation (usually a function/method call).
+_Concurrency_safety_ is a property of an operation (usually a function or a method).
 
 An operation is _concurrency-safe_ if carrying it out concurrently (from multiple goroutines) without any extra synchronization does not cause it to behave incorrectly (i.e. does not introduce any synchronization bugs).
 
@@ -752,10 +757,10 @@ In fact, some types even go as far as explicitly documenting their lack of concu
 
 To safely communicate data between goroutines, a concurrent Go program may follow two distinct approaches:
 
-- [[https://wiki.c2.com/?SharedStateConcurrency][_shared-state_concurrency_]], whereby access to data by multiple goroutines is mediated via traditional mechanisms like locks and mutexes; and
+- [[https://wiki.c2.com/?SharedStateConcurrency][_shared-state_concurrency_]], whereby access to data by multiple goroutines is mediated via traditional locking mechanisms ; and
 - [[https://wiki.c2.com/?MessagePassingConcurrency][_message-passing_concurrency_]], whereby [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-6][ownership of data is transferred between goroutines via channels]].
 
-Although both approaches are possible (even within a single program), [[https://go.dev/doc/effective_go#sharing][Go's culture favors message passing]].
+Although both approaches are possible in Go, even within a single Go program, [[https://go.dev/doc/effective_go#sharing][convention favors message passing]] (within reason).
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
@@ -881,7 +886,7 @@ See [[https://go.dev/play/p/6kpQq0hhlun][this playground]] (although you may be 
 
 [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=1513s][Favor unbuffered channels unless you can justify the need for a buffered channel.]]
 
-Whatever capacity you opt for, be deliberate about it. An inappropriate capacity can detrimentally affect the correctness and/or performance of your program.
+Whatever capacity you opt for, be deliberate about it. An inappropriate capacity can compromise the correctness of your program.
 
 In some cases, an inappropriately buffered channel may lead to a _deadlock_, i.e. goroutines blocking one another and preventing any further progress.
 
@@ -1007,15 +1012,17 @@ Deadlocks can result from an incautious use of channels. Remember that, dependin
 
 * Goroutine leak
 
-A goroutine said to leak if it never terminates. A leaked goroutine is like a "zombie".
+A goroutine is said to leak if, once spawned, it never terminates, turning into a "zombie".
 
 You should guarantee the absence of goroutine leaks in your program; otherwise, you run the risk of memory leaks, performance degradation, and even program crashes! 😱
 
 Be vigilant about goroutine leaks: the Go runtime doesn't alert you about them.
 
+: but soon pprof will? https://github.com/golang/go/issues/74609
+
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
 
-Now that you are aware of the potentially blocking nature of channel communications, you should have a better idea of how goroutines can leak...
+Now that you are aware of the potentially blocking nature of channel communications, you should have a better idea of how goroutines can leak. Let's cover one example now; others will follow.
 
 
 
@@ -1029,7 +1036,7 @@ In a bid to minimize latency for clients, `replicatedFetch` sends identical requ
 
 Unfortunately, calls to `replicatedFetch` may cause goroutines to leak. Why?
 
-Now picture `replicatedFetch` being called, not by `main`, but by some HTTP handler: the server would leak a goroutine every time that handler processes a HTTP request!
+Now picture `replicatedFetch` being called, not by `main`, but by some HTTP handler: the server would leak a goroutine every time that handler processes a HTTP request! 😱
 
 : one fewer receive operation than send operations on an unbuffered channel
 : example inspired by Rob Pike's replication pattern; see https://www.youtube.com/watch?v=f6kdp27TYZs&t=1990s
@@ -1041,7 +1048,7 @@ Now picture `replicatedFetch` being called, not by `main`, but by some HTTP hand
 
 A freshly initialized channel starts its life in an "open" state.
 
-  ch := make(chan string) // ch is open (until closed)
+  ch := make(chan string) // ch is "open" (until closed)
 
 You can _close_ a channel simply by passing it to [[https://pkg.go.dev/builtin#close][the built-in `close` function]]:
 
@@ -1089,7 +1096,7 @@ Closing a channel is akin to a restaurant announcing the end of service.
 - The restaurant no longer accepts customers for the day.
 - However, the staff allows already present customers to stay and finish their meal.
 
-.image https://www.matternow.com/wp-content/uploads/2020/06/CAL-BlgPst-1200x630-043014-1024x538-3.jpg 250 _
+.image https://www.matternow.com/wp-content/uploads/CAL-BlgPst-1200x630-043014-1.jpg 250 _
 
 Similarly, closing a channel doesn't drain it from the elements it contains; and some goroutine(s) can still receive from a closed channel in order to consume its elements.
 
