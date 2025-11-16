@@ -1,6 +1,6 @@
+// START OMIT
 package main
 
-// START OMIT
 import (
 	"fmt"
 	"time" // HL

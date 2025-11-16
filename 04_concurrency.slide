@@ -11,9 +11,9 @@ https://bsky.app/profile/jub0bs.com
 
 * Namecheck project: the need for concurrency
 
-In a realistic Namecheck project, you'd add support for many other platforms (X, Stack Overflow, etc.), but that takes time. Instead, let's simulate support for many platforms.
+In a realistic Namecheck project, you'd painstakingly add support for platforms other than GitHub and Bluesky. Because we don't have time to do so during this course, let's simulate support for many platforms instead.
 
-1. In `main.go`, judiciously populate your `[]Checker` slice with twenty pointers to the same `github.GitHub` variable. No `bluesky.Bluesky` this time.
+1. In `main.go`, judiciously populate your `[]Checker` slice with twenty pointers to the same `github.GitHub` variable. We won't be using `bluesky.Bluesky` from now on.
 
 2. Run your executable. Is it fast enough?
 
@@ -41,9 +41,9 @@ Go's concurrency model arguably is one of the language's most attractive feature
 
 In the remainder of this course, you'll realize that concurrent programs are harder to reason about than sequential ones.
 
-Concurrent programs also have many pitfalls, including (but not limited to) *synchronization*bugs*, *goroutine*leaks*, *deadlocks*, and *unbounded*parallelism*.
+Concurrent programs also have many pitfalls, including (but not limited to) *synchronization*bugs*, *goroutine*leaks*, *deadlocks*, and *unbounded*concurrency*.
 
-People claim that Go is easy to master, but what's deceptively easy is to write subtly broken concurrent programs that only have a vague air of correctness.
+People claim that Go is easy to master, but what's deceptively easy is writing subtly broken concurrent programs that only have a vague air of correctness.
 
 Don't rush into concurrency. Instead, invest time upfront to gain a deep understanding of it; this initial investment will pay dividends over and over.
 
@@ -122,11 +122,11 @@ Parallelism can only get you so far; but there's more to this story...
 
 
 
-* Gunther's Law: the diminishing returns of parallelism
+* Gunther's law: the diminishing returns of parallelism
 
-The [[https://en.wikipedia.org/wiki/Neil_J._Gunther#Universal_Law_of_Computational_Scalability][universal law of computational scalability]] (also simply known as Gunther's law) refines Amdahl's law.
+Amdahl's law is a bit simplistic because it fails to factor the effects of various forms of overhead (e.g. communication between cores) associated with parallelism. [[https://en.wikipedia.org/wiki/Neil_J._Gunther#Universal_Law_of_Computational_Scalability][Gunther's law]] (also pompously called _universal_law_of_computational_scalability_) refines it.
 
-It tells us that, due to various forms of overhead, there is an inflexion point past which more parallelism actually leads to diminishing returns and _harms_ performance:
+Gunther's law tells us that there is an inflexion point past which more parallelism actually leads to diminishing returns and _harms_ performance:
 
 .image img/gunthers_law.png 200 _
 
@@ -142,19 +142,18 @@ Keep Gunther's law in mind. It will help you decide whether throwing more parall
 
 Go's approach to concurrent programming is largely inspired by [[https://dl.acm.org/doi/10.1145/359576.359585][Tony Hoare's  _Communicating_Sequential_Processes_ (1978)]], a seminal paper ahead of its time.
 
-In CSP, concurrent programs are structured as independent processes that execute sequentially and communicate by passing messages.
-
-.image https://go.dev/talks/2012/waza/gophersimple2.jpg 150 _
+.image https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Sir_Tony_Hoare_IMG_5125.jpg/500px-Sir_Tony_Hoare_IMG_5125.jpg 200 _
 
 [[https://www.youtube.com/watch?v=rFejpH_tAHM&t=880s][The three fundamental mechanisms for concurrency in Go]] are
 
-- goroutines: "lightweight threads" managed by the Go runtime
-- channels: bidirectional typed pipes used to for communication between goroutines
-- the `select` statement: a construct for waiting on multiple channel communications
+- goroutines: lightweight "threads" managed by the Go runtime
+- channels: typed "pipes" used to for communication between goroutines
+- the `select` statement: a mechanism for randomly selecting one of several channel communications
 
 : the concept of channel is only present in the book version of CSP, not in the original article
 : select stems from Dijkstra's guarded command: https://en.wikipedia.org/wiki/Guarded_Command_Language
 : Rob Pike likens select to a railway dispatcher: https://www.youtube.com/watch?v=iTrP_EmGNmw&t=38m55s
+: In CSP, concurrent programs are structured as independent processes that execute sequentially and communicate by passing messages.
 
 
 
@@ -162,11 +161,11 @@ In CSP, concurrent programs are structured as independent processes that execute
 
 A goroutine is [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-6][a concurrent unit of work]].
 
-In contrast to traditional threads, goroutines are lightweight: Go programs that have 1000s of goroutines (or more) are common.
+In contrast to traditional threads, goroutines are lightweight: Go programs that have thousands of goroutines (or more) are common.
 
-The `main` function is itself a goroutine that is automatically created and started by the runtime when the program is executed.
+A program's `main` function is itself run as a goroutine by the Go runtime when the program is executed.
 
-All goroutines execute in the same address space.
+All goroutines execute in the same address space; they can share memory.
 
 Each goroutine gets its own stack, which starts small and grows/shrinks as required.
 
@@ -197,12 +196,10 @@ No need to worry about the intricacies of the Go scheduler yet. For now, simply 
 
 * The go keyword
 
-The `go` keyword spawns a new goroutine:
+The `go` keyword starts the execution of the function call that follows it as a goroutine:
 
   go grindCoffeeBeans(nbBeans)
   go frothMilk()
-
-It causes the function call to which it applies to get executed "in the background".
 
 Some important remarks:
 
@@ -214,39 +211,37 @@ Some important remarks:
 
 * Starting an anonymous function as a goroutine
 
-Launching an anonymous function as a goroutine is sometimes convenient for grouping statements that should be executed in the background:
+The `go` keyword can be even be applied to a call to an anonymous function:
 
   go func() {
     fmt.Println("Don't mind me!")
     fmt.Println("I'm just running in the background...")
   }()
 
-Just don't forget to invoke it!
+Just don't forget to call the function in question! The snippet below illustrates a syntax error that many newcomers to Go encounter:
 
   go func() {
     fmt.Println("Don't mind me!")
     fmt.Println("I'm just running in the background...")
   } // missing parentheses
 
-: goroutine terminology: spawning/spawned, parent/child
 : parallel in JS: https://developer.mozilla.org/en-US/docs/Glossary/IIFE
 
 
 
 * Goroutines vs. Unix processes
 
-It's useful to compare goroutines to Unix processes...
+Comparing goroutines to Unix processes is a useful exercise, because they're both similar and dissimilar.
 
-The `go` keyword is [[https://www.youtube.com/watch?v=oV9rvDllKEg&t=14m45s][conceptually similar]] to the ampersand operator (`&`) in Unix shells.
+The `go` keyword is [[https://www.youtube.com/watch?v=oV9rvDllKEg&t=14m45s][conceptually similar]] to the ampersand operator (`&`) in Unix shells:
 
   #!/usr/bin/env sh
-
   grindCoffeeBeans &
   frothMilk &
 
 However, unlike a Unix process, *a*goroutine*has*no*ID*. This limitation results from [[https://go.dev/talks/2014/go4gophers.slide#38][a conscious design decision by the Go team]], who wanted to preclude [[https://en.wikipedia.org/wiki/Thread-local_storage][_thread_locality_]].
 
-Therefore, because a goroutine lacks an ID, it cannot readily be _killed_.
+Because a goroutine lacks an ID, it cannot readily be "killed". Forcing a goroutine to terminate requires a bit more design effort from the programmer; more on that later.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
@@ -313,7 +308,7 @@ We're about to experiment with concurrency inside another `main.go` and within t
 
 * Exercise: concurrent coffee making (first attempt)
 
-.play -edit src/goroutines_without_waitgroup.go /^//START/,/^//END/
+.play -edit src/goroutines_without_waitgroup.go
 
 Does the program behave as you expected? Why or why not?
 
@@ -350,8 +345,8 @@ However, sleeping a bit at the end of `main` simply isn't good enough. Why not?
 
 How long should the sleep be, exactly? Impossible to know in advance.
 
-- Wait too little: `main` terminates too quickly for all the other goroutines to terminate.
-- Wait too long: `main` ends up needlessly spinning and wasting time.
+- Wait too little, and `main` terminates before both of your goroutines can terminate.
+- Wait too long, and `main` ends up needlessly spinning, wasting precious CPU cycles.
 
 Sleeping is simply not a reliable and efficient way of coordinating goroutines!
 To properly tell the `main` function to wait, we need another mechanism...
@@ -365,11 +360,11 @@ To properly tell the `main` function to wait, we need another mechanism...
 
 * Wait groups
 
-The [[https://pkg.go.dev/sync][`sync` package]] provides a useful mechanism: _wait_groups_.
+The [[https://pkg.go.dev/sync][`sync` package]] provides a solution: _wait_groups_.
 
-A wait group is a [[https://en.wikipedia.org/wiki/Barrier_(computer_science)][_barrier_]] mechanism: it allows you to wait for a group of goroutines to terminate before moving on.
+A wait group is a [[https://en.wikipedia.org/wiki/Barrier_(computer_science)][_barrier_]] mechanism: it allows you to wait for a specific group of goroutines to terminate before moving on.
 
-Wait groups are particularly useful when you don't known in advance how many goroutines you're going to start.
+Wait groups are particularly useful when you don't known in advance how many goroutines you're going to spawn within the group in question.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/arts/upright.svg 200 _
 
@@ -402,7 +397,7 @@ A `sync.WaitGroup` is typically declared within a function. Declaring one at the
 
 A `sync.WaitGroup` is little more than a counter safely usable from multiple goroutines.
 
-It has three methods (all of which use a pointer receiver):
+Here are its three fundamental methods:
 
   func (wg *WaitGroup) Add(delta int)
   func (wg *WaitGroup) Done()
@@ -420,7 +415,7 @@ It has three methods (all of which use a pointer receiver):
 
 Use a wait group to make `main` wait until both `grindCoffeeBeans` and `frothMilk` have terminated before `main` itself can terminate.
 
-Tip: you can apply the `go` keyword to an anonymous function.
+Tip: remember that, when convenient, you can always apply the `go` keyword to an anonymous function.
 
 .image https://i.pinimg.com/originals/41/8b/9c/418b9cb037389f7c5b6783ced8a7156b.jpg 300 _
 
@@ -434,7 +429,7 @@ Tip: you can apply the `go` keyword to an anonymous function.
 
 .play -edit src/goroutines_with_waitgroup.go /^//START/,/^//END/
 
-If changing the signature of the function is impossible (because you don't own it) or undesirable (because you want to retain the freedom to call it synchronously), you can always wrap the call in an anonymous function and launch the latter as a goroutine.
+If changing the signature of the function is impossible (because you don't own it) or undesirable (because you want to retain the freedom to call it synchronously), you can always wrap the call in an anonymous function.
 
 : quiz: What happens if I remove a wg.Done()? deadlock
 : quiz: What happens if I remove a wg.Add(1)? only one of the two goroutine will likely have time execute
@@ -487,7 +482,7 @@ In practice, this rule typically implies that calls to `Add` must take place in 
 
 .play -edit src/waitgroup_wrong.go /^//START/,/^//END/
 
-The `go`vet` subcommand will [[https://github.com/golang/go/issues/18022][soon]] alert you about such programming mistakes.
+The `go`vet` subcommand alerts you about such programming mistakes.
 
 : add a call to runtime.Gosched before the wait to reveal the presence of a sync bug
 : Gosched not to be used for coordinating goroutines
@@ -516,7 +511,7 @@ Here, the Go runtime is able to detect the deadlock and crashes the program.
 
 2. Add a parameter of type `*sync.WaitGroup` to your `check` function.
 
-3. Within the for-range loop, apply the `go` keyword to your `check` function.
+3. Within the for-range loop, call your `check` function concurrently.
 
 4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've spawned to terminate.
 
@@ -534,7 +529,7 @@ What if, instead of printing the results, we wanted to somehow aggregate them?
 
 * A new method for sync.WaitGroup (new in Go 1.25)
 
-`sync.WaitGroup` [[https://github.com/golang/go/issues/63796][will]] see the addition of an alternative to methods `Add` and `Done`:
+`*sync.WaitGroup` has a fourth method, which provides an alternative to methods `Add` and `Done`:
 
   func (*WaitGroup) Go(f func()) // caveat: f must not panic
 
@@ -550,7 +545,7 @@ For instance, instead of writing
   }
   wg.Wait()
 
-you're [[https://tip.golang.org/doc/go1.25#syncpkgsync][now]] able to write
+you can write
 
   var wg sync.WaitGroup
   for i := range 10 {
@@ -565,11 +560,11 @@ you're [[https://tip.golang.org/doc/go1.25#syncpkgsync][now]] able to write
 
 * Deadlock
 
-A Go program is said to be in a [[https://en.wikipedia.org/wiki/Deadlock][deadlock]] when two or more goroutines are waiting on one another to unblock them so they can resume execution.
+We mentioned the term _deadlock_ a few slides back. A Go program is said to be in a [[https://en.wikipedia.org/wiki/Deadlock][deadlock]] when all goroutines are blocked and waiting for other (perhaps hypothetical) goroutines to unblock them.
 
 .image img/deadlocked_carrots.jpg 250 _
 
-In the most simple cases, the Go runtime can detect the deadlock and then deliberately emits a fatal error, which puts a brutal end to execution.
+In the most simple cases, the Go runtime detects the deadlock and then deliberately emits a fatal error, which puts a brutal end to execution.
 
 In more complex cases, though, you'll get no such welcome help from the runtime; the execution of your program may "hang", seemingly making no progress.
 
@@ -585,8 +580,7 @@ A [[https://medium.com/@val_deleplace/does-the-race-detector-catch-all-data-race
 
 What is or isn't a synchronization bug may depend on the semantics of your program.
 
-For instance, in our recent coffee-making example, if we had required `grindCoffeeBeans` to systematically execute before `frothMilk`, our concurrent solution would have contained a synchronization bug.
-
+For instance, in our recent coffee-making example, if `grindCoffeeBeans` were required to systematically execute before `frothMilk`, our concurrent solution wouldn't be correct; instead, we should call `grindCoffeBeans` and then `frothMilk` sequentially.
 
 
 
@@ -726,18 +720,19 @@ In fact, some methods even go as far as explicitly documenting their lack of con
 
 
 
-* Concurrency-safe types
+* Concurrency-safe types and package-level variables
 
-When all the methods on a given type are safe for concurrent use by multiple goroutines, the type itself is said to be _concurrency-safe_. Here are some examples:
+When all the methods on a given type (or a package-level variable) are concurrency-safe, the type (or variable) itself is said to be concurrency-safe and is typically documented as such ("safe for concurrent use").
 
-- [[https://pkg.go.dev/sync#WaitGroup][Struct type `sync.WaitGroup`]] obviously can safely be used concurrently.
-- [[https://pkg.go.dev/log#Logger][Struct type `log.Logger`]] guarantees to serialize access to the underlying `io.Writer`.
+Here are some notable examples:
+
 - [[https://pkg.go.dev/net/http#Client][Struct type `http.Client`]] allows you to safely send HTTP requests using the same client from multiple goroutines.
 - [[https://pkg.go.dev/net/http#CookieJar][Interface `http.CookieJar`]] requires its implementations to be concurrency-safe.
-
-Concurrency-safe types are always documented as such.
+- [[https://pkg.go.dev/crypto/rand#Reader][Package-level variable `rand.Reader`]], despite being of type `io.Reader` (a type that's generally not concurrency-safe), is designed to be concurrency-safe.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 150 _
+
+: another example: [[https://pkg.go.dev/log#Logger][Struct type `log.Logger`]] guarantees to serialize access to the underlying `io.Writer`.
 
 
 

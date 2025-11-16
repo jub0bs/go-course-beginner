@@ -1,6 +1,5 @@
 package main
 
-// START OMIT
 import "fmt"
 
 func grindCoffeeBeans() {
@@ -15,5 +14,3 @@ func main() {
 	go grindCoffeeBeans() // HL
 	go frothMilk()        // HL
 }
-
-// END OMIT

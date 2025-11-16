@@ -469,21 +469,20 @@ Importing a package without using it causes a compilation error! This was [[http
 
 Named imports allows you to use the imported package under a different name in the importing source file.
 
+: similar to `import numpy as np` in Python
+
 A named import is convenient when you perceive the package name as inappropriate, perhaps because it is too long:
 
   import tm "github.com/jub0bs/thingamajig"
 
-Moreover, named imports are especially useful when your code imports multiple packages whose names conflict,
+Moreover, named imports are especially useful to dispel ambiguity in a source file that imports multiple packages of the same name:
 
-  import "text/template"
-  import htempl "html/template"
+  import (
+    "crypto/rand"
+    mathrand "math/rand"
+  )
 
-or when one of your source files uses multiple major versions of a _module_:
-
-  import "github.com/jub0bs/foo"
-  import foov2 "github.com/jub0bs/foo/v2"
-
-: similar to `import numpy as np` in Python
+(You can find [[https://cs.opensource.google/go/x/crypto/+/master:acme/autocert/autocert.go;l=17,26][an example of such a named import]] in [[https://pkg.go.dev/golang.org/x/crypto/acme/autocert][the golang.org/x/crypto/acme/autocert package]].
 
 
 
@@ -971,7 +970,8 @@ In your `main` function, do the following:
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : tease error handling: need to check whether err is non-nil
-: one regexp to rule them all: ^([[:alnum:]]-?){2,38}[[:alnum:]]$
+: puzzling exceptions: https://github.com/z-------------
+:   must have existed before the rules were established
 : note: regexp compilation is CPU-intensive
 
 

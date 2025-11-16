@@ -84,7 +84,7 @@ Also, make sure you have Git installed.
 
 You'll develop a small command-line tool (and later a HTTP API) for checking the *validity* and *availability* of a username on multiple social networks: GitHub, etc.
 
-Over the years, I have found this project to be a good forcing function for learning Go.
+Although it may seem a bit contrived, this project idea is (in my experience as a trainer) a good forcing function for learning Go.
 
 Moreover, there is a [[https://twitter.com/marckohlbrugge/status/1682064001331609615][business case]] for such a tool, as it would allow organizations and even individuals to choose a brand name consistent across multiple platforms.
 
@@ -268,9 +268,10 @@ The Go Playground (available at [[https://go.dev/play]]) is a Web app that lets 
 a small Go program from your browser. Features include:
 
 - code formatting & automatic package imports
-- basic static analysis
+- basic static analysis (via the `go`vet` subcommand)
 - [[https://go.dev/play/p/lEDjyvhttIB][limited support for modules and multiple packages]]
 - persistent URLs (e.g. [[https://go.dev/play/p/S8HfNUCy13U][https://go.dev/play/p/S8HfNUCy13U]])
+- selection of the Go version (including the bleeding edge!)
 - raw program source (^S or ⌘+S)
 
 : static analysis: go vet
@@ -279,6 +280,7 @@ a small Go program from your browser. Features include:
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/computer/gamer.svg 150 _
 
 : It's a good place to experiment and fix ideas about the language and its standard library.
+: redeployed in theory every day: https://cs.opensource.google/go/x/playground/+/master:deploy/gotip_schedule.yaml;l=15;bpv=0
 
 
 
