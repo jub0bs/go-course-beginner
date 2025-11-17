@@ -1038,6 +1038,18 @@ We won't discuss embedded fields further in the remainder of this course.
 
 
 
+* Type-name elision in composite-type literals
+
+Within a [[https://go.dev/ref/spec#Composite_literals][composite literal]] of array or slice of type T, elements that are themselves composite literals may (for a lighter syntax) elide the respective literal type if it is identical to the element type of T:
+
+.play -edit src/type_name_elision.go /^//START/,/^//END/
+
+A similar elision of type names is possible in map literals:
+
+.play -edit src/type_name_elision_map.go /^//START/,/^//END/
+
+
+
 * A glimpse of parametric polymorphism in Go
 
 Go 1.18 added support for _parametric_polymorphism_ ([[https://www.youtube.com/watch?v=RIvL2ONhFBI&t=1020s][a.k.a. _generics_]]) to the language. Types and functions can now be parameterized by other types, called _type_parameters_:

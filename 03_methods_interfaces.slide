@@ -672,27 +672,43 @@ Note that we declared our interface type `Checker` only in the `main` package, w
 
 
 
-* Notable interface types: io.Reader and io.Writer
+* Notable interface types: io.Reader
 
-The `io` package provides two complementary interface types: `Reader` and `Writer`.
-
-[[https://pkg.go.dev/io#Reader][`io.Reader`]] represents a _source_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
+[[https://pkg.go.dev/io#Reader][`io.Reader`]] represents a _source_ of bytes.
 
   type Reader interface {
     Read(dst []byte) (int, error)
   }
 
-[[https://pkg.go.dev/io#Writer][`io.Writer`]] represents a _sink_ of bytes. It's satisfied by `*bytes.Buffer`, `*os.File`, etc.
+It's satisfied by anything that you can _read_ from:
+
+- `*os.File` (a file on your disk),
+- `*bytes.Buffer` (an in-memory buffer),
+- `*net.Conn` (a network connection), etc.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/projects/network-side.svg 150 _
+
+
+
+* Notable interface types: io.Writer
+
+Conversely, [[https://pkg.go.dev/io#Writer][`io.Writer`]] represents a _sink_ of bytes.
 
   type Writer interface {
     Write(src []byte) (int, error)
   }
 
+It's satisfied by anything that you can _write_ to:
+
+- `*os.File` (a file on your disk),
+- `*bytes.Buffer` (an in-memory buffer),
+- `*net.Conn` (a network connection), etc.
+
 You've already used a function that has an `io.Writer` parameter. Which one?
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/projects/network-side.svg 150 _
-
 : fmt.Fprintln
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/projects/network-side.svg 150 _
 
 
 

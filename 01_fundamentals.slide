@@ -692,11 +692,15 @@ However, you cannot omit both the type and the right-hand-side expression, becau
 
 * Short variable declaration with :=
 
-The `:=` operator lets you declare _and_ initialize a variable, whose type is inferred from the right-hand-side expression:
+The `:=` operator lets you declare _and_ initialize one or more variables, whose types are inferred from the right-hand-side expression:
 
-  msg := "Hello, World"
+  i, err := strconv.Atoi("42")
 
 This [[https://go.dev/ref/spec#Short_variable_declarations][short-variable-declaration syntax]] makes Go feel a bit like a dynamic language!
+
+If you only care about some of the results, you can discard the others by assigning them to the _blank_identifier_:
+
+  _, err := strconv.Atoi(s)
 
 If the expression is compatible with multiple types, the compiler uses a default type.
 For instance, the default type for integer constants is `int`:
@@ -705,27 +709,21 @@ For instance, the default type for integer constants is `int`:
 
 
 
-* Short variable declaration with := (cont'd)
-
-The `:=` operator is convenient for assigning the results of a function to variables:
-
-  i, err := strconv.Atoi("42") // declares i and err
+* Declaring and updating variables in one fell swoop with :=
 
 The `:=` operator allows you to perform [[https://go.dev/doc/effective_go#redeclaration][a mixture of declaration and assignment]]:
 
+  // (error handling omitted for brevity)
   i, err := strconv.Atoi("42") // declares i and err
-  // error handling omitted for brevity
   j, err := strconv.Atoi("96") // declares j, but only updates err
+
+This affordance of the `:=` operator may initially strike you as odd, but you'll soon realize that it is very [[https://go.dev/blog/error-syntax#:~:text=the%20ability%20to%20redeclare%20a%20variable%20in%20short%20variable%20declarations%20(%3A%3D)%20was%20introduced%20to%20address%20a%20problem%20that%20arose%20because%20of%20error%20handling%3A%20without%20redeclarations%2C%20sequences%20of%20error%20checks%20require%20a%20differently%20named%20err%20variable%20for%20each%20check%20(or%20additional%20separate%20variable%20declarations)][convenient]].
 
 However, the `:=` operator must introduce at least one new variable:
 
+  // (error handling omitted for brevity)
   i, err := strconv.Atoi("42")
-  // error handling omitted for brevity
   i, err := strconv.Atoi("96") // compilation error: no new variables on left side of :=
-
-If you only care about some of the results, assign the others to the _blank_identifier_:
-
-  _, err := strconv.Atoi(s) // declares err, but discards the first result
 
 
 
@@ -733,7 +731,7 @@ If you only care about some of the results, assign the others to the _blank_iden
 
 This mixture of declaration and assignment made possible by `:=` is convenient but can be error-prone: it may cause you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope.
 
-Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of [[https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/shadow#hdr-Analyzer_shadow][subtle bugs]]:
+Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of subtle bugs:
 
 .play -edit src/inadvertent_shadowing.go /^//START/,/^//END/
 
@@ -906,7 +904,7 @@ A [[https://go.dev/ref/spec#Statements][_simple_statement_]] (usually a short va
 
 .play -edit src/if_short_variable_decl.go /^//START/,/^//END/
 
-Because the scope of such variables is restricted to the if(-else) statement, this syntax frees you to reuse the same variable name ("err", in this case).
+Because the scope of such variables is restricted to the conditional statement, this syntax frees you to reuse the same variable name ("err", in this case).
 
 : mandatory braces: no dangling-else problem like in C, JS, etc.
 : short-var-decl: useful for error handling
@@ -922,7 +920,6 @@ Braces around the body of an "else" branch are also mandatory.
 Note that Go has no conditional ternary operator.
 
 The `else` keyword is rarely used in Go. Long if-else chains are considered non-idiomatic, and can often be advantageously replaced by a "tagless" switch statement.
-
 
 
 
@@ -1066,7 +1063,7 @@ Dereferencing a nil pointer causes a panic!
 
 * The "new" built-in function
 
-Go provides a built-in function named "`new`", which has nothing to do with the "`new`" keyword from object-oriented languages like C# and Java!
+Go provides a built-in function named "new", which has nothing to do with the "new" keyword from object-oriented languages like C# and Java.
 
 `new(T)` allocates a value equal to type `T`'s zero value and returns that value's address.
 
@@ -1078,7 +1075,7 @@ to
 
 .play -edit src/pointers_new.go /^//START/,/^//END/
 
-The `new` function is somewhat controversial; many members of the Go community, [[https://www.youtube.com/watch?v=5DVV36uqQ4E&t=8m10s][including some influential ones]], openly disparage it. Use it sparingly.
+Many members of the Go community, [[https://www.youtube.com/watch?v=5DVV36uqQ4E&t=8m10s][including some influential ones]], openly disparage the `new` function for being redundant. However, [[https://tip.golang.org/doc/go1.26#language][with Go 1.26]], the `new` function will become more powerful!
 
 
 
@@ -1567,7 +1564,7 @@ You can ask more sophisticated questions about the nature of an `error` value:
     log.Fatal(err)
   }
 
-[[https://pkg.go.dev/errors][The `errors` package]] provides two powerful functions, [[https://pkg.go.dev/errors#Is][`errors.Is`]] and [[https://pkg.go.dev/errors#As][`errors.As`]], which let you programmatically traverse the error _tree_ stemming from some `error` value:
+[[https://pkg.go.dev/errors][The `errors` package]] provides two powerful functions, [[https://pkg.go.dev/errors#Is][`errors.Is`]] and (new in Go 1.26) [[https://pkg.go.dev/errors#AsType][`errors.AsType`]], which let you programmatically traverse the error _tree_ stemming from some `error` value:
 
   if errors.Is(err, context.DeadlineExceeded) {
     // err (or a node in its error tree) is context.DeadlineExceeded
@@ -1881,6 +1878,8 @@ To a deep and narrow package hierarchy, prefer a shallow (and possibly wide) one
 
 .image img/pkg_shallow_and_wide.svg 400 _
 
+See [[https://freedium.cfd/https://medium.com/@benbjohnson/structuring-applications-in-go-3b04be4ff091#982a][this blog post by Ben Johnson]].
+
 Note: at the end of the course, compare the structure of your project to these diagrams.
 
 
@@ -2002,7 +2001,7 @@ Although the standard library heavily relies on white-box testing, I and other G
 
 .image https://pbs.twimg.com/media/EzrMZe6X0AMSozD?format=jpg&name=900x900 250 _
 
-External package tests are also occasionally useful for avoiding import cycles in tests.
+External package tests are also occasionally useful for avoiding import cycles in tests; for [[https://excalidraw.com/#json=D7CEtFkUn81vw6xiK6bkm,KBExCr_EIjUAv65XFnJStQ][an example]], study the net/http and net/http/httptest packages.
 
 
 
@@ -2418,7 +2417,7 @@ Contrary to C, though, no parentheses are allowed around the three clauses.
 
 * for-range loop over an int
 
-Since Go 1.22, you can also [[https://github.com/golang/go/issues/61405][range over an int]].
+You can also [[https://github.com/golang/go/issues/61405][range over an int]].
 
 For instance, if you want to iterate from 0 (inclusive) to 10 (exclusive), instead of writing the following three-clause loop,
 
@@ -2428,10 +2427,7 @@ you can write an equivalent (but [[https://github.com/golang/go/issues/61405#iss
 
 .play -edit src/range_over_int.go /^//START/,/^//END/
 
-Here is another example, in which we declare no loop variables:
-
-.play -edit src/empty_range_over_int.go /^//START/,/^//END/
-
+: careful: not equivalent if the body of the loop updates i
 : contrary to three-clause loop, changes to n during iterations are immaterial
 :    => range-over-int loop cannot replace classic three-clause loop if the body of the loop also updates the loop var
 : also range-over-int without loop vars; see strings.Replace
