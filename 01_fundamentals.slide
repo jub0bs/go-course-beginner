@@ -482,7 +482,7 @@ Moreover, named imports are especially useful to dispel ambiguity in a source fi
     mathrand "math/rand"
   )
 
-(You can find [[https://cs.opensource.google/go/x/crypto/+/master:acme/autocert/autocert.go;l=17,26][an example of such a named import]] in [[https://pkg.go.dev/golang.org/x/crypto/acme/autocert][the golang.org/x/crypto/acme/autocert package]].
+(You can find [[https://cs.opensource.google/go/x/crypto/+/master:acme/autocert/autocert.go;l=17,26][an example of such a named import]] in [[https://pkg.go.dev/golang.org/x/crypto/acme/autocert][the golang.org/x/crypto/acme/autocert package]]).
 
 
 
@@ -2357,7 +2357,7 @@ Actually implementing those functions is left as an exercise for after the cours
 
 
 
-* Namecheck project: check a username on Github and Bluesky
+* Namecheck project: check a username on GitHub and Bluesky
 
 Flesh out your `main` function:
 
@@ -2371,7 +2371,7 @@ Does the code in your `main` function not suffer from duplication? Using a loop 
 
 👉 Let's learn about loops, then!
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 
 
@@ -2501,7 +2501,7 @@ You can also provide iterators over your own data structures, but this is an adv
 
 * Namecheck project: missing abstraction
 
-Unfortunately, we cannot (yet) use a loop to reduce code duplication in the `main` function.
+Sadly, we cannot (yet) use a loop to reduce code duplication in the `main` function.
 
 Although our project is starting to take shape, it still suffers from limitations...
 

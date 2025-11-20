@@ -492,11 +492,11 @@ The empty interface is an interface that requires no method:
 
 Therefore, it is automatically satisfied by _all_ types (no exception) in Go.
 
-Go 1.18 [[https://go.dev/doc/go1.18#generics][introduced]] `any` as a [[https://pkg.go.dev/builtin#any][predeclared alias for `interface{}`]]:
+[[https://pkg.go.dev/builtin#any][`any`]] is a predeclared [[https://go.dev/ref/spec#Alias_declarations][_alias_]] for `interface{}`:
 
   type any = interface{}
 
-The empty interface is useful for maximum flexibility in functions that require it:
+The empty interface is useful in functions that are meant to be extremely flexible:
 
   func Println(a ...any) (int, error)
 
@@ -740,11 +740,11 @@ If a function has an interface parameter, that interface type should be as "narr
 
 For example, don't do this:
 
-  func (t *Node) ReadFrom(rw io.ReadWriter) error
+  func ReadFrom(rw io.ReadWriter) (*Node, error)
 
 Instead, do that:
 
-  func (t *Node) ReadFrom(r io.Reader) error
+  func ReadFrom(r io.Reader) (*Node, error)
 
 The latter approach promotes flexibility, testability, and correctness.
 
@@ -904,10 +904,8 @@ Now you have everything you need to create a test double for `namecheck.Getter`!
 
 2. Make `*StubClient` satisfy your `namecheck.Getter` interface. Its `Get` method should work as follows:
 
-- if the method receiver's `Err` field, is non-nil, `Get` should return that a nil `*http.Response` and that error value;
-- otherwise, it should return a `*http.Response` whose status code is equal to the method receiver's `StatusCode` field.
-
-Careful: because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`; use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
+- If the method receiver's `Err` field is non-nil, `Get` should return a nil `*http.Response` and that error value;
+- Otherwise, it should return a `*http.Response` whose status code is equal to the method receiver's `StatusCode` field. Because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`; use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
 
 
 * Namecheck project: write unit tests for GitHub's IsAvailable method

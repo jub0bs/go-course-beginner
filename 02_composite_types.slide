@@ -548,8 +548,6 @@ The key type *must* be comparable:
 
 Internally, a map stores its key-value pairs in a [[https://en.wikipedia.org/wiki/Hash_table][hash table]].
 
-.image https://golangforall.com/assets/dvoe.svg 100 _
-
 
 
 * Initializing a map
@@ -706,8 +704,6 @@ Moreover, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for
 - [[https://pkg.go.dev/maps#Clone][copying a map]],
 - [[https://pkg.go.dev/maps#Copy][merging two maps]].
 
-👉 We'll use maps again later in our project. Let's learn about structs.
-
 
 
 * Namecheck project: accept multiple usernames but dedup them
@@ -725,6 +721,18 @@ Moreover, [[https://pkg.go.dev/maps][the `maps` package]] provides functions for
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : a map is a bit overkill; slices.Sort followed by slices.Compact would likely be fast enough and simpler
+
+
+
+* Type-name elision in composite-type literals
+
+Within a [[https://go.dev/ref/spec#Composite_literals][composite literal]] of array or slice of type T, elements that are themselves composite literals may (for a lighter syntax) elide the respective literal type if it is identical to the element type of T:
+
+.play -edit src/type_name_elision.go /^//START/,/^//END/
+
+A similar elision of type names is possible in map literals:
+
+.play -edit src/type_name_elision_map.go /^//START/,/^//END/
 
 
 
@@ -995,6 +1003,28 @@ A solution is available on the [[https://go.dev/play/p/_IobLxneezU][Go Playgroun
 
 
 
+* A glimpse of parametric polymorphism in Go
+
+Go supports _parametric_polymorphism_ ([[https://www.youtube.com/watch?v=RIvL2ONhFBI&t=1020s][a.k.a. _generics_]]): types and functions can be parameterized by other types, aptly called _type_parameters_:
+
+.play -edit src/generic_tree.go /^//START/,/^//END/
+
+`any`, which acts as a _type_constraint_ on `E` above, is a [[https://pkg.go.dev/builtin#any][an alias for `interface{}`]].
+
+
+
+* A glimpse of parametric polymorphism in Go (cont'd)
+
+You don't need to master generics at this stage of your Go learning, but a basic understanding of their syntax will benefit you.
+
+Parametric polymorphism promotes flexibility while providing compile-time guarantees that the empty interface simply cannot.
+
+You may never write generic code yourself, but you will likely use some of the standard-library packages that provide generic functions, such as [[https://pkg.go.dev/slices][`slices`]], [[https://pkg.go.dev/maps][`maps`]], and [[https://pkg.go.dev/cmp][`cmp`]].
+
+For more details about parametric polymorphism in Go, see [[https://go.dev/doc/tutorial/generics][Tutorial: Getting started with generics]].
+
+
+
 * Embedded fields
 
 _Embedded_fields_ are fields that have a type but no explicit name; their effective name is derived from the name of their type:
@@ -1035,39 +1065,5 @@ My personal advice is to
 - embed only non-exported types in your exported types.
 
 We won't discuss embedded fields further in the remainder of this course.
-
-
-
-* Type-name elision in composite-type literals
-
-Within a [[https://go.dev/ref/spec#Composite_literals][composite literal]] of array or slice of type T, elements that are themselves composite literals may (for a lighter syntax) elide the respective literal type if it is identical to the element type of T:
-
-.play -edit src/type_name_elision.go /^//START/,/^//END/
-
-A similar elision of type names is possible in map literals:
-
-.play -edit src/type_name_elision_map.go /^//START/,/^//END/
-
-
-
-* A glimpse of parametric polymorphism in Go
-
-Go 1.18 added support for _parametric_polymorphism_ ([[https://www.youtube.com/watch?v=RIvL2ONhFBI&t=1020s][a.k.a. _generics_]]) to the language. Types and functions can now be parameterized by other types, called _type_parameters_:
-
-.play -edit src/generic_tree.go /^//START/,/^//END/
-
-`any`, which acts as a _type_constraint_ on `E` above, is a [[https://pkg.go.dev/builtin#any][an alias for `interface{}`]].
-
-
-
-* A glimpse of parametric polymorphism in Go (cont'd)
-
-You don't need to master generics at this stage of your Go learning, but a basic understanding of their syntax will benefit you.
-
-Parametric polymorphism promotes flexibility while providing compile-time guarantees that the empty interface simply cannot.
-
-You may never write generic code yourself, but you will likely use some of the standard-library packages that provide generic functions, such as [[https://pkg.go.dev/slices][`slices`]], [[https://pkg.go.dev/maps][`maps`]], and [[https://pkg.go.dev/cmp][`cmp`]].
-
-For more details about parametric polymorphism in Go, see [[https://go.dev/doc/tutorial/generics][Tutorial: Getting started with generics]].
 
 👉 Now, let's learn about methods.

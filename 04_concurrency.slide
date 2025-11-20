@@ -253,9 +253,9 @@ Because a goroutine lacks an ID, it cannot readily be "killed". Forcing a gorout
 
 * Use the go keyword judiciously
 
-Before deciding to spawn a new goroutine, [[https://dave.cheney.net/2016/12/22/never-start-a-goroutine-without-knowing-how-it-will-stop][you should understand exactly under what conditions it will terminate]]. See [[https://go.dev/wiki/CodeReviewComments#goroutine-lifetimes][CodeReviewComments - Goroutine lifetimes]].
+Before deciding to start a goroutine, [[https://dave.cheney.net/2016/12/22/never-start-a-goroutine-without-knowing-how-it-will-stop][you should understand exactly under what conditions it will terminate]]. See [[https://go.dev/wiki/CodeReviewComments#goroutine-lifetimes][CodeReviewComments - Goroutine lifetimes]].
 
-Goroutines may be cheap, but they're not free. If your program carelessly spawns goroutines, it is at risk of _leaking_goroutines_, i.e. accumulating "zombie" goroutines that never terminate!
+Goroutines may be cheap, but they're not free. If your program carelessly starts goroutines, it is at risk of _leaking_goroutines_, i.e. accumulating "zombie" goroutines that never terminate!
 
 Symptoms of a goroutine leak include memory leaks, performance degradation, and even program crashes! 😱
 
@@ -283,9 +283,7 @@ We're about to experiment with concurrency inside another `main.go` and within t
   │   ├── github.go
   │   └── github_test.go
   ├── go.mod
-  ├── namecheck.go
-  └── stub
-      └── stub.go
+  └── namecheck.go
 
 
 
@@ -364,12 +362,12 @@ The [[https://pkg.go.dev/sync][`sync` package]] provides a solution: _wait_group
 
 A wait group is a [[https://en.wikipedia.org/wiki/Barrier_(computer_science)][_barrier_]] mechanism: it allows you to wait for a specific group of goroutines to terminate before moving on.
 
-Wait groups are particularly useful when you don't known in advance how many goroutines you're going to spawn within the group in question.
+Wait groups are particularly useful when you don't known in advance how many goroutines you're going to start within the group in question.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/arts/upright.svg 200 _
 
 : Java equivalent: CountDownLatch: https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CountDownLatch.html
-: e.g. if you're spawning a goroutine for each line of a file that you're reading, or for each element received from a channel
+: e.g. if you're starting a goroutine for each line of a file that you're reading, or for each element received from a channel
 : wait groups not needed in fan-out/fan-in if number of tasks known in advance
 : compare https://go.dev/play/p/cnXXJFTUPO1 to https://go.dev/play/p/MHjuGwsP_hJ
 
@@ -403,9 +401,9 @@ Here are its three fundamental methods:
   func (wg *WaitGroup) Done()
   func (wg *WaitGroup) Wait()
 
-- `Add` increments the counter by `delta`. Call it _just_before_ spawning a goroutine.
-- `Done` decrements the counter by 1. Call it _at_the_very_end_ of each spawned goroutine, typically via a `defer` statement.
-- `Wait` blocks until the counter goes back to 0. Call it at the point of the program where you need to wait for the spawned goroutines to terminate.
+- `Add` increments the counter by `delta`. Call it _just_before_ starting a goroutine in the group.
+- `Done` decrements the counter by 1. Call it _at_the_very_end_ of each goroutine of the group, typically via a `defer` statement.
+- `Wait` blocks until the counter goes back to 0. Call it at the point of the program where you need to wait for the goroutines in the group to terminate.
 
 : now, how not to misuse a wait group
 
@@ -419,7 +417,7 @@ Tip: remember that, when convenient, you can always apply the `go` keyword to an
 
 .image https://i.pinimg.com/originals/41/8b/9c/418b9cb037389f7c5b6783ced8a7156b.jpg 300 _
 
-: if you don't control the functions you want to spawn as goroutines, wrap them in anonymous funcs that capture the waitgroup
+: if you don't control the functions you want to start as goroutines, wrap them in anonymous funcs that capture the waitgroup
 
 
 
@@ -513,7 +511,7 @@ Here, the Go runtime is able to detect the deadlock and crashes the program.
 
 3. Within the for-range loop, call your `check` function concurrently.
 
-4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've spawned to terminate.
+4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've started to terminate.
 
 5. Time the program's execution. Does user experience improve?
 
@@ -529,11 +527,7 @@ What if, instead of printing the results, we wanted to somehow aggregate them?
 
 * A new method for sync.WaitGroup (new in Go 1.25)
 
-`*sync.WaitGroup` has a fourth method, which provides an alternative to methods `Add` and `Done`:
-
-  func (*WaitGroup) Go(f func()) // caveat: f must not panic
-
-For instance, instead of writing
+[[https://pkg.go.dev/sync#WaitGroup.Go][Method `(*sync.WaitGroup).Go`]] provides an alternative to methods `Add` and `Done`. For instance, instead of writing
 
   var wg sync.WaitGroup
   for i := range 10 {
@@ -549,7 +543,9 @@ you can write
 
   var wg sync.WaitGroup
   for i := range 10 {
-    wg.Go(func() { fmt.Println(i) })
+    wg.Go(func() {
+      fmt.Println(i)
+    })
   }
   wg.Wait()
 
@@ -633,7 +629,7 @@ Recall that `count++` is functionally equivalent to two accesses (one read follo
 
   count = count + 1
 
-Because the two goroutines spawned perform this work without any synchronization, a data race occurs if one goroutine's accesses interleave with the other one's.
+Because the two goroutines you started perform this work without any synchronization, a data race occurs if one goroutine's accesses interleave with the other one's.
 
   (funcA)  (funcB)  |  count                or...               (funcA)  (funcB)  |   count
                     |                                                             |
@@ -1012,7 +1008,7 @@ Deadlocks can result from an incautious use of channels. Remember that, dependin
 
 * Goroutine leak
 
-A goroutine is said to leak if, once spawned, it never terminates, turning into a "zombie".
+A goroutine is said to leak if, once started, it never terminates, turning into a "zombie".
 
 You should guarantee the absence of goroutine leaks in your program; otherwise, you run the risk of memory leaks, performance degradation, and even program crashes! 😱
 
@@ -1280,7 +1276,7 @@ The Go community has produced several Web frameworks but, in my opinion, they ty
 🤔 kitchen-sink approach
 😓 framework lock-in
 
-My advice ([[https://www.youtube.com/watch?v=Jm8UJ6cVYMw][and others']]) is to resist the temptation to reach for a Web framework, at least at first. The lowly `net/http` package actually goes a long way, especially since Go 1.22, which [[https://tip.golang.org/doc/go1.22#enhanced_routing_patterns][welcomed more powerful routing features]].
+My advice ([[https://www.youtube.com/watch?v=Jm8UJ6cVYMw][and others']]) is to resist the temptation to reach for a Web framework, at least at first. The lowly `net/http` package actually goes a long way, especially thanks to recent additions ([[https://tip.golang.org/doc/go1.22#enhanced_routing_patterns][enhanced routing patterns]], [[https://go.dev/doc/go1.25#nethttppkgnethttp][protection against CSRF]], etc.).
 
 If needed, seek additional (possibly third-party) middleware libraries that do one thing (e.g. [[https://pkg.go.dev/github.com/jub0bs/cors][CORS]]) and do it well. [[https://en.wikipedia.org/wiki/Unix_philosophy][Unix philosophy]] for the win!
 
@@ -1541,9 +1537,7 @@ Adding/updating a dependency also creates/updates a file named `go.sum`:
   │   └── github_test.go
   ├── go.mod
   ├── go.sum <------------------
-  ├── namecheck.go
-  └── stub
-      └── stub.go
+  └── namecheck.go
 
 
 
@@ -1781,7 +1775,7 @@ However, even making channels `errorCh` and `resultCh` sufficiently buffered wou
 
 * Canceling goroutines
 
-Spawning goroutines is easy; forcing them to terminate sometimes requires more effort. For example, consider the following function:
+Starting goroutines is easy; forcing them to terminate sometimes requires more effort. For example, consider the following function:
 
 .code -edit src/uncancelable.go /^//START1/,/^//END1/
 
@@ -1851,7 +1845,7 @@ By convention, a function that has a `context.Context` parameter should feature 
 - wrap the loop's body in the `default` case of a select statement, and
 - in the select statement, add a case that receives from the context's channel.
 
-4. In `main`, [[https://pkg.go.dev/context#WithTimeout][create a context that cancels itself after one second]] and use it to terminate the goroutine. Try spawning two (or more) goroutines `printInts`.
+4. In `main`, [[https://pkg.go.dev/context#WithTimeout][create a context that cancels itself after one second]] and use it to terminate the goroutine. Try starting `printInts` as two (or more) goroutines.
 
 (A solution is available in this [[https://go.dev/play/p/mDEvfgOlR7C][playground]].)
 
@@ -1984,12 +1978,6 @@ Like a `sync.WaitGroup`, a `sync.Mutex` must not be copied after first use. The 
 
 
 
-* Example: using a mutex to guard a shared counter
-
-.play -edit src/mutex.go /^//START/,/^//END/
-
-
-
 * Keep critical sections short and free of I/O
 
 Critical sections should not hold the lock any longer than necessary.
@@ -2015,10 +2003,11 @@ Otherwise, the goroutines containing critical sections risk having to wait a pro
 
 2. Guard accesses (both writes *and* reads!) to the map with a mutex.
 
-3. Run the server.
+3. Run and manually test tthe server.
 
-4. What could be improved?
+4. Review your code and make sure that all critical sections are short and free of I/O.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
+: use maps.Clone to keep critical section free of I/O
 : instead of a package-level map, we could make the handler a method of some API/server struct type in which we inject the mutex
