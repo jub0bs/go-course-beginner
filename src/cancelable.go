@@ -1,17 +1,16 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"sync"
 	"time"
 )
 
 // START1 OMIT
-func cancelable(ctx context.Context) {
+func cancelable(done <-chan struct{}) {
 	for t := range time.Tick(500 * time.Millisecond) {
 		select {
-		case <-ctx.Done(): // HL
+		case <-done: // HL
 			return // HL
 		default:
 			fmt.Println(t)
@@ -23,16 +22,15 @@ func cancelable(ctx context.Context) {
 
 // START2 OMIT
 func main() {
-	ctx, cancel := context.WithCancel(context.Background()) // HL
-	defer cancel()                                          // HL
+	done := make(chan struct{}) // HL
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		cancelable(ctx) // HL
+		cancelable(done) // HL
 	}()
 	time.Sleep(5 * time.Second) // simulate more work
-	cancel()                    // HL
+	close(done)                 // HL
 	wg.Wait()
 }
 
