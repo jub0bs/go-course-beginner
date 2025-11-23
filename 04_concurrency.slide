@@ -813,7 +813,7 @@ Naming a channel after the plural form of its element type is also common:
 
 * Initializing a channel
 
-The zero value of channel types is `nil`. You cannot do much with an uninitialized channel (although [[https://www.youtube.com/watch?v=t9bEg2A4jsw][assigning `nil` to a channel variable is sometimes useful]]).
+The zero value of channel types is `nil`. You cannot do much with an uninitialized channel (although assigning `nil` to a channel variable is sometimes useful, [[https://www.youtube.com/watch?v=t9bEg2A4jsw][esp. in `select` statements]]).
 
 The built-in function `make` initializes a channel of the specified type:
 
@@ -1707,6 +1707,36 @@ If more than one cases are non-blocking, one of those cases gets selected in a p
 
 
 
+* Event loop: a select statement nested in a loop
+
+Once a case has been selected and the statements associated to it have been executed, the `select` statement ends.
+
+To select repeatedly, nest the select statement in a loop to form a so-called _event_loop_:
+
+  for /* omitted */ {
+    select {
+      // omitted
+    }
+  }
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+
+
+
+* Exercise: drain two channels at the same time
+
+1. Open [[https://go.dev/play/p/GlsKvS6QTNp][this Playground]].
+
+2. At the bottom of the `main` function, add a for-select construct in order to drain both channels at the same time; print each value received.
+
+(Tip: you can set a channel variable to `nil` in order to "disable" a select case that involves a communication on that channel.)
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+: discuss busy loop if channels are not set to nil once drained
+
+
+
 * Uncancelable goroutines
 
 Starting goroutines is easy; forcing them to terminate sometimes requires more effort. For example, consider the following function:
@@ -1760,11 +1790,11 @@ If a function has a `context.Context` parameter, convention dictates that it be 
 
 .play -edit src/cancelable_with_ctx.go /^//START2/,/^//END2/
 
-To create a context, you must derive it from an existing one. When a better context is not available, `context.Background()` is a common choice for a parent context.
+To create a context, you must derive it from an existing "parent" context. Use [[https://pkg.go.dev/context#WithCancel][`context.Background()`]] if there's no better choice.
 
-Function `context.WithCancel` returns a context that requires explicit cancelation and a function (conventionally named "cancel") for canceling that new context.
+[[https://pkg.go.dev/context#WithCancel][Function `context.WithCancel`]] returns a context that requires explicit cancelation and a function (conventionally named "cancel") for canceling that new context.
 
-The `cancel` may safely be called multiple times, but it should be called at least once! To be safe, defer a call to `cancel` as soon as you create a new context.
+A context's `cancel` function may safely be called multiple times, but it should be called at least once! To be safe, defer a call to it as soon as you've created a new context.
 
 
 
