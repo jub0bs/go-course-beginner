@@ -638,7 +638,7 @@ Because the two goroutines you started perform this work without any synchroniza
               W     |    1                                                  W     |     1
      W              |    1                                         W              |     1
 
-Then "1" may be printed to the screen instead of "2". 
+Then "1" may be printed to the screen instead of "2".
 
 (Admittedly, this explanation is a bit simplistic, but it does illustrate the consequences of a lack of synchronization on program correctness.)
 
@@ -1730,6 +1730,8 @@ To select repeatedly, nest the select statement in a loop to form a so-called _e
 2. At the bottom of the `main` function, add a for-select construct in order to drain both channels at the same time; print each value received.
 
 (Tip: you can set a channel variable to `nil` in order to "disable" a select case that involves a communication on that channel.)
+
+If, after the end of the course, you're interested in a more in-depther discussion of `nil` channels, watch [[https://www.youtube.com/watch?v=ynoY2xz-F8s&t=1321s][this passage]] of the talk Francesc Campoy Flores gave at GopherCon 2016.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
