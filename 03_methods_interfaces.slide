@@ -269,26 +269,17 @@ Note the asymmetry: the method set of `*T` includes that of `T`, but the reverse
 
 * Namecheck project: IsAvailable is inflexible
 
-The `IsAvailable` function currently relies on the `http.Get` function:
+`http.DefaultClient` (a convenient [[https://pkg.go.dev/net/http#Client][`*http.Client`]] [[https://en.wikipedia.org/wiki/Singleton_pattern][_singleton_]]) is a hard-coded dependency of the current version of our `IsAvailable` function:
 
   func IsAvailable(username string) (bool, error) {
-    res, err := http.Get("https://github.com/" + username)
+    // ...
+    res, err := http.DefaultClient.Do(req)
     // ...
   }
 
-As a result, because `http.Get` invariably delegates to the same `http.Client`, users have no way of specifying a custom HTTP client:
+However, the possibility to specify (or "inject") a custom HTTP client is desirable, especially for configuring request timeouts or [[https://www.youtube.com/watch?v=cAWlv2SeQus&t=1554s][satisfying a cloud provider's constraints]].
 
-  package http
-
-  func Get(url string) (*Response, error) {
-    return DefaultClient.Get(url)
-  }
-
-  var DefaultClient = &Client{}
-
-However, the possibility to specify a custom HTTP client is desirable, especially for configuring request timeouts or [[https://www.youtube.com/watch?v=cAWlv2SeQus&t=1554s][satisfying a cloud provider's constraints]].
-
-: http.DefaultClient is essentially hard-coded in the IsAvailable function!
+How should we redesign `IsAvailable` to achieve such flexibility? Any ideas?
 
 
 
@@ -303,7 +294,8 @@ Heureka! The `IsAvailable` function can be turned into a method on some `GitHub`
   }
 
   func (gh *GitHub) IsAvailable(username string) (bool, error) {
-    res, err := gh.Client.Get("https://github.com/" + username)
+    // ...
+    res, err := gh.Client.Do(req)
     // ...
   }
 
@@ -311,7 +303,7 @@ Heureka! The `IsAvailable` function can be turned into a method on some `GitHub`
 
 * Methods are great for dependency injection (cont'd)
 
-When instantiating the `GitHub` type, users are now free to "inject" the client of their choice, either [[https://pkg.go.dev/net/http#NoBody][`http.DefaultClient`]] or some custom [[https://pkg.go.dev/net/http#Client][`*http.Client`]]:
+When instantiating the `GitHub` type, users are now free to "inject" the client of their choice, either [[https://pkg.go.dev/net/http#NoBody][`http.DefaultClient`]] or some custom instance of [[https://pkg.go.dev/net/http#Client][`*http.Client`]]:
 
   gh := github.GitHub{
     Client: &http.Client{
@@ -331,17 +323,17 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 2. Turn `IsValid` and `IsAvailable` into methods attached to the `*GitHub` type.
 
-3. In the `IsAvailable` method, now call the `Get` method on the `Client` field of its receiver (instead of the `http.Get` function).
+3. In the `IsAvailable` method, now call the `Do` method on the `Client` field of its receiver (instead of the `http.DefaultClient`'s `Do` method).
 
-4. Adjust your tests in `github_test.go` and `main.go` accordingly.
+4. Adjust your tests and your program accordingly. In the `main` package, use a HTTP client configured with a timeout of 5 seconds.
 
-5. Repeat steps 1-3 for the `bluesky` package.
+5. Repeat steps 1-4 for the `bluesky` package.
 
 `IsAvailable` has now gained in flexibility but, because it's tied to the concrete type `*http.Client`, it still lacks testability... It's finally time to talk about interfaces! 👉
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
-: is the zero value of GitHub readily usable?
+: revisit method sets: http.Client does NOT specify our namecheck.Doer interface
 
 
 
@@ -873,17 +865,17 @@ We'll declare our interface type in a new package at the root of the module. But
 
 * Namecheck project: declare an interface for *http.Client
 
-1. In `namecheck.go`, judiciously declare a useful interface named "Getter" that type `*http.Client` already satisfies.
+1. In `namecheck.go`, judiciously declare a useful interface named "Doer" that type `*http.Client` already satisfies.
 
-2. In your `GitHub` and `Bluesky` struct types, change the type of the field named `Client` from `*http.Client` to `namecheck.Getter`:
+2. In your `GitHub` and `Bluesky` struct types, change the type of the field named `Client` from `*http.Client` to `namecheck.Doer`:
 
   type GitHub struct {
-    Client namecheck.Getter
+    Client namecheck.Doer
   }
 
 3. Make sure everything still works.
 
-Now you have everything you need to create a test double for `namecheck.Getter`!
+Now you have everything you need to create a test double for `namecheck.Doer`!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
@@ -902,10 +894,11 @@ Now you have everything you need to create a test double for `namecheck.Getter`!
     Err        error
   }
 
-2. Make `*StubClient` satisfy your `namecheck.Getter` interface. Its `Get` method should work as follows:
+2. Make `*StubClient` satisfy your `namecheck.Doer` interface. Its `Do` method should work as follows:
 
-- If the method receiver's `Err` field is non-nil, `Get` should return a nil `*http.Response` and that error value;
+- If the method receiver's `Err` field is non-nil, `Do` should return a nil `*http.Response` and that error value;
 - Otherwise, it should return a `*http.Response` whose status code is equal to the method receiver's `StatusCode` field. Because your `IsAvailable` method calls the `Close` method on the response body, you'll need the body to be non-`nil`; use [[https://pkg.go.dev/net/http#NoBody][`http.NoBody`]].
+
 
 
 * Namecheck project: write unit tests for GitHub's IsAvailable method
@@ -968,7 +961,7 @@ However, an interface value is equal to `nil` only if it has no dynamic type! An
   checker == nil                              // false!
 
 This subtlety is a major source of initial confusion for newcomers to the language.
-If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]], especially in connection with error handling.
+If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]].
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
 

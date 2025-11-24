@@ -10,20 +10,20 @@ func main() {
 
 // START OMIT
 func IsAvailable(username string) (bool, error) {
-	addr := "https://github.com/" + username
-	resp, err := http.Get(addr)
+	// ...
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return false, err
 	}
-	switch resp.StatusCode {
+	switch res.StatusCode {
 	case http.StatusNotFound:
-		resp.Body.Close() // 😬 // HL
+		res.Body.Close() // 😬 // HL
 		return true, nil
 	case http.StatusOK:
-		resp.Body.Close() // 😬 // HL
+		res.Body.Close() // 😬 // HL
 		return false, nil
 	default:
-		resp.Body.Close() // 😬 // HL
+		res.Body.Close() // 😬 // HL
 		return false, errors.New("unknown availability")
 	}
 }

@@ -1230,7 +1230,7 @@ However, they can also harm readability. Use them sparingly for your exported fu
 - [[https://go.dev/wiki/CodeReviewComments#named-result-parameters][when they clarify the roles of identically typed results]].
 
 Here is a good example from [[https://pkg.go.dev/strings][the strings package]]:
- 
+
   func Cut(s, sep string) (before string, after string, found bool)
 
 
@@ -2146,7 +2146,7 @@ We should really tap into [[https://docs.github.com/en/rest?apiVersion=2022-11-2
 
 2. Discuss the function's signature. Why does it return an `error` in addition to a `bool`?
 
-3. Study the second code snippet in [[https://pkg.go.dev/net/http/#pkg-overview][the Overview section of the `net/http` package]]; you can draw inspiration from it, even though you don't need to read the response's body. Note how (and why) it uses `defer` keyword; more about that soon.
+3. Study the documentation of [[https://pkg.go.dev/net/http#NewRequest][`http.NewRequest`]] and of [[https://pkg.go.dev/net/http#DefaultClient][`http.DefaultClient`]]'s `Do` method. You could use `http.Get` instead, but you'll come to learn that it's not as flexible.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
@@ -2163,14 +2163,15 @@ We should really tap into [[https://docs.github.com/en/rest?apiVersion=2022-11-2
 - if the response's status code is `200`, `IsAvailable` should return `false` and `nil`;
 - otherwise, `IsAvailable` should return `false` and some descriptive non-nil error.
 
-5. Exercise `IsAvailable` in your `main` function.
+5. To avoid leaking resources, you must close [[https://pkg.go.dev/net/http#Response.Body][the body of the response]] once you're done with it (even if you don't read it). This is best achieved by a `defer` statement.
 
-As currently implemented, is `IsAvailable` flexible enough? Is it unit-testable? Discuss.
+6. "Test" `IsAvailable` in your `main` function. Is it unit-testable? Discuss.
 
 👉 Now let's elucidate the important role played by the `defer` keyword.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
 
+: as currently implemented, is `IsAvailable` flexible enough? Is it unit-testable? Discuss.
 : important because, if github can be used as a library, IsAvailable can be called separately from IsValid
 : to avoid client-side path traversal (not a big deal with a GET, but could be for a POST)
 : not ideal: https://github.com/substack returns 404, but username "substack" is in fact unavailable; but good enough for this course
