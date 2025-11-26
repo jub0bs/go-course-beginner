@@ -1618,7 +1618,7 @@ If only we could force goroutines to terminate when we want them to... The `sele
 
 * Select statement
 
-The `select` statement is a multi-way communication selector: it allows you to randomly select one among several channel communications.
+The `select` statement is a multi-way communication selector: it allows you to randomly select one among several possible channel communications and execute code associated to it.
 
 With goroutines and channels, `select` completes the concurrency trifecta.
 
@@ -1727,11 +1727,11 @@ To select repeatedly, nest the select statement in a loop to form a so-called _e
 
 1. Open [[https://go.dev/play/p/GlsKvS6QTNp][this Playground]].
 
-2. At the bottom of the `main` function, add a for-select construct in order to drain both channels at the same time; print each value received.
+2. At the bottom of the `main` function, use a `select` statement nested in a loop to drain both channels at the same time; print each value received.
 
 (Tip: you can set a channel variable to `nil` in order to "disable" a select case that involves a communication on that channel.)
 
-If, after the end of the course, you're interested in a more in-depther discussion of `nil` channels, watch [[https://www.youtube.com/watch?v=ynoY2xz-F8s&t=1321s][this passage]] of the talk Francesc Campoy Flores gave at GopherCon 2016.
+Later, if you're interested in a more in-depth discussion of `nil` channels, watch [[https://www.youtube.com/watch?v=ynoY2xz-F8s&t=1321s][this passage]] of the talk [[https://www.campoy.cat/][Francesc Campoy Flores]] gave at GopherCon 2016.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -1749,7 +1749,9 @@ If you start it as a goroutine, it will keep running until your program executio
 
 .play -edit src/uncancelable.go /^//START2/,/^//END2/
 
-However, you may want to force that goroutine to terminate that goroutine earlier...
+In fact, if we were to wait at the end of the `main` function for the goroutine to terminate, program execution would never end (see this [[https://go.dev/play/p/nl3ekcnZcbz][playground]]). 😬
+
+How could you redesign the function so that the caller could force it to terminate? 🤔
 
 
 
@@ -1759,8 +1761,7 @@ However, you may want to force that goroutine to terminate that goroutine earlie
 
 .code -edit src/cancelable.go /^//START1/,/^//END1/
 
-
-The function's only interest in the channel parameter is the blocking or non-blocking nature of reception from that channel; hence the use of a receive-only channel and the choice of an element type (`struct{}`) that carries no data.
+The function's only interest in the channel parameter is the blocking or non-blocking nature of reception from that channel; hence the use of a receive-only channel and an element type (`struct{}`) that carries no data and has no memory footprint.
 
 
 
@@ -1776,27 +1777,13 @@ Alternatively, you could send a value on the channel to cause the `cancelable` f
 
 * Designing a function as cancelable (modern approach)
 
-The [[https://pkg.go.dev/context#Context][`context.Context` interface]] [[https://go.dev/talks/2014/gotham-context.slide#10][formalizes and expands upon this "done channel" trick]] and can be used to terminate goroutines via cancellations or timeouts.
+The [[https://pkg.go.dev/context#Context][`context.Context` interface]] [[https://go.dev/talks/2014/gotham-context.slide#10][formalizes and expands upon this "done channel" trick]] and can be used to terminate goroutines via explicit cancellations or timeouts.
 
-Its `Done` method returns the channel in question on which the cancelable function should attempt to receive:
+A context's `Done` method returns a receive-only channel (which is closed as soon as the context is canceled) on which the cancelable function should attempt to receive:
 
 .code -edit src/cancelable_with_ctx.go /^//START1/,/^//END1/
 
-If a function has a `context.Context` parameter, convention dictates that it be its first parameter.
-
-: contexts form a tree, canceling one context also cancels its descendants
-
-
-
-* Canceling a function started as a goroutine (modern approach)
-
-.play -edit src/cancelable_with_ctx.go /^//START2/,/^//END2/
-
-To create a context, you must derive it from an existing "parent" context. Use [[https://pkg.go.dev/context#WithCancel][`context.Background()`]] if there's no better choice.
-
-[[https://pkg.go.dev/context#WithCancel][Function `context.WithCancel`]] returns a context that requires explicit cancelation and a function (conventionally named "cancel") for canceling that new context.
-
-A context's `cancel` function may safely be called multiple times, but it should be called at least once! To be safe, defer a call to it as soon as you've created a new context.
+If a function's parameters count a `context.Context`, convention dictates that it be its first one in the function's parameter list.
 
 
 
@@ -1816,24 +1803,149 @@ To render a channel send cancelable, you can wrap it in a select and add a case 
 
 You can use a similar trick to render a channel receive cancelable.
 
-You now know enough about the `context` package to fix the goroutine leak! 💪
+Keep this trick in mind for the next exercise in which you'll fix the goroutine leak! 😉
+
+
+
+* Namecheck project: redesign function check as cancelable
+
+1. Add a `context.Context` parameter to function `check`.
+
+2. Modify the implementation of function `check` so that, when that context is canceled, the function immediately terminates.
+
+3. You will soon learn how to obtain a context. For now, in the call to `check`, temporarily use [[https://pkg.go.dev/context#TODO][`context.TODO()`]] as a placeholder for its `context.Context` argument.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+
+
+
+* Deriving & canceling a context
+
+Wherever a value of type `context.Context` is expected, you can use an existing one. Never use `nil`! Here are two remarkable and "inert" (uncancelable) contexts:
+
+- [[https://pkg.go.dev/context#Background][`context.Background()`]] is the context you should use if there's no better choice.
+- [[https://pkg.go.dev/context#TODO][`context.TODO()`]] is meant as a temporary and easy-to-grep placeholder.
+
+Alternatively, you can _derive_ a new context from an existing "parent" using functions provided by the `context` package, such as
+
+  func WithCancel(parent Context) (Context, CancelFunc)
+  func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc)
+
+The `CancelFunc`-typed result is a function for canceling the context returned along with it. It may safely be called multiple times but, to avoid leaking resources, it must be called at least once! Systematically defer a call to it as soon as possible, e.g.
+
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+
+
+
+* TODO: context form trees
+
+In general, you can programmatically cancel only the contexts that you've derived yourself.
+context.Background root of all contexts.
+
+https://github.com/jub0bs/go-course-advanced-slides/blob/main/main.slide#L1921
+
+what happens when a context is canceled
+see https://github.com/jub0bs/go-course-advanced-slides/blob/main/main.slide#L1993
+
+flows downwards:
+
+contexts form a tree, canceling one context also cancels its descendants
+
+
+
+* Canceling a function started as a goroutine (modern approach)
+
+The program below is the modern equivalent to the one covered earlier that involves a `chan`struct{}`:
+
+.play -edit src/cancelable_with_ctx.go /^//START2/,/^//END2/
+
+
+
 
 
 
 * Namecheck project: fix the goroutine leak
 
-1. Add a `context.Context` parameter to the `check` function.
+You finally know enough to fix the goroutine leak introduced earlier! 💪
 
-2. Modify the `check` function so that, if its context is canceled, the function terminates.
+1. In the `handleCheck` handler, derive (from `context.Background()`) a context that requires explicit cancellation. Don't forget to defer a call to its associated `cancel` function.
 
-3. In the `handleCheck` handler, create a context and pass it to the `check` function. Cancel that context as soon as a result with a non-nil `Err` field is received from the channel.
+2. Use that context ( instead of `context.TODO()`) in the call to the `check` function.
 
-Does context cancellation have any impact on calls to the `IsAvailable` method? If not, what could we do?
-
-: IsAvailable itself isn't cancelable... but we could make it so.
-: also, you could declare a generic cancelable send function to reduce code duplication a bit: https://go.dev/play/p/orRVTOJeCBS
+3. Cancel that context as soon as you receive a result with a non-nil `Err` field from the channel.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+
+
+
+* Embrace the cancel culture!
+
+Design any of your functions as cancelable if it is
+
+- IO-bound (e.g. it communicates with the network, the disk, the database etc.), or
+- CPU-bound but possibly long-running (e.g. it performs some expensive number crunching),
+
+.image https://www.radiofrance.fr/s3/cruiser-production/2021/01/4a643c07-dea4-41ae-afee-b071035a636e/870x489_gettyimages-1278420063.jpg 200 _
+
+In our project, does context cancellation have any impact on calls to the `IsAvailable` method? If not, we should probably redesign `IsAvailable` as cancelable...
+
+
+
+* Attaching a context to a HTTP request on the client side
+
+Attaching a context to HTTP requests is especially useful for configuring timeouts on a per-request basis (rather than configuring a blanket timeout on the HTTP client itself).
+
+Factory function `http.NewRequestWithContext`, contrary to `http.NewRequest`, lets you attach a `context.Context` to the new request.
+
+  func NewRequestWithContext(ctx context.Context, meth, url string, b io.Reader) (*Request, error)
+
+Not that `*http.Client` methods such as `Get`, because they don't have a `*http.Request` parameter, do not allow you to attach a context to the underlying request. For flexibility, method `(*http.Client).Do` is usually preferable.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+
+
+* Namecheck project: redesign IsAvailable as cancelable
+
+Function `check` may be cancelable, but it calls method `IsAvailable`, which still isn't; let's fix that.
+
+1. In the declaration of your `Checker` interface, add a `context.Context` parameter to the signature of `IsAvailable`.
+
+2. In `github`'s `IsAvailable` method, derive a new context that timeouts after 5 seconds (use function `context.WithTimeout`) and attach it to the request.
+
+3. Fix the rest of the project. In tests, you can use `(*testing.T).Context()` where a context in calls to functions/methods that require a `context.Context`.
+
+4. No need for a blanket timeout anymore! In `cmd/server/main.go`, get rid of your custom `*http.Client` instance and rely on `http.DefaultClient` again.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+
+
+* Retrieving the context associated to a request on the server side
+
+Conversely, on the server side, each request has a context, which you can retrieve via the request's `Context` method.
+
+Handlers can use this context to detect if/when the client canceled their request (perhaps by closing the corresponding browser tab).
+
+Doing so allows them to cut short any work that is no longer necessary, for better performance.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+
+
+* Exercise: cancel IsAvailable if the request gets canceled
+
+1. In function `handleCheck`, pass the context associated to the request to `IsAvailable`.
+
+2. To better observe the effects of request cancelation, temporarily modify `handleCheck` as follows: if a `Result` value with a non-nil `Err` field is received from the channel, print that error to stdout before returning.
+
+3. Start the server, visit the `check` endpoint in a browser tab and very quickly (before receiving the response) close that tab. Note how the handler invocation terminates early with a `context.Canceled` error.
+
+4. Revert the changes from step 2.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+
+: or with curl: curl -v http://localhost:8080/check?username=toto # then ^C
 
 
 
