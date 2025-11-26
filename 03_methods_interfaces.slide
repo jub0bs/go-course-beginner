@@ -325,9 +325,10 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 3. In the `IsAvailable` method, now call the `Do` method on the `Client` field of its receiver (instead of the `http.DefaultClient`'s `Do` method).
 
-4. Adjust your tests and your program accordingly. In the `main` package, use a HTTP client configured with a timeout of 5 seconds.
+4. Repeat steps 1-2 for the `bluesky` package.
 
-5. Repeat steps 1-4 for the `bluesky` package.
+5. Adjust your tests and your program accordingly. In the `main` package, use a HTTP client configured with a timeout of 5 seconds.
+
 
 `IsAvailable` has now gained in flexibility but, because it's tied to the concrete type `*http.Client`, it still lacks testability... It's finally time to talk about interfaces! 👉
 
