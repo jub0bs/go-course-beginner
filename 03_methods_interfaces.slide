@@ -757,13 +757,13 @@ You've been manipulating the `error` type without knowing its true nature, but i
 
 When convenient, you can make some of your own types satisfy the `error` interface:
 
-  type UnkownAvailabilityError struct {
+  type UnknownAvailabilityError struct {
     Username string
     Platform string
     Cause    error
   }
 
-  func (e *UnkownAvailabilityError) Error() string {
+  func (e *UnknownAvailabilityError) Error() string {
     const tmpl = "unknown availability of %q on %s: %v"
     return fmt.Sprintf(tmpl, e.Username, e.Platform, e.Cause)
   }
@@ -906,7 +906,7 @@ Now you have everything you need to create a test double for `namecheck.Doer`!
 
 1. Using your new `StubClient` type, write unit tests to check the following:
 
-- if an error occurs, `IsAvailable` should return `false` and that error;
+- if an error occurs, `IsAvailable` should return `false` and some non-nil error;
 - if the response's status code is `404`, `IsAvailable` should return `true` and `nil`;
 - if the response's status code is `200`, `IsAvailable` should return `false` and `nil`;
 - otherwise, `IsAvailable` should return `false` and some descriptive non-nil error.
