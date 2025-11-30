@@ -8,12 +8,13 @@ import (
 
 // START1 OMIT
 func cancelable(done <-chan struct{}) {
-	for t := range time.Tick(500 * time.Millisecond) {
+	for {
 		select {
 		case <-done: // HL
 			return // HL
 		default:
 			fmt.Println(t)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }

@@ -7,8 +7,9 @@ import (
 
 // START1 OMIT
 func uncancelable() {
-	for t := range time.Tick(500 * time.Millisecond) {
+	for {
 		fmt.Println(t)
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 

@@ -9,12 +9,13 @@ import (
 
 // START1 OMIT
 func cancelable(ctx context.Context) {
-	for t := range time.Tick(500 * time.Millisecond) {
+	for {
 		select {
 		case <-ctx.Done(): // HL
 			return // HL
 		default:
 			fmt.Println(t)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}
 }

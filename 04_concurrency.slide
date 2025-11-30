@@ -501,30 +501,6 @@ Here, the Go runtime is able to detect the deadlock and crashes the program.
 
 
 
-* Namecheck project: check each user name concurrently (fan out)
-
-1. Extract the body of the for-range loop that iterates on your `[]Checker` slice as a function in your `main` package:
-
-  func check(checker Checker, username string)
-
-2. Add a parameter of type `*sync.WaitGroup` to your `check` function.
-
-3. Within the for-range loop, call your `check` function concurrently.
-
-4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've started to terminate.
-
-5. Time the program's execution. Does user experience improve?
-
-What if, instead of printing the results, we wanted to somehow aggregate them?
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
-
-: use a wg to synchronize the close operation with the multiple send operations
-: Remember: the result(s) of the function call to which the `go` keyword is applied are lost.
-: We need a mechanism to communicate between goroutines: channels.
-
-
-
 * A new method for sync.WaitGroup (new in Go 1.25)
 
 [[https://pkg.go.dev/sync#WaitGroup.Go][Method `(*sync.WaitGroup).Go`]] provides an alternative to methods `Add` and `Done`. For instance, instead of writing
@@ -551,6 +527,29 @@ you can write
 
 : should reduce the potential for mistakes
 : Whether this alternative will gain traction in the Go community is unclear.
+
+
+
+* Namecheck project: check each user name concurrently
+
+1. Extract the body of the for-range loop that iterates on your `[]Checker` slice as a function in your `main` package:
+
+  func check(checker Checker, username string)
+
+2. Add a parameter of type `*sync.WaitGroup` to your `check` function.
+
+3. Within the for-range loop, call your `check` function concurrently.
+
+4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've started to terminate.
+
+5. Time the program's execution. Does user experience improve?
+
+What if, instead of printing the results, we wanted to somehow aggregate them?
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 100 _
+
+: We need a mechanism to communicate between goroutines: channels.
+: but first, let's talk about concurrency bugs
 
 
 
@@ -1186,7 +1185,7 @@ However, because such an approach requires you to know in advance how many resul
 
 * Directional channels
 
-Adding an arrow on one side of the `chan` keyword in a channel type restricts the _direction_ of that channel, i.e. which operations (send, close, receive) are allowed.
+Adding an arrow on one side of the `chan` keyword in a channel type restricts the [[https://go.dev/ref/spec#Channel_types][_direction_]] of that channel, i.e. which operations (send, close, receive) are allowed.
 
 In the first example below, `ch` is a _send-only_channel_; the `produce` function can only send values to it and/or close it, but not receive values from it.
 
@@ -1725,15 +1724,17 @@ To select repeatedly, nest the select statement in a loop to form a so-called _e
 
 * Exercise: drain two channels at the same time
 
-1. Open [[https://go.dev/play/p/GlsKvS6QTNp][this Playground]].
+1. Open [[https://go.dev/play/p/y1YcSMpy755][this Playground]].
 
 2. At the bottom of the `main` function, use a `select` statement nested in a loop to drain both channels at the same time; print each value received.
 
-(Tip: you can set a channel variable to `nil` in order to "disable" a select case that involves a communication on that channel.)
+Tip: remember that receiving from a nil channel is a blocking operation.
+
+You'll find an incorrect solution in [[https://go.dev/play/p/yk4rl-yVYSI][this Playground]] and a correct one in [[https://go.dev/play/p/Rzsd39kPQaz][that other Playground]].
 
 Later, if you're interested in a more in-depth discussion of `nil` channels, watch [[https://www.youtube.com/watch?v=ynoY2xz-F8s&t=1321s][this passage]] of the talk [[https://www.campoy.cat/][Francesc Campoy Flores]] gave at GopherCon 2016.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : discuss busy loop if channels are not set to nil once drained
 
@@ -1761,7 +1762,7 @@ How could you redesign the function so that the caller could force it to termina
 
 .code -edit src/cancelable.go /^//START1/,/^//END1/
 
-The function's only interest in the channel parameter is the blocking or non-blocking nature of reception from that channel; hence the use of a receive-only channel and an element type (`struct{}`) that carries no data and has no memory footprint.
+The function's only interest in the channel parameter is the blocking or non-blocking nature of reception from that channel; hence the use of a receive-only channel and an element type (`struct{}`) that carries no data and has a zero memory footprint.
 
 
 
@@ -1836,21 +1837,9 @@ The `CancelFunc`-typed result is a function for canceling the context returned a
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
 
-
-
-* TODO: context form trees
-
-In general, you can programmatically cancel only the contexts that you've derived yourself.
-context.Background root of all contexts.
-
-https://github.com/jub0bs/go-course-advanced-slides/blob/main/main.slide#L1921
-
-what happens when a context is canceled
-see https://github.com/jub0bs/go-course-advanced-slides/blob/main/main.slide#L1993
-
-flows downwards:
-
-contexts form a tree, canceling one context also cancels its descendants
+: If you're unsure which context to use somewhere, avoid using `context.Background()`.
+: Instead, temporarily use the dummy (uncancelable) context return by the `context.TODO` function.
+: Revisit the code later, once you've figured out where to obtain a proper context from.
 
 
 
@@ -1862,12 +1851,9 @@ The program below is the modern equivalent to the one covered earlier that invol
 
 
 
-
-
-
 * Namecheck project: fix the goroutine leak
 
-You finally know enough to fix the goroutine leak introduced earlier! 💪
+You can finally fix the goroutine leak introduced earlier! 💪
 
 1. In the `handleCheck` handler, derive (from `context.Background()`) a context that requires explicit cancellation. Don't forget to defer a call to its associated `cancel` function.
 
@@ -1876,6 +1862,26 @@ You finally know enough to fix the goroutine leak introduced earlier! 💪
 3. Cancel that context as soon as you receive a result with a non-nil `Err` field from the channel.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
+
+
+
+* Contexts form a tree
+
+Because new contexts must be derived from existing ones, the various contexts of a program form a tree rooted at `context.Background()`.
+
+.image img/context_tree.svg 400 _
+
+: https://excalidraw.com/#json=mQchXLkPkoBVVq_QpbcHt,fTyr0HXjpVpVcW4UB9OZrQ
+
+
+
+* Cancellation flows down the tree
+
+Cancellation propagates to all of a context's descendants: when a context is canceled, so are all the contexts derived (either directly or indirectly) from it.
+
+.image img/context_tree_canceled.svg 400 _
+
+: https://excalidraw.com/#json=86O0QWOIPerjuMu4Sky4k,V94jX8lJIqAZT07vHlMhQw
 
 
 
@@ -1912,7 +1918,7 @@ Function `check` may be cancelable, but it calls method `IsAvailable`, which sti
 
 1. In the declaration of your `Checker` interface, add a `context.Context` parameter to the signature of `IsAvailable`.
 
-2. In `github`'s `IsAvailable` method, derive a new context that timeouts after 5 seconds (use function `context.WithTimeout`) and attach it to the request.
+2. In `github`'s `IsAvailable` method, derive a new context that times out after 5 seconds (use function `context.WithTimeout`) and attach it to the request.
 
 3. Fix the rest of the project. In tests, you can use `(*testing.T).Context()` where a context in calls to functions/methods that require a `context.Context`.
 
@@ -1949,21 +1955,6 @@ Doing so allows them to cut short any work that is no longer necessary, for bett
 
 
 
-* Communicating by sharing memory
-
-Go encourages you to use channels to communicate data between goroutines, i.e. to transfer ownership of data from one goroutine to another.
-
-However, in cases where multiple goroutines must share some state, [[https://go.dev/wiki/MutexOrChannel][you're better off relying on more traditional mechanisms for sharing memory]].
-
-Two main such mechanisms are provided by the standard library:
-
-- [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
-- synchronized operations on fixed-sized integers, provided by [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
-
-
-
 * Namecheck project: count of checks per username
 
 Let's keep track (in memory) of how many times each username has been checked.
@@ -1993,9 +1984,24 @@ However, maps are *not* concurrency-safe: concurrent accesses (of which at least
 
 The Go runtime [[https://go.dev/doc/go1.6#runtime][detects data races]] resulting from unsynchronized accesses to a map. When it does, it intentionally crashes the program; see [[https://go.dev/play/p/U4yyndeCBg1][this playground]].
 
-One solution: use a mutex to synchronize accesses to the map.
+We need to _serialize_ accesses to the map.
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
+
+
+
+* Communicating by sharing memory
+
+Go encourages you to use channels to communicate data between goroutines, i.e. to transfer ownership of data from one goroutine to another.
+
+However, in cases where multiple goroutines must share some kind of state, [[https://go.dev/wiki/MutexOrChannel][you're better off relying on more traditional mechanisms for sharing memory]].
+
+Two main such mechanisms are provided by the standard library:
+
+- [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
+- synchronized operations on fixed-sized integers, provided by [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
 
 
 
@@ -2053,15 +2059,13 @@ Otherwise, the goroutines containing critical sections risk having to wait a pro
 
 
 
-* Namecheck project: count of checks per username
+* Namecheck project: use a mutex to fix the synchronization bug
 
-1. Study the documentation of `sync.Mutex`.
+1. Guard accesses (both writes *and* reads!) to the map with a mutex.
 
-2. Guard accesses (both writes *and* reads!) to the map with a mutex.
+2. Run and manually test the server.
 
-3. Run and manually test tthe server.
-
-4. Review your code and make sure that all critical sections are short and free of I/O.
+3. Review your code and make sure that all critical sections are short and free of I/O.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 

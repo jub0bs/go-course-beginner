@@ -504,6 +504,8 @@ Bear in mind that inadvertent slice aliasing may compromise desirable type immut
 
 .play -edit src/inadvertent_slice_aliasing.go  /^//START/,/^//END/
 
+For a real-life example, see [[https://github.com/rs/cors/issues/198][issue #198]] of [[https://github.com/rs/cors][the github.com/rs/cors library]].
+
 When needed, resort to [[https://go.dev/wiki/CodeReviewComments#copying][defensive copying]], perhaps thanks to functions like [[https://pkg.go.dev/slices#Clone][`slices.Clone`]] and [[https://pkg.go.dev/maps#Clone][`maps.Clone`]].
 
 
