@@ -1585,6 +1585,125 @@ Don't forget to track changes to this file in your version-control system!
 
 
 
+* A short detour: communicating by sharing memory
+
+Go encourages you to use channels to communicate data between goroutines, i.e. to transfer ownership of data from one goroutine to another.
+
+However, in cases where multiple goroutines must share some kind of state, [[https://go.dev/wiki/MutexOrChannel][you're better off relying on more traditional mechanisms for sharing memory]].
+
+Two main such mechanisms are provided by the standard library:
+
+- [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
+- synchronized operations on fixed-sized integers, provided by [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
+
+
+
+* Namecheck project: count of checks per username
+
+Let's keep track (in memory) of how many times each username has been checked.
+
+1. Declare (and initialize!) a variable of a suitable type at the package level.
+
+2. In `handleCheck`, increment the count associated to the username being checked.
+
+3. Declare an additional `handleStats` handler that returns a JSON representation of the variable declared in step 1.
+
+4. Register your `handleStats` handler for pattern `GET`/stats`.
+
+5. Run your server and exercise it.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+: in-memory maps are more useful than meets the eye, e.g. for high-frequency trading
+: see https://www.youtube.com/watch?v=Tl7mi9QmLns&t=150s
+
+
+
+* One problem: a synchronization bug
+
+Bear in mind that the HTTP server provided by `net/http` is concurrent: it handles each incoming request in a separate goroutine.
+
+However, maps are *not* concurrency-safe: concurrent accesses (of which at least one is a write) should be synchronized.
+
+The Go runtime [[https://go.dev/doc/go1.6#runtime][detects data races]] resulting from unsynchronized accesses to a map. When it does, it intentionally crashes the program; see [[https://go.dev/play/p/U4yyndeCBg1][this playground]].
+
+We need to _serialize_ accesses to the map.
+
+.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
+
+
+
+* Mutual exclusions
+
+A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (more simply known as _mutex_) is a useful mechanism for mediating access to a shared resource.
+
+Sections of a program that are guarded by a mutex are known as [[https://en.wikipedia.org/wiki/Critical_section][_critical_sections_]].
+
+Among the multiple critical sections guarded by the same mutex, at most one can execute at any given time.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 200 _
+
+
+
+* Using sync.Mutex
+
+The [[https://pkg.go.dev/sync][`sync` package]] provides two types of mutexes, the simplest of which is [[https://pkg.go.dev/sync#Mutex][`sync.Mutex`]].
+
+That type requires no initialization; its zero value is readily usable:
+
+  var mu sync.Mutex
+
+Mutex variables are typically declared in a function rather than at package level.
+
+The critical section(s) to be guarded by the same mutex should be immediately preceded and followed by calls to the mutex's `Lock` and `Unlock` methods (respectively):
+
+  mu.Lock()   // 🔒 wait to acquire the mutual-exclusion lock, then proceed
+  // critical section
+  mu.Unlock() // 🔓 release the shared lock
+
+Like a `sync.WaitGroup`, a `sync.Mutex` must not be copied after first use. The `go`vet` subcommand [[https://go.dev/play/p/set7VxnF7yj][alerts you about such programming mistakes]].
+
+: A popular name for a mutex variable is "mu".
+: at most one goroutine at a time can acquire the lock
+
+
+
+* Keep critical sections short and free of I/O
+
+Critical sections should not hold the lock any longer than necessary.
+
+In particular, strive to keep them
+
+- short (by [[https://github.com/jub0bs/cors/blob/01a1b7821d5b1f66e7e958f52bc6403fc819759a/middleware.go#L94C1-L106C2][carrying out as much of the necessary work elsewhere]]), and
+- free of I/O operations (disk access, network access, etc.).
+
+Otherwise, the goroutines containing critical sections risk having to wait a prohibitively long time for their turn to acquire the lock ([[https://en.wikipedia.org/wiki/Resource_contention][_contention_]]), which will introduce a performance bottleneck in your program.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
+
+: in the example I link to, the call to new config is newInternalConfig is relatively expensive, but doesn't need to be in the critical section.
+
+: V] contend over a lock
+
+
+
+* Namecheck project: use a mutex to fix the synchronization bug
+
+1. Guard accesses (both writes *and* reads!) to the map with a mutex.
+
+2. Run and manually test the server.
+
+3. Review your code and make sure that all critical sections are short and free of I/O.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
+
+: use maps.Clone to keep critical section free of I/O
+: instead of a package-level map, we could make the handler a method of some API/server struct type in which we inject the mutex
+
+
+
 * Namecheck project: fail early if an availability check fails
 
 Modify the `handleCheck` function as follows:
@@ -1952,122 +2071,3 @@ Doing so allows them to cut short any work that is no longer necessary, for bett
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 150 _
 
 : or with curl: curl -v http://localhost:8080/check?username=toto # then ^C
-
-
-
-* Namecheck project: count of checks per username
-
-Let's keep track (in memory) of how many times each username has been checked.
-
-1. Declare (and initialize!) a variable of a suitable type at the package level.
-
-2. In `handleCheck`, increment the count associated to the username being checked.
-
-3. Declare an additional `handleStats` handler that returns a JSON representation of the variable declared in step 1.
-
-4. Register your `handleStats` handler for pattern `GET`/stats`.
-
-5. Run your server and exercise it.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
-
-: in-memory maps are more useful than meets the eye, e.g. for high-frequency trading
-: see https://www.youtube.com/watch?v=Tl7mi9QmLns&t=150s
-
-
-
-* One problem: a synchronization bug
-
-Bear in mind that the HTTP server provided by `net/http` is concurrent: it handles each incoming request in a separate goroutine.
-
-However, maps are *not* concurrency-safe: concurrent accesses (of which at least one is a write) should be synchronized.
-
-The Go runtime [[https://go.dev/doc/go1.6#runtime][detects data races]] resulting from unsynchronized accesses to a map. When it does, it intentionally crashes the program; see [[https://go.dev/play/p/U4yyndeCBg1][this playground]].
-
-We need to _serialize_ accesses to the map.
-
-.image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 200 _
-
-
-
-* Communicating by sharing memory
-
-Go encourages you to use channels to communicate data between goroutines, i.e. to transfer ownership of data from one goroutine to another.
-
-However, in cases where multiple goroutines must share some kind of state, [[https://go.dev/wiki/MutexOrChannel][you're better off relying on more traditional mechanisms for sharing memory]].
-
-Two main such mechanisms are provided by the standard library:
-
-- [[https://en.wikipedia.org/wiki/Mutual_exclusion][mutual exclusions]], provided by [[https://pkg.go.dev/sync][the `sync` package]],
-- synchronized operations on fixed-sized integers, provided by [[https://pkg.go.dev/sync/atomic/][the `sync/atomic` package]], whose correct use is complicated and which most programs should avoid.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/party/birthday.svg 150 _
-
-
-
-* Mutual exclusions
-
-A [[https://en.wikipedia.org/wiki/Mutual_exclusion][_mutual-exclusion_lock_]] (more simply known as _mutex_) is a useful mechanism for mediating access to a shared resource.
-
-Sections of a program that are guarded by a mutex are known as [[https://en.wikipedia.org/wiki/Critical_section][_critical_sections_]].
-
-Among the multiple critical sections guarded by the same mutex, at most one can execute at any given time.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 200 _
-
-
-
-* Using sync.Mutex
-
-The [[https://pkg.go.dev/sync][`sync` package]] provides two types of mutexes, the simplest of which is [[https://pkg.go.dev/sync#Mutex][`sync.Mutex`]].
-
-That type requires no initialization; its zero value is readily usable:
-
-  var mu sync.Mutex
-
-Mutex variables are typically declared in a function rather than at package level.
-
-The critical section(s) to be guarded by the same mutex should be immediately preceded and followed by calls to the mutex's `Lock` and `Unlock` methods (respectively):
-
-  mu.Lock()   // 🔒 wait to acquire the mutual-exclusion lock, then proceed
-  // critical section
-  mu.Unlock() // 🔓 release the shared lock
-
-Like a `sync.WaitGroup`, a `sync.Mutex` must not be copied after first use. The `go`vet` subcommand [[https://go.dev/play/p/set7VxnF7yj][alerts you about such programming mistakes]].
-
-: A popular name for a mutex variable is "mu".
-: at most one goroutine at a time can acquire the lock
-
-
-
-* Keep critical sections short and free of I/O
-
-Critical sections should not hold the lock any longer than necessary.
-
-In particular, strive to keep them
-
-- short (by [[https://github.com/jub0bs/cors/blob/01a1b7821d5b1f66e7e958f52bc6403fc819759a/middleware.go#L94C1-L106C2][carrying out as much of the necessary work elsewhere]]), and
-- free of I/O operations (disk access, network access, etc.).
-
-Otherwise, the goroutines containing critical sections risk having to wait a prohibitively long time for their turn to acquire the lock ([[https://en.wikipedia.org/wiki/Resource_contention][_contention_]]), which will introduce a performance bottleneck in your program.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
-
-: in the example I link to, the call to new config is newInternalConfig is relatively expensive, but doesn't need to be in the critical section.
-
-: V] contend over a lock
-
-
-
-* Namecheck project: use a mutex to fix the synchronization bug
-
-1. Guard accesses (both writes *and* reads!) to the map with a mutex.
-
-2. Run and manually test the server.
-
-3. Review your code and make sure that all critical sections are short and free of I/O.
-
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
-
-: use maps.Clone to keep critical section free of I/O
-: instead of a package-level map, we could make the handler a method of some API/server struct type in which we inject the mutex
