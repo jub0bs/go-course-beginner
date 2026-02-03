@@ -589,15 +589,15 @@ Several types have `nil` as their zero value: pointers, functions, channels, int
 
 * Comparability
 
-Comparing a value to its type's zero value is always legal.
-
-A type is said to be _comparable_ if *arbitrary* values of that type can be compared
-for equality (with operator `==`) or inequality (with operator `!=`).
+A type is said to be _comparable_ if *arbitrary* values of that type can be compared for equality (with operator `==`) or inequality (with operator `!=`).
 
 All basic types are comparable, but not all composite types are comparable;
 for instance, functions, slices, and maps are not.
 
 In some places (map keys, switch-case expressions, etc.), only comparable types can be used.
+
+However, comparing a value for equality to a literal of the type's zero value is always legal, even for non-comparable types.
+
 
 .image https://golangforall.com/assets/kanat.svg 200 _
 
@@ -895,8 +895,7 @@ See also [[https://pkg.go.dev/io/fs#FileMode][`fs.FileMode`]] for another exampl
 
 * If statements
 
-Unlike in C, the condition must be of type `bool` and needs not be enclosed in parens.
-However, braces around the "if" branch are mandatory.
+Unlike in C, the condition must be of type `bool` and (usually) does not need to be enclosed in parentheses. However, braces around the "if" branch are mandatory.
 
 .play -edit src/if_simple.go /^//START/,/^//END/
 
@@ -908,6 +907,7 @@ Because the scope of such variables is restricted to the conditional statement, 
 
 : mandatory braces: no dangling-else problem like in C, JS, etc.
 : short-var-decl: useful for error handling
+: counterexample about parens: https://go-review.googlesource.com/c/go/+/734440/1/src/net/netip/netip.go#116
 
 
 
@@ -1061,13 +1061,13 @@ Dereferencing a nil pointer causes a panic!
 
 
 
-* The "new" built-in function
+* The "new" built-in function (used with a type)
 
 Go provides a built-in function named "new", which has nothing to do with the "new" keyword from object-oriented languages like C# and Java.
 
-`new(T)` allocates a value equal to type `T`'s zero value and returns that value's address.
+Given a type named `T`, `new(T)` allocates storage for a variable of type `T` (and initialized at `T`'s zero value) and returns a pointer to it.
 
-It can spare you the declaration of an intermediate variable. For example, Compare
+Used like this, `new` can spare you the declaration of an intermediate variable; compare
 
 .play -edit src/pointers_new_before.go /^//START/,/^//END/
 
@@ -1075,7 +1075,23 @@ to
 
 .play -edit src/pointers_new.go /^//START/,/^//END/
 
-Many members of the Go community, [[https://www.youtube.com/watch?v=5DVV36uqQ4E&t=8m10s][including some influential ones]], openly disparage the `new` function for being redundant. However, [[https://tip.golang.org/doc/go1.26#language][with Go 1.26]], the `new` function will become more powerful!
+Many members of the Go community, [[https://www.youtube.com/watch?v=5DVV36uqQ4E&t=8m10s][including some influential ones]], frown upon this usage of `new`, deeming it redundant. However, [[https://tip.golang.org/doc/go1.26#language][in Go 1.26]], the `new` function became more powerful!
+
+
+
+* The "new" built-in function (used with an expression)
+
+You sometimes need to obtain a pointer to a function's result (e.g. to store that pointer in a field of some configuration struct type). However, directly taking the address of a function's result is illegal:
+
+.play -edit src/pointers_new_expr_before.go /^//START/,/^//END/
+
+Since Go 1.26, the `new` built-in function can help you with this!
+
+Given an expression `expr` of type `T`, `new(expr)` indeed allocates storage for a variable of type `T`, stores the evaluated result of `expr` in that variable, and returns a pointer to it:
+
+.play -edit src/pointers_new_expr.go /^//START/,/^//END/
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 100 _
 
 
 
@@ -1266,7 +1282,21 @@ Similarly, the type of identically typed consecutive results can be factored out
 * Functions are first-class values
 
 Functions can [[https://pkg.go.dev/net/http/#HandleFunc][take other functions as parameters]], [[https://go.dev/play/p/LfT4e0lPmNV][return functions as results]],
-be stored in variables, etc.
+be stored in variables or struct fields, etc.
+
+  func All(s []int, pred func(int) bool) bool
+
+  func FalseAfter(n uint) func() bool
+
+  type Heap struct {
+      elems []string
+      cmp func(string, string) int
+  }
+
+
+
+* Functions are first-class values (cont'd)
+
 
 .play -edit src/function_value.go /^//START/,/^//END/
 
@@ -1651,6 +1681,8 @@ However, you sometimes want to declare a `*regexp.Regexp` as the package level o
     return re
   }
 
+
+: another example: netip.MustParseAddr
 
 
 * Don't panic for no good reason
