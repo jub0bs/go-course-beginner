@@ -1,5 +1,5 @@
 Introduction to Go
-4 - Concurrency: goroutines, channels, select, mutexes
+4 - Concurrency: goroutines, channels, mutexes, select, contexts
 
 Julien Cretel
 
@@ -1923,7 +1923,7 @@ To render a channel send cancelable, you can wrap it in a select and add a case 
 
 You can use a similar trick to render a channel receive cancelable.
 
-Keep this trick in mind for the next exercise in which you'll fix the goroutine leak! 😉
+Inthe next exercise, you'll use this trick to fix the goroutine leak! 😉
 
 
 

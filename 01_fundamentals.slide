@@ -294,8 +294,7 @@ Go comes with several predeclared names accessible from anywhere in your code. T
 *Built-in*types*
 
   bool int rune uint byte float64 string
-  struct map chan
-  interface error
+  error comparable
 
 *Built-in*functions*
 
@@ -1314,17 +1313,40 @@ The zero value of function types is `nil`. Calling a `nil` function causes a pan
 
 
 
-* Anonymous functions and lexical closures
+* A note about built-in functions (TODO)
 
-Go supports anonymous functions but lacks a concise "lambda" notation:
+builtin functions play by their own rule; for example, you can't store append in a variable
+builtin funcs don't work with ...
+	https://github.com/golang/go/issues/59488#issuecomment-1561901763
+- builtin functions cannot be used as function values
+	- https://github.com/golang/go/issues/59488#issuecomment-1507725077
+	- solution: wrap them in an anonymous function
+	- https://go.dev/ref/spec#Built-in_functions
+
+
+
+* Anonymous functions, but no lambdas
+
+Go supports anonymous functions:
 
 .play -edit src/anonymous_function.go /^//START/,/^//END/
+
+However, unlike languages like Python or JavaScript, Go lacks a concise notation for anonymous functions, sometimes called "lambdas" or "arrow functions".
+
+There is [[https://github.com/golang/go/issues/21498][an open (and active) proposal]] for "short function literals". One day, maybe.
+
+: lambdas are sometimes as arrow functions in some ecosystems
+
+
+
+* Lexical closures
 
 A [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][_closure_]] is an anonymous function that references (or "captures" or "closes over") variables from its lexical scope:
 
 .play -edit src/function_closure.go /^//START/,/^//END/
 
-: lambdas are sometimes as arrow functions in some ecosystems
+This example admittedly is a little contrived, but we'll make more realistic use of closures later in this course.
+
 : alternative example: https://go.dev/play/p/iq16zw9kc7Z
 
 
