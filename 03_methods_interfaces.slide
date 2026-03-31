@@ -11,11 +11,9 @@ https://bsky.app/profile/jub0bs.com
 
 * Declaration of a method
 
-Methods distinguish themselves from _package-level_functions_ by the presence (between the `func` keyword and the method's name) of an extra parameter:
+Synctactically, methods distinguish themselves from _package-scoped_functions_ by the presence (between the `func` keyword and the method's name) of an extra parameter:
 
   type Counter uint
-
-  func Incr(c Counter) Counter { return c + 1 }    // package-level function
 
   func (c Counter) Incr() Counter { return c + 1 } // method attached to the Counter type
 
@@ -28,21 +26,38 @@ If the method needs not access its receiver parameter, you can ([[https://dmitri
 Note that, as illustrated above, receiver types are not limited to struct types.
 
 : methods on a function type: https://www.youtube.com/watch?v=yeetIgNeIkc&t=7m30s
+: func Incr(c Counter) Counter { return c + 1 }    // package-scoped function
+
+
+
+* Motivations for declaring methods
+
+Methods are a mechanism for associating a function to a specific type.
+
+As such, they are useful for organizing code. Morever, as you will soon discover, methods are key to interfaces.
+
+Given some piece of logic, should declare it as a normal function or as a method?
+The answer is largely context-dependent.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
+
+: partial application possible via method values: https://github.com/golang/go/issues/77273#issuecomment-3799226857
 
 
 
 * Restrictions on the type of a method's receiver
 
-The type that appears in a method's receiver must be a package-level defined type:
+Methods can only be declared at package level (not within functions) and the type that appears in a method's receiver must be a package-scoped defined type:
 
   type Counter uint
+
   func (c Counter) Incr() Counter { return c + 1 } // ok
 
   func main() {
-    // no way to attach methods to a type not declared at package level
+    // no way to declare methods on a type not declared at package level
     type Celsius float64
 
-    // no way to attach methods to an anonymous type
+    // no way to declare methods on an anonymous type
     var data struct {
       Username string `json:"username"`
     }{
@@ -58,6 +73,7 @@ The type that appears in a method's receiver must be a package-level defined typ
 Moreover, that type must be declared in the same package as its methods:
 
   type Counter uint
+
   func (c Counter) Incr() Counter { return c + 1 } // ok
 
   func (i int) Shout() { // compilation error: cannot define new methods on non-local type int
@@ -92,7 +108,7 @@ Also, the type of a method receiver cannot be an interface type:
 
 * Naming conventions for methods
 
-Naming conventions for methods are essentially the same as for package-level functions, although method names often are shorter.
+Naming conventions for methods are essentially the same as for package-scoped functions, although method names often are shorter.
 
 Prefixing the name of accessors and mutators by "Get" is unidiomatic in Go:
 
@@ -120,9 +136,8 @@ Bear in mind that Go doesn't support [[https://en.wikipedia.org/wiki/Function_ov
 
   func (c Counter) Incr() Counter { return c + 1 }
 
-  // compilation error: method Counter.Incr already declared at ...
-  func (c Counter) Incr(delta uint) Counter {
-    return c + Counter(delta)
+  func (c Counter) Incr(d uint) Counter { // compilation error: method Counter.Incr already decl...
+    return c + Counter(d)
   }
 
 
@@ -173,11 +188,11 @@ In the example above, the method merely updates a copy of its receiver argument,
 
 * Value receivers and pointer receivers
 
-The `Incr` method in the previous example was attached to the `Counter` type. The method is said to have a _value_receiver_ and is [[https://go.dev/doc/effective_go#pointers_vs_values][colloquially known as a "value method"]]:
+The `Incr` method in the previous example was attached to the `Counter` type. The method is said to have a _value_receiver_ and is [[https://go.dev/doc/effective_go#pointers_vs_values][informally known as a "value method"]]:
 
   func (c Counter) Incr() { c++ }
 
-However, in cases where updates to the receiver need to be visible outside the method call, the method can instead be attached to the `*Counter` type. It is then said to have a _pointer_receiver_ and is [[https://go.dev/doc/effective_go#pointers_vs_values][colloquially known as a "pointer method"]]:
+However, in cases where updates to the receiver need to be visible outside the method call, the method can instead be attached to the `*Counter` type. It is then said to have a _pointer_receiver_ and is [[https://go.dev/doc/effective_go#pointers_vs_values][informally known as a "pointer method"]]:
 
 .play -edit src/method_pointer_receiver.go /^//START/,/^//END/
 
@@ -319,7 +334,7 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 * Namecheck project: turn IsValid and IsAvailable into methods
 
-1. In the `github` package, declare a `GitHub` type based (for now) on a struct type with a single field named `Client` of type `*http.Client`.
+1. In the `github` package, declare a `GitHub` type based on a struct type with a single field named `Client` of type `*http.Client` (for now).
 
 2. Turn `IsValid` and `IsAvailable` into methods attached to the `*GitHub` type.
 
@@ -342,7 +357,7 @@ When instantiating the `GitHub` type, users are now free to "inject" the client 
 
 An interface type defines a *contract*; concrete types (e.g. some struct type) that fulfill that contract are said to _implement_ or _satisfy_ the interface type in question.
 
-Interfaces enable [[https://en.wikipedia.org/wiki/Polymorphism_(computer_science)][_polymorphism_]]: they are abstract types that allow interchangeable use of different concrete types that happen to provide similar functionalities.
+Interfaces enable a form of [[https://en.wikipedia.org/wiki/Polymorphism_(computer_science)][_polymorphism_]]: they are abstract types that allow interchangeable use of different concrete types that happen to provide similar functionalities.
 
 By [[https://www.youtube.com/watch?v=yE5Tpp2BSGw&t=1001s][focusing on _behavior_ rather than _data_]], they promote decoupling and composability!
 
@@ -378,7 +393,7 @@ The names of method parameters (if any) are inconsequential and may be omitted i
     Climb(int) error
   }
 
-Although we won't revisit this subtlety, be aware that, since the advent of generics to Go, there also exists non-basic interface types, which can only be used as type-parameter constraints, not as values. [[https://pkg.go.dev/cmp#Ordered][The `cmp.Ordered` interface type]] is one example:
+Although we won't revisit this subtlety, be aware that, since the advent of generics in Go, there also exists "non-basic" interface types, which can only be used as type-parameter constraints, not as values. [[https://pkg.go.dev/cmp#Ordered][The `cmp.Ordered` interface type]] is one example:
 
   var ord cmp.Ordered // compilation error
 
@@ -390,7 +405,7 @@ Although we won't revisit this subtlety, be aware that, since the advent of gene
 
 Resist the temptation to name your interface types with an "I" prefix, as you would in other languages (e.g. `IEnumerable` in C#). The names of Go interface types typically are nouns rather than adjectives.
 
-For a single-method interface types, a [[https://go.dev/doc/effective_go#interface-names][common practice is simply to append "er" to the name of the method]], even if doing so yields a weird name:
+For a single-method interface types, a [[https://go.dev/doc/effective_go#interface-names][common practice is simply to append "er" to the name of the method]], even if doing so produces a weird name:
 
   type Stringer interface {
     String() string
@@ -619,6 +634,8 @@ If the type does satisfy `fmt.Stringer`, `fmt.Println` uses the result of its `S
 
 .play -edit src/stringer.go /^//START/,/^//END/
 
+Can you explain why we must pass a `*Location` (and not just a `Location`) for `fmt.Println` to print the result of the `String` method?
+
 
 
 * Namecheck project: satisfy the fmt.Stringer
@@ -627,7 +644,7 @@ If the type does satisfy `fmt.Stringer`, `fmt.Println` uses the result of its `S
 
 2. Make `*bluesky.Bluesky` satisfy the `fmt.Stringer` interface.
 
-3. Using interface composition, augment the declaration of your `Checker` interface in such a way that a `Checker` be an `fmt.Stringer`. (We don't really need this right now, but we will further down the road.)
+3. Using interface composition, augment the declaration of your `Checker` interface in such a way that a `Checker` be an `fmt.Stringer`. (We don't really need this right now, but we soon will.)
 
 4. Make good use of `*github.GitHub` and `*bluesky.Bluesky`'s new capability in your `main` function. Note that you don't need to call the `String` method explicitly, here.
 
@@ -653,7 +670,7 @@ Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before
 
 * Declare interface types where they're actually needed
 
-Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; see [[https://pkg.go.dev/context#Context][`context.Context`]] for an example.
+Some packages may need to export an interface type to allow for interchangeable use of multiple implementations; [[https://pkg.go.dev/context#Context][`context.Context`]] is one example, and we'll revisit it soon when we cover concurrent programming.
 
 However, your packages [[https://go.dev/wiki/CodeReviewComments#interfaces][shouldn't systematically export interface types for their concrete types]].
 
@@ -661,7 +678,7 @@ Gophers can always, for decoupling purposes, declare a custom interface type in 
 
 Note that we declared our interface type `Checker` only in the `main` package, where we actually need and use this abstraction.
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 150 _
 
 
 
@@ -749,7 +766,7 @@ This principle [[https://www.youtube.com/watch?v=zzAdEt3xZ1M&t=12m36s][echoes]] 
 
 * Notable interface types: error
 
-You've been manipulating the `error` type without knowing its true nature, but it is an interface type [[https://pkg.go.dev/builtin#error][predeclared by the language]]:
+You've been manipulating the `error` type perhaps without knowing its true nature, but know that it is an interface type [[https://pkg.go.dev/builtin#error][predeclared by the language]]:
 
   type error interface {
     Error() string
@@ -768,6 +785,8 @@ When convenient, you can make some of your own types satisfy the `error` interfa
     return fmt.Sprintf(tmpl, e.Username, e.Platform, e.Cause)
   }
 
+(Doing this is left as an exercise in your own time.)
+
 : prehistory: https://www.youtube.com/watch?v=0Zbh_vmAKvk&t=539s
 
 
@@ -778,9 +797,9 @@ Unfortunately, because the `IsAvailable` method is still tied to concrete type `
 
 The current implementation of `IsAvailable` considerably hinders its testability:
 
-🙅 Unit tests, in the purest sense of the term, should be fast and operate only in memory (rather than communicate with the network).
+🙅 Unit tests, in the purest sense of the term, should be fast and operate only in memory (rather than perform network I/O).
 
-🫣 Any test case you write for `IsAvailable` would depend on the state of the platform. If you asserted that username "babar" is available on GitHub and someone registered an account with that username afterwards, your test would start failing.
+🫣 Any test case you write for `IsAvailable` would depend on the state of the platform. If you asserted that username "geoff" is available on GitHub and someone registered an account with that username afterwards, your test would start failing.
 
 😓 Testing some cases (status codes other than 200 and 404, network errors, etc.) is currently impossible.
 
@@ -788,24 +807,30 @@ The current implementation of `IsAvailable` considerably hinders its testability
 
 
 
-* Namecheck project: the need for a test double and for polymorphism
+* Namecheck project: the need for a test doubles
 
-The method would become testable if we used a [[https://www.martinfowler.com/bliki/TestDouble.html][_test_double_]] ([[https://www.martinfowler.com/articles/mocksArentStubs.html][stub]], etc.): some "fake" client that would allow us to simulate interesting platform behaviors in our tests.
+A [[https://www.martinfowler.com/bliki/TestDouble.html][_test_double_]] is a substitute, used for testing purposes, of some "collaborator" object that exhibits side effects (e.g. network I/O).
+
+Test doubles come in different shapes and the terminology is somewhat complicated and contentious; [[https://emilybache.com][Emily Bache]] has [[https://www.youtube.com/watch?v=RvKPOjlQKy][a good video on the topic]].
+
+Here, we need some kind of test double for the HTTP client that would allow us to simulate interesting platform behaviors in our tests. Such a test double is typically known as a "stub".
 
 For example, with a client that invariably responds with a status code of `200`, we could check that `(*GitHub).IsAvailable` systematically returns `false,`nil`.
 
-First, however, we need the possibility to even _choose_ whether to use
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/crash-dummy.svg 150 _
+
+
+
+* Namecheck project: the need for polymorphism
+
+But first, we need the possibility to even _choose_ whether to use
 
 - some real `*http.Client` (in our production code), or
 - some "fake" HTTP client (in our test code).
 
 In essence, we need _polymorphism_, for which interfaces are great!
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/crash-dummy.svg 150 _
-
-: test behaviour of IsAvailable given behaviour of its Client
-: system under test: github.GitHub
-: the HTTP client is a collaborator with side effects => good candidate for mocking
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/friends/heart-hug.svg 200 _
 
 
 
@@ -813,9 +838,9 @@ In essence, we need _polymorphism_, for which interfaces are great!
 
 We now know what we need: an interface type that both `*http.Client` and our future test double satisfy...
 
-Does `net/http` provide such an interface type? Consult that package's documentation.
+But does the `net/http` package even provide an interface type that `*http.Client`? Look for one in that package's documentation.
 
-If not, is that a problem? Explain. 😏
+If not, is the absence of such an interface type in `net/http` problematic? 😏
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
@@ -961,10 +986,23 @@ However, an interface value is equal to `nil` only if it has no dynamic type! An
   var checker Checker = (*github.GitHub)(nil) // dynamic type: *github.GitHub; dynamic value: nil
   checker == nil                              // false!
 
-This subtlety is a major source of initial confusion for newcomers to the language.
-If overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]].
+.image https://upload.wikimedia.org/wikipedia/en/6/64/Math_Lady_meme.jpg 200 _
+
+: nil means different things for interface types and concrete types
+
+
+
+* Interfaces' zero value... and a common source of confusion (cont'd)
+
+This subtlety can be a source of initial confusion for newcomers to the language;
+if overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]], especially when error handling is involved:
+
+.play -edit src/nil_interface.go /^//START/,/^//END/
+
+In my experience, new Gophers quickly learn to recognize such mistakes, though.
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
+
 
 
 
@@ -1029,7 +1067,7 @@ Upon getting a non-`nil` `error`, you could [[https://blog.golang.org/error-hand
     return err
   }
 
-See also [[https://pkg.go.dev/errors#As][`errors.As`]], a function more powerful than a simple type assertion on an error.
+See also [[https://pkg.go.dev/errors#AsType][`errors.AsType`]], a more powerful alternative to a type assertion on an error.
 
 
 
@@ -1043,7 +1081,7 @@ Type assertions also allow you to probe into an interface value for its dynamic 
     // possibly access gh's fields
   }
 
-However, such type assertions undermine polymorphism and introduce coupling to concrete types. Therefore, you should avoid type assertions to concrete types, especially ones you do not own!
+However, such type assertions undermine polymorphism and introduce coupling to concrete types. Therefore, you should, in general, avoid type assertions to concrete types, especially ones you do not own!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 

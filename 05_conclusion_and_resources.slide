@@ -19,9 +19,7 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 
 
 
-* Additional learning resources
-
-*Official*:
+* Official learning resources
 
 - [[https://go.dev/ref/spec][the Go programming language specification]]
 - [[https://github.com/golang/go]] (issues, proposals, etc.)
@@ -29,15 +27,20 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 - [[https://go.dev/wiki/CodeReviewComments]] (common comments made during code reviews)
 - [[https://go.dev/blog][the (official) Go blog]]
 
-*Blogs*:
 
+
+* Blogs
+
+- [[https://antonz.org/all/][Anton Zhiyanov's blog]] (features interactive tours of new Go releases)
 - [[https://www.ardanlabs.com/blog/][ArdanLabs' blog]]
-- [[https://dave.cheney.net/][Dave Cheney's blog]] (no longer active but still good)
+- [[https://victoriametrics.com/blog/][VictoriaMetrics's blog]]
+- [[https://utcc.utoronto.ca/~cks/space/blog/][[Chris Siebenmann's blog]]
+- [[https://dave.cheney.net/][Dave Cheney's blog]] (no longer very active but still good)
 - [[https://rakyll.org/][Rakyll's blog]] (no longer active but still good)
 
 
 
-* Additional learning resources (cont'd)
+* Additional learning resources
 
 *Books*
 
@@ -64,10 +67,10 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 
 *Podcasts*
 
-- [[https://changelog.com/gotime][Go Time (The Changelog)]] ([[https://changelog.com/posts/a-new-era-for-the-changelog-podcast-universe][no longer active]] but still good)
 - [[https://cupogo.dev/episodes][Cup o' Go]]
+- [[https://fallthrough.transistor.fm][Fallthrough]] (not strictly about Go, contains some premium content)
 - [[https://gopodcast.dev][go podcast()]]
-- [[https://fallthrough.transistor.fm][Fallthrough]]
+- [[https://changelog.com/gotime][Go Time (The Changelog)]] ([[https://changelog.com/posts/a-new-era-for-the-changelog-podcast-universe][no longer active]] but still good)
 
 *Vidcasts*
 

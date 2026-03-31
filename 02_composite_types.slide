@@ -62,6 +62,8 @@ Indexing an array outside its bounds causes either a compilation or a panic!
 
 .play -edit src/array_indexing.go  /^//START/,/^//END/
 
+: examples of languages that rely on 1-based indexing: Lua, MATLAB, Fortran
+
 
 
 * Ranging over an array
@@ -106,9 +108,9 @@ Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arra
 
 .code src/sudoku.go  /^//START/,/^//END
 
-Arrays are mostly building blocks for _slices_, which are much more commonly used.
+_Slices_ are similar to but more flexible than arrays; as such, [[https://github.com/golang/go/issues/46505#issuecomment-892827067][slices are typically preferred over arrays]].
 
-: use cases: detailed layout of memory, avoid allocations
+: use cases: detailed layout of memory, avoid allocations, avoid bounds checks
 
 
 
@@ -168,6 +170,8 @@ However, you can use [[https://pkg.go.dev/slices#Equal][the `Equal` function]] f
 
 .play -edit src/slice_equal.go  /^//START/,/^//END/
 
+: also https://go.dev/doc/faq#map_keys
+
 
 
 * Accessing the elements of a slice
@@ -178,23 +182,22 @@ Taking the address of a slice element is legal.
 
 .play -edit src/slice_indexing.go  /^//START/,/^//END/
 
-Indexing a slice in the negatives or beyond its _length_ causes a panic:
+Indexing a slice beyond its _length_ causes a panic, and so does indexing a slice in the negatives:
 
 .play -edit src/slice_indexing_panic.go  /^//START/,/^//END/
 
-So does indexing a `nil` slice:
+Unlike Python, Go doesn't support negative indexing to access elements from the end of a slice, [[https://github.com/golang/go/issues/11245#issuecomment-112640948][for good reasons]].
 
-.play -edit src/slice_indexing_panic_nil.go  /^//START/,/^//END/
-
+: negative indexing is convenient but can mask subtle bugs due to integer overflow
 
 
 * Slices under the hood
 
-A slice is essentially a resizable view (or window) into a backing array.
+A slice is essentially a resizable view (or window) into a backing array-like store.
 
 Under the hood, a slice is a data structure simply composed of three machine words:
 
-- a pointer to a slot of a backing array
+- a pointer to a slot of a backing store
 - an int corresponding to the _length_ of the slice (given by built-in function `len`)
 - an int corresponding to the _capacity_ of the slice (given by built-in function `cap`)
 
@@ -210,13 +213,13 @@ Under the hood, a slice is a data structure simply composed of three machine wor
 
 * Slice length and capacity
 
-A slice is only a window into a backing array. In particular, the backing array may extend past the end of the slice, hence [[https://go.dev/ref/spec#Length_and_capacity][the notion of _capacity_]] in addition to that of _length_.
+A slice is only a window into a backing store. In particular, the backing store may extend past the end of the slice, hence [[https://go.dev/ref/spec#Length_and_capacity][the notion of _capacity_]] in addition to that of _length_.
 
-The capacity of a slice is the maximum length the slice may assume before requiring a new (longer) backing array. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for additional elements.
+The capacity of a slice is the maximum length the slice may assume before requiring a new (longer) backing store. For any slice `s`, the difference `cap(s)-len(s)` corresponds to the room left after the end of the slice for additional elements.
 
 .image img/slice_capacity.svg 200 _
 
-Note that the part of the backing array that extends before the start of the slice doesn't factor in the slice's capacity.
+Note that the part of the backing store that extends before the start of the slice doesn't factor in the slice's capacity.
 
 : https://excalidraw.com/#json=GdXPwfEINQppeQbgEeVI0,aLwF22Wr97DQElcExGF_6Q
 
@@ -244,7 +247,7 @@ Of course, the specified capacity must be greater or equal to the length, or [[h
 
 Remember: a slice is only a [[https://go.dev/blog/slices-intro#slice-internals][descriptor of an array segment]].
 
-Accordingly, functions that take a slice operate on a copy of their slice argument, but [[https://go.dev/blog/slices#passing-slices-to-functions][this copying doesn't incur any copy of the slice's backing array]]!
+Accordingly, functions that take a slice operate on a copy of their slice argument, but [[https://go.dev/blog/slices#passing-slices-to-functions][this copying doesn't incur any copy of the slice's backing store]]!
 
 .play -edit src/slice_cheap.go  /^//START/,/^//END
 
@@ -254,7 +257,7 @@ Moreover, a slice parameter is much more flexible than an array parameter becaus
 
 
 
-* Slice function parameters allow updates to the backing array
+* Slice function parameters allow updates to the backing store
 
 Furthermore, updates to elements of a slice argument are visible to the caller:
 
@@ -276,7 +279,7 @@ This functionality is reminiscent of the spread syntax (a.k.a. splat operator) s
 
 * Slicing operator
 
-The _slicing_operator_ can be applied to an array or a slice to produce a slice that focuses on a specific portion of the same backing array:
+The _slicing_operator_ can be applied to an array or a slice to produce a slice that focuses on a specific portion of the same backing store:
 
 .play -edit src/slicing_operator.go  /^//START/,/^//END/
 
@@ -302,13 +305,13 @@ In the slicing expression `s[i:j]`,  indices `i` and `j` must satisfy
 
 Otherwise, a compilation error or a panic will occur.
 
-There's also [[https://go.dev/ref/spec#Slice_expressions][a three-index form of the slicing operator]], which is useful for controlling the capacity of the resulting slice, but that is an advanced feature.
+There's also [[https://go.dev/ref/spec#Slice_expressions][a three-index form of the slicing operator]], which is useful for preventing subsequent append operations from mutating a slice's backing store; but it is an advanced feature that you're unlikely to need, at least at the start of your journey with Go.
 
 
 
 * Slicing operator (cont'd)
 
-Note that the slicing operator allows you to retrieve the part of the backing array that extends beyond the length of the slice you're operating on:
+Note that the slicing operator allows you to retrieve the part of the backing store that extends beyond the length of the slice you're operating on:
 
 .play -edit src/slicing_operator3.go  /^//START/,/^//END/
 
@@ -447,14 +450,14 @@ It also allows you to limit which subtests to run within a given test function, 
 
 * Append: under the hood
 
-When `append` is called and its slice argument's backing array is at capacity, it
+When `append` is called and its slice argument's backing store is at capacity, it
 
-1. allocates a new array large enough to accommodate both the old and new elements,
-2. copies the elements of the slice's backing array into the new array,
-3. adds the new elements to the new backing array,
-4. returns a slice that points to the new array.
+1. allocates a new backing store large enough to accommodate both the old and new elements,
+2. copies the elements of the slice's backing store into the new backing store,
+3. adds the new elements to the new backing store,
+4. returns a slice that points to the new backing store.
 
-If the old backing array is no longer referenced anywhere in the program, it becomes eligible for garbage collection:
+If the old backing store is no longer referenced anywhere in the program, it becomes eligible for garbage collection:
 
 .image img/slice_append_gc.svg _ 500
 
@@ -464,23 +467,25 @@ If the old backing array is no longer referenced anywhere in the program, it bec
 
 * Append: under the hood (cont'd)
 
-How exactly does `append` choose the size of the new backing array? This detail remains unspecified in the language spec. In practice, [[https://go.dev/blog/slices][the Go runtime does the right thing]].
+How exactly does `append` choose the size of the new backing store? This detail remains unspecified in the language spec. In practice, [[https://go.dev/blog/slices][the Go runtime does the right thing]].
 
 However, if you're curious, the following program allows you to peek under the hood:
 
 .play -edit src/append_grow.go  /^//START/,/^//END/
 
-A change in the slice's capacity indicates that the slice reached capacity and `append` had to allocate a new array and copy the elements of the old array into the new one.
+A change in the slice's capacity indicates that the slice reached capacity and `append` had to allocate and switch to a new backing store.
 
 However, in this case (since you know in advance what the final length is), all this intermediate copying can be avoided by pre-allocating enough space:
 
   s := make([]int, 0, n)
 
+([[https://go.dev/blog/allocation-optimizations][With Go 1.26]], the compiler became better at allocating intermediate copies on the stack rather on the heap.)
+
 
 
 * Slice aliasing
 
-Multiple slices may share the same backing array. In this case, a change to an element of one [[https://en.wikipedia.org/wiki/Aliasing_(computing)][_alias_]] will be visible through the others:
+Multiple slices may share the same backing store. In this case, a change to an element of one [[https://en.wikipedia.org/wiki/Aliasing_(computing)][_alias_]] will be visible through the others:
 
 .play -edit src/slice_spooky.go  /^//START/,/^//END/
 
@@ -492,7 +497,7 @@ Multiple slices may share the same backing array. In this case, a change to an e
 
 * Slice aliasing (cont'd)
 
-In particular, when you pass a slice to a function, the function operates on a copy of that slice, but both the original slice and its copy uses the same backing array:
+In particular, when you pass a slice to a function, the function operates on a copy of that slice, but both the original slice and its copy uses the same backing store:
 
 .play -edit src/slice_spooky_func.go  /^//START/,/^//END/
 
@@ -506,13 +511,13 @@ Bear in mind that inadvertent slice aliasing may compromise desirable type immut
 
 For a real-life example, see [[https://github.com/rs/cors/issues/198][issue #198]] of [[https://github.com/rs/cors][the github.com/rs/cors library]].
 
-When needed, resort to [[https://go.dev/wiki/CodeReviewComments#copying][defensive copying]], perhaps thanks to functions like [[https://pkg.go.dev/slices#Clone][`slices.Clone`]] and [[https://pkg.go.dev/maps#Clone][`maps.Clone`]].
+Unfortunately, Go doesn't support [[https://groups.google.com/g/golang-dev/c/Y7j4B2r_eDw][read-only slices]]. When needed, resort to [[https://go.dev/wiki/CodeReviewComments#copying][defensive copying]], perhaps via the [[https://pkg.go.dev/slices#Clone][`slices.Clone`]] function.
 
 
 
 * Inadvertent slice de-aliasing
 
-Conversely, inadvertent slice de-aliasing is also dangerous. In particular, because the slice parameter and result of `append` may well have different backing arrays, taking the address of a slice element as you're about to append to that slice rarely is a good idea!
+Conversely, inadvertent slice de-aliasing is also dangerous. In particular, because the slice parameter and result of `append` may well have different backing stores, taking the address of a slice element as you're about to append to that slice rarely is a good idea!
 
 .play -edit src/slice_dealiasing.go  /^//START/,/^//END/
 
@@ -673,7 +678,7 @@ Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[
 
 * Namecheck project: table-driven subtests using a map
 
-Storing subtests in a map rather than a slice has at least one benefit: because the iteration order is random, the subtests will be run in some random order. This may highlight some unsuspected and undesirable dependence on execution order.
+Storing subtests in a map rather than a slice has at least one benefit: because the iteration order is nondeterministic, the subtests will be run in some random order, which may uncover some undesirable dependence on execution order.
 
 1. Remove the field named `desc` from the declaration of your `TestCase` struct type.
 
@@ -691,7 +696,9 @@ If you need to range over a map in sorted order of its keys, derive a sorted seq
 
 .play -edit src/map_range_deterministic.go /^//START/,/^//END/
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
+[[https://pkg.go.dev/maps#Keys][`maps.Keys(m)`]] is an _iterator_ of `m`'s keys, but you don't need to understand Go iterators yet.
+
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
 
 
@@ -984,6 +991,7 @@ A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero 
 
 : https://excalidraw.com/#json=b_AryM5iFA9oUa2kMT6sd,saZDan7wON3vgjTYRDYsgQ
 : better: type Tree struct { root *Node }
+: sparse; if full binary tree, may want to represent two children as *[2]node to make node more compact
 
 
 
@@ -1019,7 +1027,7 @@ Go supports _parametric_polymorphism_ ([[https://www.youtube.com/watch?v=RIvL2ON
 
 You don't need to master generics at this stage of your Go learning, but a basic understanding of their syntax will benefit you.
 
-Parametric polymorphism promotes flexibility while providing compile-time guarantees that the empty interface simply cannot.
+Parametric polymorphism promotes flexibility while providing compile-time guarantees and performance characteristics that non-generic approaches simply cannot.
 
 You may never write generic code yourself, but you will likely use some of the standard-library packages that provide generic functions, such as [[https://pkg.go.dev/slices][`slices`]], [[https://pkg.go.dev/maps][`maps`]], and [[https://pkg.go.dev/cmp][`cmp`]].
 
@@ -1067,5 +1075,3 @@ My personal advice is to
 - embed only non-exported types in your exported types.
 
 We won't discuss embedded fields further in the remainder of this course.
-
-👉 Now, let's learn about methods.

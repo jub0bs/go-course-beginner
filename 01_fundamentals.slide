@@ -593,12 +593,11 @@ A type is said to be _comparable_ if *arbitrary* values of that type can be comp
 All basic types are comparable, but not all composite types are comparable;
 for instance, functions, slices, and maps are not.
 
-In some places (map keys, switch-case expressions, etc.), only comparable types can be used.
+In some places (map keys, case expressions, etc.), only comparable types can be used.
 
 However, comparing a value for equality to a literal of the type's zero value is always legal, even for non-comparable types.
 
-
-.image https://golangforall.com/assets/kanat.svg 200 _
+.image https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Brass_scales_with_flat_trays.png/500px-Brass_scales_with_flat_trays.png 200 _
 
 
 
@@ -635,6 +634,8 @@ However, remember that Go has *strong*typing* and requires many conversions from
 .play -edit src/type_conversion.go /^//START/,/^//END/
 
 Most type conversions are checked at compile time; [[https://go.dev/ref/spec#Conversions_from_slice_to_array_or_array_pointer][others only at run time]].
+
+: the rules for convertibility are complicated, but if the source expression and the target type have the same underlying type, fine
 
 
 
@@ -689,6 +690,32 @@ However, you cannot omit both the type and the right-hand-side expression, becau
 
 
 
+* Naming conventions for variables
+
+You should [[https://go.dev/wiki/CodeReviewComments#variable-names][strive for conciseness]]; [[https://go.dev/talks/2014/names.slide#4][the smaller the scope, the shorter the name]].
+
+  var index int // too verbose?
+  var i int     // likely preferable
+
+Use lower camel case for local variables and unexported package-level variables:
+
+  var maxOutstanding int
+  var nbOfVisits uint
+
+Use upper camel case (a.k.a. Pascal case) for exported package-level variables:
+
+  var UnknownAvailabilityError = errors.New("namecheck: unknown availability")
+
+Aside from the _blank_identifier_, don't use underscores in variable names.
+
+: same conventions with constants
+: Go treats all characters in any of the Letter categories Lu, Ll, Lt, Lm, or Lo as Unicode letters
+: ...and those in the Number category Nd as Unicode digits.
+: _ is considered a letter
+: also https://go.dev/wiki/CodeReviewComments#initialisms
+
+
+
 * Short variable declaration with :=
 
 The `:=` operator lets you declare _and_ initialize one or more variables, whose types are inferred from the right-hand-side expression:
@@ -726,53 +753,18 @@ However, the `:=` operator must introduce at least one new variable:
 
 
 
-* Inadvertent variable shadowing
-
-This mixture of declaration and assignment made possible by `:=` is convenient but can be error-prone: it may cause you to accidentally declare a new variable in a nested scope rather than update an existing one declared in an outer scope.
-
-Such inadvertent [[https://en.wikipedia.org/wiki/Variable_shadowing][_variable_shadowing_]] can be a source of subtle bugs:
-
-.play -edit src/inadvertent_shadowing.go /^//START/,/^//END/
-
-: Don't worry if you cannot follow this example yet. Revisit it later.
-: When you use the `:=` operator, ask yourself whether you're declaring new variables or updating existing ones.
-
-
-
-* Naming conventions for variables
-
-You should [[https://go.dev/wiki/CodeReviewComments#variable-names][strive for conciseness]]; [[https://go.dev/talks/2014/names.slide#4][the smaller the scope, the shorter the name]].
-
-  var index int // too verbose?
-  var i int     // likely preferable
-
-Use lower camel case for local variables and unexported package-level variables:
-
-  var maxOutstanding int
-  var nbOfVisits uint
-
-Use upper camel case (a.k.a. Pascal case) for exported package-level variables:
-
-  var UnknownAvailabilityError = errors.new("namecheck: unknown availability")
-
-Aside from the _blank_identifier_, don't use underscores in variable names.
-
-: same conventions with constants
-: Go treats all characters in any of the Letter categories Lu, Ll, Lt, Lm, or Lo as Unicode letters
-: ...and those in the Number category Nd as Unicode digits.
-: _ is considered a letter
-: also https://go.dev/wiki/CodeReviewComments#initialisms
-
-
-
 * Favor the := operator in most cases
 
 Because Go has two syntaxes for declaring variables, you may be wondering which one to use in a given situation...
 
-Convention dictactes that the `:=` operator be used whenever possible, *except* when the initial value doesn't matter or simply should be the type's zero value.
+Convention dictactes that the `:=` operator be used whenever possible.
+
+When the initial value doesn't matter or simply should be the type's zero value, I prefer using the `var` keyword,
 
   finished := false // possible but unidiomatic
   var finished bool // better
+
+but this preference is [[https://cs.opensource.google/go/go/+/refs/tags/go1.26.1:src/strings/strings.go;l=1153][not firmly established]] among Gophers.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
@@ -801,6 +793,30 @@ In some cases, you have no option but to use the `var` keyword...
   }
 
 : a nil value carries no type information (could be a map, a function, a slice, a pointer)
+
+
+
+* Variable shadowing
+
+[[https://en.wikipedia.org/wiki/Variable_shadowing][_Variable_shadowing_]] refers to a situation in which a variable declared within a certain scope has the same name as a variable declared in an outer scope.
+
+In the following example, a local variable _shadows_ (or _masks_) the homonymous package-scoped variable:
+
+.play -edit src/shadowing.go
+
+Not only is variable shadowing legal in Go, but it's frequently useful!
+
+
+
+* Inadvertent variable shadowing
+
+However, beware! You may inadvertently declare a new variable in a nested scope rather than update an existing one declared in an outer scope. Such inadvertent variable shadowing can also be a source of subtle bugs.
+
+Here is [[https://www.youtube.com/watch?v=PZm_YbE3fcA&t=1933s][a real-life example]] from the Go implementation of the TypeScript compiler:
+
+.code src/inadvertent_shadowing.go /^//START/,/^//END/
+
+The mixture of declaration and assignment made possible by the `:=` operator, though convenient, [[https://go.dev/play/p/M8bjZgT3Vpy][can be particularly error-prone]]. When you use the `:=` operator, always ask yourself whether you're declaring new variables or updating existing ones.
 
 
 
@@ -1080,21 +1096,21 @@ Many members of the Go community, [[https://www.youtube.com/watch?v=5DVV36uqQ4E&
 
 * The "new" built-in function (used with an expression)
 
-You sometimes need to obtain a pointer to a function's result (e.g. to store that pointer in a field of some configuration struct type). However, directly taking the address of a function's result is illegal:
+You sometimes need to obtain a pointer to a value that's not directly addressable, such as a function's result; directly taking the address of such a value is illegal:
 
 .play -edit src/pointers_new_expr_before.go /^//START/,/^//END/
 
-Since Go 1.26, the `new` built-in function can help you with this!
-
-Given an expression `expr` of type `T`, `new(expr)` indeed allocates storage for a variable of type `T`, stores the evaluated result of `expr` in that variable, and returns a pointer to it:
+Since Go 1.26, `new`'s parameter can also be a value. Given an expression `expr` of type `T`, `new(expr)` allocates storage for a variable of type `T`, stores the evaluated result of `expr` in that variable, and returns a pointer to it:
 
 .play -edit src/pointers_new_expr.go /^//START/,/^//END/
+
+For more on this topic, see [[https://go.dev/blog/gofix#example-a-modernizer-for-go-126s-newexpr][this recent post on the official Go blog]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 100 _
 
 
 
-* Reference types
+* Reference (a.k.a. "pointer-like") types
 
 Some types are little more than "fat" pointers: they consist of a pointer to the "actual" data structure and (possibly) some additional metadata:
 
@@ -1239,7 +1255,7 @@ Named results can [[https://cs.opensource.google/go/go/+/refs/tags/go1.25.4:src/
     return
   }
 
-However, they can also harm readability. Use them sparingly for your exported functions, preferably only
+However, they can also harm readability and cause inadvertent variable shadowing. Use them sparingly for your exported functions, preferably only
 
 - [[https://go.dev/talks/2014/names.slide#10][when they contribute to the function's documentation]], and/or
 - [[https://go.dev/wiki/CodeReviewComments#named-result-parameters][when they clarify the roles of identically typed results]].
@@ -1480,7 +1496,7 @@ Don't confine the happy path of your functions to nested "if" branches, or you'l
 
 * Line of sight (cont'd)
 
-Instead, invert the condition and handle any failure immediately after the operation that may cause it:
+Instead, invert the condition and handle each failure as you encounter them:
 
   v, err := fallibleFunction()
   if err != nil {
@@ -1496,7 +1512,7 @@ Instead, invert the condition and handle any failure immediately after the opera
   }
   // happy path <--------------
 
-This idiom (applicable to other languages) greatly contributes to code readability.
+This principle of minimizing nesting is not confined to error handling and greatly contributes to code readability.
 
 By avoiding the `else` keyword and eliminating failure cases as you encounter them,
 you [[https://go.dev/doc/effective_go#if][keep the happy path on the left]] and you [[https://en.wikibooks.org/wiki/Computer_Programming/Coding_Style/Minimize_nesting][minimize nesting]], thereby [[https://www.youtube.com/watch?v=yd_rtwYaXps&t=33m30s][reducing the cognitive load]] required to read and understand your code.
@@ -1565,7 +1581,7 @@ You can do so by wrapping the low-level error value into a higher-level one. The
     // ...
   }
 
-In fact, an `error` value can form, not just an error _chain_, but a whole error _tree_, with lower nodes containing lower-level details about the overall failure; see [[https://x.com/jub0bs/status/1631343923678388225][this example]].
+In fact, an `error` value can form, not just an error _chain_, but a whole error _tree_, with lower nodes containing lower-level details about the overall failure. But this is a more advanced topic.
 
 
 
@@ -1616,17 +1632,20 @@ You can ask more sophisticated questions about the nature of an `error` value:
     log.Fatal(err)
   }
 
-[[https://pkg.go.dev/errors][The `errors` package]] provides two powerful functions, [[https://pkg.go.dev/errors#Is][`errors.Is`]] and (new in Go 1.26) [[https://pkg.go.dev/errors#AsType][`errors.AsType`]], which let you programmatically traverse the error _tree_ stemming from some `error` value:
+A more powerful alternative to an equaliy check is the [[https://pkg.go.dev/errors#Is][`errors.Is`]] function (provided by [[https://pkg.go.dev/errors][the `errors` package]]), which searches for some target value in the _tree_ stemming from some `error` value:
 
   if errors.Is(err, context.DeadlineExceeded) {
     // err (or a node in its error tree) is context.DeadlineExceeded
   }
 
+See also [[https://pkg.go.dev/errors#AsType][the `errors.AsType` function]].
+
+
 
 
 * Creating error values
 
-In some situations, you'll need to create an error value from scratch.
+In some situations, you'll need to produce  an error value from scratch.
 
 [[https://pkg.go.dev/errors#New][`errors.New`]] allows you to create a simple error value with the desired error message:
 
@@ -1922,7 +1941,7 @@ For example, here is a partial view of [[https://pkg.go.dev/encoding][the `encod
 
 Note that no dependency arrows points down.
 
-(This rule of thumb doesn't apply to [[https://go.dev/doc/go1.4#internalpackages][internal packages]].)
+(We typically break this rule, which is far from absolute, for [[https://go.dev/doc/go1.4#internalpackages][internal packages]].)
 
 
 
@@ -2053,7 +2072,7 @@ White-box testing is expedient but can lead to prohibitive coupling between test
 
 Although the standard library heavily relies on white-box testing, I and other Gophers (like [[https://www.youtube.com/watch?v=cAWlv2SeQus&t=1125s][Mat Ryer]]) favor black-box testing, partly because [[https://changelog.com/gotime/173#transcript-153][it keeps you honest by forcing you to test your package strictly through its public API]].
 
-.image https://pbs.twimg.com/media/EzrMZe6X0AMSozD?format=jpg&name=900x900 250 _
+.image https://i.imgflip.com/ao1y3z.jpg 250 _
 
 External package tests are also occasionally useful for avoiding import cycles in tests; for [[https://excalidraw.com/#json=D7CEtFkUn81vw6xiK6bkm,KBExCr_EIjUAv65XFnJStQ][an example]], study the net/http and net/http/httptest packages.
 

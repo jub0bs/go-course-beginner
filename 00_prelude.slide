@@ -88,8 +88,6 @@ Although it may seem a bit contrived, this project idea is (in my experience as 
 
 Moreover, there is a [[https://twitter.com/marckohlbrugge/status/1682064001331609615][business case]] for such a tool, as it would allow organizations and even individuals to choose a brand name consistent across multiple platforms.
 
-: see Poppulo's case on X/Twitter: https://twitter.com/poppulo
-
 .image https://go.dev/blog/gophergala/fancygopher.jpg 200 _
 
 Besides, if you're 😈, you may find this tool useful for [[https://en.wikipedia.org/wiki/Cybersquatting#Social_media][name squatting]]. Be aware that this practice is [[https://docs.github.com/en/site-policy/other-site-policies/github-username-policy][prohibited by GitHub]] and most of the other social networks, though.
@@ -127,6 +125,7 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - [[https://www.youtube.com/watch?v=YXV7sa4oM4I][Rob Pike - The Go Programming Language and Environment]]
 - [[https://www.youtube.com/watch?v=6oF0UblqkGs&t=465s][Carmen Andoh - 10 Years of Go (GopherConAU 2019)]]
 - [[https://www.youtube.com/watch?v=igFz-5rdn2Y&t=85s][Cameron Balahan - Keynote: The State Of Go (GopherCon Europe 2023)]].
+- [[https://www.youtube.com/watch?v=NTrAISNdf70][Thompson tells how he developed the Go language at Google.]]
 
 : for Google's infrastructure code: https://www.youtube.com/watch?v=rFejpH_tAHM&t=10m42s
 
@@ -135,7 +134,7 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 * A brief history of Go
 
 - 2007: Griesemer, Pike & Thompson start working on Go.
-- 2008: Ian Lance Taylor & Russ Cox (both from Google) join the Go team.
+- 2008: Russ Cox and Ian Lance Taylor (both from Google) join the Go team.
 - 2009: Go is open-sourced.
 - 2012: [[https://go.dev/doc/go1][Go 1.0 is released]]. [[https://go.dev/doc/go1compat][The language becomes stable.]] [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=34m15s][Adoption rises sharply.]]
 - 2013: Docker
@@ -143,11 +142,10 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
 - 2018: Go gets an official dependency manager: [[https://go.dev/ref/mod][the _modules_ system]].
 - 2022: [[https://go.dev/doc/go1.18][Go 1.18]] adds generics to the language.
-- 2025: Microsoft [[https://devblogs.microsoft.com/typescript/typescript-native-port/][announces]] a port of the TypeScript compiler to Go, hinting at a 10x compilation speedup.
+- 2025: Microsoft [[https://devblogs.microsoft.com/typescript/typescript-native-port/][announces]] a port of the TypeScript compiler to Go, hinting at [[https://www.youtube.com/watch?v=PZm_YbE3fcA][a 10x compilation speedup]].
 - 2026: [[https://go.dev/doc/go1.26][Go 1.26]] (the latest minor version) is released.
 
-: Russ and ILT joined the Go Team
-: - between 2007 and 2009: https://research.swtch.com/back
+: - Russ Cox, then ILT: https://www.youtube.com/watch?v=XvZOdpd_9tc&t=16m
 : - 2008! https://www.youtube.com/watch?v=0Zbh_vmAKvk&t=10s
 
 

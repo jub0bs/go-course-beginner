@@ -1,25 +1,16 @@
-package main
-
-import (
-	"fmt"
-	"log"
-	"regexp"
-)
+package p
 
 // START OMIT
-var re *regexp.Regexp // pointer to a regexp.Regexp // HL
-
-func main() {
-	re, err := regexp.Compile("^[0-9a-z]{,8}$") // HL
-	if err != nil {
-		log.Fatal(err)
+func (c *Checker) getUnresolvedSymbolForEntityName(name *ast.Node) *ast.Symbol {
+	// ...
+	result := c.unresolvedSymbols[path] // HL
+	if result == nil {
+		result := c.newSymbol(ast.SymbolFlagsTypeAlias, text) // HL
+		c.unresolvedSymbols[path] = result
+		result.Parent = parentSymbol
+		c.declaredTypeLinks.Get(result).declaredType = c.unresolvedType
 	}
-	re.Longest()
-	fmt.Println(IsValid("jub0bs"))
-}
-
-func IsValid(username string) bool {
-	return re.MatchString(username) // panic! // HL
+	return result // HL
 }
 
 // END OMIT
