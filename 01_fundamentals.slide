@@ -328,19 +328,20 @@ The documentation of a package is written as comments in the package's source fi
 
 A package is identified by its [[https://go.dev/ref/spec#Import_declarations][_import_path_]], which must be globally unique.
 
-Standard-library packages have import paths that are composed of one or more components delimited by slashes:
+Standard-library packages have import paths that are composed of one or more components delimited by slashes, whereas other packages have import paths that take the form of [[https://www.youtube.com/watch?v=BNmxtp26I5s&t=310s][a domain followed by one or more components]]:
 
   fmt
   net/http
-
-Other packages have import paths that take the form of [[https://www.youtube.com/watch?v=BNmxtp26I5s&t=310s][a domain followed by one or more components]]:
+  encoding/json/v2
 
   github.com/jub0bs/iterutil
 
-The _name_ of a package corresponds to the last component of its import path:
+The _name_ of a package corresponds to the last component of its import path that does not consist in a [[https://go.dev/ref/mod#versions][_version_]]:
 
   fmt
   http
+  json
+
   iterutil
 
 : "usually": the exception is for a package whose enclosing folder doesn't mach the package name; best avoided
@@ -352,9 +353,9 @@ The _name_ of a package corresponds to the last component of its import path:
 
 A package is composed of one or more source files that are compiled together.
 
-Gophers are free to break the source code of a package into multiple files because, in Go (as opposed to C-like languages), the order of package-level declarations doesn't matter.
+The order of package-level declarations doesn't matter. Therefore, Gophers are free to break the source code of a package into multiple files!
 
-Packages are indivisible: the smallest thing you can compile in Go is a whole package.
+However, Go packages form units of compilation. In plain terms: the smallest thing that you can compile is a whole package, nothing less.
 
 .image img/gopher-working-hard-to-move-packages-boxes-golang.png 250 _
 
@@ -402,6 +403,8 @@ You can also ask for the documentation of a specific exported identifier:
 The documentation for standard-library packages is available online at [[https://pkg.go.dev/std]]. This website also allows you to discover useful third-party libraries and commands.
 
 The documentation of some packages ([[https://pkg.go.dev/fmt#pkg-examples][`fmt`, for instance]]) features executable examples.
+
+: also, since Go 1.27, can specify version: https://go.dev/doc/go1.27#go-doc
 
 
 
@@ -910,7 +913,7 @@ See also [[https://pkg.go.dev/io/fs#FileMode][`fs.FileMode`]] for another exampl
 
 * If statements
 
-Unlike in C, the condition must be of type `bool` and (usually) does not need to be enclosed in parentheses. However, braces around the "if" branch are mandatory.
+Unlike in C, the condition must be of type `bool` and does not need to be enclosed in parentheses (except in [[https://go.dev/play/p/fbu17KPfPx6][rare cases]]). However, braces around the "if" branch are mandatory.
 
 .play -edit src/if_simple.go /^//START/,/^//END/
 
@@ -932,7 +935,7 @@ Braces around the body of an "else" branch are also mandatory.
 
 .play -edit src/if_else.go /^//START/,/^//END/
 
-Note that Go has no conditional ternary operator.
+Go has no conditional ternary operator! Multiple proposals (even [[https://github.com/golang/go/issues/78940][recent ones]]) purported to add one to the language were filed, but they were all ultimately rejected.
 
 The `else` keyword is rarely used in Go. Long if-else chains are considered non-idiomatic, and can often be advantageously replaced by a "tagless" switch statement.
 
@@ -1189,7 +1192,7 @@ Here is a simple example of a named function:
     return len(strings.Fields(s))
   }
 
-A function can return multiple results, whose types must be specified within parens:
+Although Go lacks the concept of [[https://en.wikipedia.org/wiki/Tuple][tuples]], a function can return multiple results, whose types must be specified within parens:
 
 : multiple results: contrary to languages like C
 
@@ -1204,8 +1207,6 @@ Go's support for multiple function results [[https://go.dev/doc/effective_go#mul
 : Bonus question: can you explain why function `CountWordsInFile` returns an error whereas function `CountWords` does not?
 
 Contrary to more traditional object-oriented languages, Go doesn't allow [[https://go.dev/doc/faq#overloading][function overloading]]: no two functions within the same scope can have the same name but different signatures.
-
-: however, no tuples in Go!
 
 
 
@@ -1329,18 +1330,6 @@ The zero value of function types is `nil`. Calling a `nil` function causes a pan
 
 
 
-* A note about built-in functions (TODO)
-
-builtin functions play by their own rule; for example, you can't store append in a variable
-builtin funcs don't work with ...
-	https://github.com/golang/go/issues/59488#issuecomment-1561901763
-- builtin functions cannot be used as function values
-	- https://github.com/golang/go/issues/59488#issuecomment-1507725077
-	- solution: wrap them in an anonymous function
-	- https://go.dev/ref/spec#Built-in_functions
-
-
-
 * Anonymous functions, but no lambdas
 
 Go supports anonymous functions:
@@ -1361,7 +1350,7 @@ A [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][_closure_]] is
 
 .play -edit src/function_closure.go /^//START/,/^//END/
 
-This example admittedly is a little contrived, but we'll make more realistic use of closures later in this course.
+This example is a little contrived (expect more realistic use cases for closures later in this course), but it illustrates the important distinction between the _scope_ and the _lifetime_ of a variable: a variable may still be alive even after it's fallen out of scope!
 
 : alternative example: https://go.dev/play/p/iq16zw9kc7Z
 
@@ -1377,10 +1366,28 @@ Here is a recursive implementation of the [[https://en.wikipedia.org/wiki/Factor
 
 .play -edit src/recursion.go /^//START/,/^//END/
 
-Because Go's call stacks are elastic (they grow and shrink as needed), recursion is less likely (unless there is a bug!) to cause a stack overflow than in other languages.
+Because Go's call stacks are elastic (they grow and shrink as needed), recursion is less likely (unless there is a bug!) to cause a stack exhaustion than in other languages.
 
 : another example: https://go.dev/play/p/0S57WLB0YRv
 : Closures can also be recursive, but this requires the closure to be declared with a typed var explicitly before it’s defined.
+
+
+
+* Built-in functions
+
+Functions like `min`, `max`, `new`, etc. are known as [[https://go.dev/ref/spec#Built-in_functions][_built-in_functions_]] or (less commonly) "pseudo-functions".
+
+Be aware that built-in functions play by other rules than regular functions do and that additional restrictions apply to them. For example, they cannot be used as function values, as shown in the somewhat contrived example below:
+
+.play -edit src/builtin_max.go /^//START/,/^//END/
+
+
+
+* Built-in functions (cont'd)
+
+A common solution to this problem consists in wrapping the built-in function(s) in a regular anonymous function:
+
+.play -edit src/builtin_max_wrapped.go /^//START/,/^//END/
 
 
 
@@ -1516,6 +1523,8 @@ This principle of minimizing nesting is not confined to error handling and great
 
 By avoiding the `else` keyword and eliminating failure cases as you encounter them,
 you [[https://go.dev/doc/effective_go#if][keep the happy path on the left]] and you [[https://en.wikibooks.org/wiki/Computer_Programming/Coding_Style/Minimize_nesting][minimize nesting]], thereby [[https://www.youtube.com/watch?v=yd_rtwYaXps&t=33m30s][reducing the cognitive load]] required to read and understand your code.
+
+: not a principle specific to Go: https://testing.googleblog.com/2017/06/code-health-reduce-nesting-reduce.html
 
 
 
@@ -1841,13 +1850,13 @@ Each source file must import the packages that it needs.
 - *concise* (_net_ rather not _network_, _strconv_ rather than _stringconversion_, etc.)
 - yet *descriptive* (avoid painfully generic names like "util", "helpers", or "common").
 
-The name should be [[https://www.youtube.com/watch?v=ltqV6pDKZD8&t=734s][a clue to the package's purpose rather than to its contents]]. Rob Pike also says: [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=1090s][Design the architecture, name the components, document the details.]]
+The name should be [[https://dave.cheney.net/2019/01/08/avoid-package-names-like-base-util-or-common][a clue to the package's purpose rather than to its contents]]. Rob Pike also says: [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=1090s][Design the architecture, name the components, document the details.]]
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
 : also, don't prevent the users of your package from choosing a good identifier.
 : concise: fmt, not format; strconv, not stringconversion
-: avoid painfully generic (!) names / catchall names
+: also https://www.youtube.com/watch?v=ltqV6pDKZD8&t=734s
 
 
 
@@ -1880,10 +1889,11 @@ Bear in mind that an exported identifier (e.g. `Println`) is [[https://go.dev/re
 
 : example adapted from https://www.youtube.com/watch?v=cAWlv2SeQus&t=18m30s
 
-You will encounter some "stutter" in the standard library, though:
+Some "stutter" is tolerable (and often unavoidable) for type names, though:
 
   regexp.Regexp
   time.Time
+  sortedset.Set
 
 If a package exports only one type and a factory function for that type, the function is often simply named "New".
 
@@ -2084,22 +2094,24 @@ Finally, nothing prevents you from adopting a mixed approach in different test f
 
   foo
   ├── foo.go
-  ├── foo1_test.go
-  └── foo2_test.go
+  ├── foo_pkg_test.go
+  └── foo_test.go
 
-with black-box tests in some test files
+with white-box tests some test files,
 
-  // foo1_test.go
+  // foo_pkg_test.go
+  package foo
+
+  // ...
+
+and black-box tests in some other test files:
+
+  // foo_test.go
   package foo_test
 
   // ...
 
-and white-box tests in others:
-
-  // foo2_test.go
-  package foo
-
-  // ...
+For an example of such a hybrid approach, see [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/net/netip/][the source of the `net/netip` package]].
 
 
 

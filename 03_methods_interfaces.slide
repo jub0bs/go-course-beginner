@@ -76,8 +76,8 @@ Moreover, that type must be declared in the same package as its methods:
 
   func (c Counter) Incr() Counter { return c + 1 } // ok
 
-  func (i int) Shout() { // compilation error: cannot define new methods on non-local type int
-    fmt.Println("Hey!")
+  func (i int) Incr(j int) int { // compilation error: cannot define new methods on non-local type int
+    return i + j
   }
 
 In other words, you can only declare methods on the types that are under your control!
@@ -90,17 +90,21 @@ In other words, you can only declare methods on the types that are under your co
 
 Furthermore, the type of a method receiver cannot be based on a pointer type:
 
-  type Foo *uint
+  type Node struct {
+    // omitted
+  }
 
-  func (f Foo) Shout() { // compilation error: invalid receiver type Foo (pointer or interface type)
-    fmt.Println("Hey!")
+  type Tree *Node
+
+  func (t Tree) IsEmpty() bool { // compilation error: invalid receiver type Tree (pointer or interface type)
+    return t == nil
   }
 
 Also, the type of a method receiver cannot be an interface type:
 
-  type Bar interface{}
+  type Foo interface{}
 
-  func (b Bar) Shout() { // compilation error: invalid receiver type Bar (pointer or interface type)
+  func (f Foo) Shout() { // compilation error: invalid receiver type Foo (pointer or interface type)
     fmt.Println("Hey!")
   }
 
@@ -151,7 +155,7 @@ Idiomatic names for a method receiver are [[https://go.dev/wiki/CodeReviewCommen
   func (counter Counter) Incr() Counter { return c + 1 } // unnecessarily verbose
   func (c Counter) Incr() Counter { return c + 1 }       // good
 
-[[https://tip.golang.org/doc/comment#func][To avoid needless variation]] in the package's documentation, use a [[https://go.dev/talks/2014/names.slide#11][consistent receiver name]] across all methods of a given type:
+[[https://tip.golang.org/doc/comment#func][To avoid needless variation]] in the package's documentation, endeavor to use a [[https://go.dev/talks/2014/names.slide#11][consistent receiver name]] across all methods of a given type:
 
   // bad
   func (c Counter) Incr() Counter { return c + 1 }
@@ -161,6 +165,7 @@ Idiomatic names for a method receiver are [[https://go.dev/wiki/CodeReviewCommen
   func (c Counter) Incr() Counter { return c + 1 }
   func (c Counter) Decr() Counter { return c - 1 }
 
+: not a hard rule; not even enforced in the standard library: https://pkg.go.dev/math/big#pkg-index
 : more examples https://google.github.io/styleguide/go/decisions#receiver-names
 
 
@@ -223,7 +228,7 @@ Some types (such as [[https://pkg.go.dev/time#Time][`time.Time`]]), because they
 
 : exception: for decoding methods, because updates to the receiver must be visible to the caller
 
-Strive for consistency: [[https://go.dev/doc/faq#methods_on_values_or_pointers][if some of the methods of the type have pointer receivers, the others should too]]. Types that contravene this rule of thumb tend to be hard to use.
+Strive for consistency: [[https://go.dev/doc/faq#methods_on_values_or_pointers][if some of the methods of the type have pointer receivers, the others should too]]. Types that contravene this rule of thumb tend to be [[https://github.com/golang/go/issues/69230#issuecomment-2327299548][harder to understand]].
 
 [[https://go.dev/wiki/CodeReviewComments#receiver-type][More detailed guidance on this topic]] is available in Go's official wiki.
 
@@ -722,7 +727,7 @@ You've already used a function that has an `io.Writer` parameter. Which one?
 
 
 
-* Favor interface parameters when all you care about is behavior
+* For behavior-driven parameters, favor interface types over concrete types
 
 If a given function parameter is supposed to provide _behavior_ rather than _data_, you should strive to use an interface type (rather than a concrete type) for that parameter.
 

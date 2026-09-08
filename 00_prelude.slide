@@ -137,13 +137,13 @@ They enlisted the help of Ken Thompson and started working on a new language, wh
 - 2008: Russ Cox and Ian Lance Taylor (both from Google) join the Go team.
 - 2009: Go is open-sourced.
 - 2012: [[https://go.dev/doc/go1][Go 1.0 is released]]. [[https://go.dev/doc/go1compat][The language becomes stable.]] [[https://www.youtube.com/watch?v=iTrP_EmGNmw&t=34m15s][Adoption rises sharply.]]
-- 2013: Docker
-- 2014: Kubernetes; first GopherCon conference
-- 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]].
+- 2013: Docker.
+- 2014: Kubernetes. First GopherCon conference.
+- 2015: The go compiler (`gc`) becomes [[https://en.wikipedia.org/wiki/Self-hosting_(compilers)][self-hosted]] (i.e. written in Go itself).
 - 2018: Go gets an official dependency manager: [[https://go.dev/ref/mod][the _modules_ system]].
 - 2022: [[https://go.dev/doc/go1.18][Go 1.18]] adds generics to the language.
-- 2025: Microsoft [[https://devblogs.microsoft.com/typescript/typescript-native-port/][announces]] a port of the TypeScript compiler to Go, hinting at [[https://www.youtube.com/watch?v=PZm_YbE3fcA][a 10x compilation speedup]].
-- 2026: [[https://go.dev/doc/go1.26][Go 1.26]] (the latest minor version) is released.
+- 2026: Microsoft [[https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/][releases]] version 7 of TypeScript, whose compiler port from TypeScript to Go unlocks [[https://www.youtube.com/watch?v=PZm_YbE3fcA][a 10x compilation speedup]].
+- 2026: [[https://go.dev/doc/go1.27][Go 1.27]] is released and [[https://go.dev/doc/go1.27#language][adds support for "generic methods" (on concrete types)]] to the language.
 
 : - Russ Cox, then ILT: https://www.youtube.com/watch?v=XvZOdpd_9tc&t=16m
 : - 2008! https://www.youtube.com/watch?v=0Zbh_vmAKvk&t=10s
@@ -290,8 +290,11 @@ As its name suggests, the Go Playground isn't meant for projects. Limitations in
 - no networking (no HTTP requests, etc.)
 - no way of specifying command-line arguments
 - limited support for third-party packages
+- no syntax highlighting (but [[https://goplay.tools][this third-party Go playground]] supports it)
 
-.image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 200 _
+Also, do not write programs that contain confidential information on the Go Playground: if you click the "Share" button, the contents of your Playground will be persisted by Google and accessible by anyone who knows the corresponding slug.
+
+.image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 150 _
 
 : In this course, we'll only use the Playground to solve simple exercises.
 : An alternative with more features, incl. syntax highlighting: https://goplay.space/

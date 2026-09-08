@@ -104,7 +104,7 @@ Functions that take an array operate on an entire copy of their array argument!
 
 * Arrays are seldom used
 
-Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arrays][do exist]] ([[https://pkg.go.dev/crypto/md5#Sum][esp. for cryptography]]), but remain relatively rare.
+Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arrays][do exist]], especially when you need compile-time guarantees about sizes (see [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/encoding/base64/base64.go;l=25][the `encoding/base64` package] and [[https://pkg.go.dev/crypto/md5#Sum][the `crypto/md5` package]]), but remain relatively rare.
 
 .code src/sudoku.go  /^//START/,/^//END
 
@@ -587,7 +587,7 @@ A function that takes a map operates on a copy of a pointer to the same underlyi
 
 * Maps are not comparable
 
-Regardless of their key and value types, maps are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary map values.
+Regardless of their key and value types, maps are not comparable: the compiler won't allow you to use the `==` operator to test the equality of two arbitrary map values. (Some justification for this restriction is given by Alan Donovan in [[https://github.com/golang/go/issues/78456#issue-4173047310][issue #78456]].)
 
 The only legal comparison is to a literal nil value.
 
@@ -651,7 +651,7 @@ If the map is `nil` or if the key is already absent from the map, deleting the k
 
 A mathematical set is an unordered collection of unique elements.
 
-Unlike Python, Go doesn't yet provide a native set type, but... maps to the rescue!
+Unlike Python, Go doesn't ([[https://github.com/golang/go/issues/69230][yet?]]) provide a native set type, but... maps to the rescue!
 
 .play -edit src/map_set_nothing.go /^//START/,/^//END/
 
@@ -1058,6 +1058,7 @@ When put to good use, embedded fields can considerably reduce composition-relate
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
 
+: https://go.dev/doc/go1.27#language: A key in a struct literal may now be any valid field selector for the struct type, not just a (top-level) field name of the struct.
 : https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/context/context.go;l=416
 
 
