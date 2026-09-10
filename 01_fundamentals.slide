@@ -153,7 +153,7 @@ A `go.mod` file will be created at the root of your project:
 
   module github.com/jub0bs/namecheck
 
-  go 1.25.4
+  go 1.27.1
 
 - The [[https://go.dev/ref/mod#go-mod-file-module][`module` directive]] defines the module's path.
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
@@ -496,7 +496,7 @@ A [[https://go.dev/wiki/CodeReviewComments#import-blank][blank import]] uses the
 
 A blank import makes none of the imported package's exported identifiers available in the importing package.
 
-The main reason for using a blank import to import a package is the side effects carried out during [[https://go.dev/ref/spec#Package_initialization][the package's initialization]]; but [[https://cs.opensource.google/go/go/+/refs/tags/go1.25.4:src/net/http/request.go;l=29][more esoteric reasons exist]].
+The main reason for using a blank import to import a package is the side effects carried out during [[https://go.dev/ref/spec#Package_initialization][the package's initialization]]; but [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/net/http/request.go;l=30][more esoteric reasons exist]].
 
 Blank imports play a part in the controversial _registration_pattern_, which is used in subpackages of the `image` package (such as [[https://cs.opensource.google/go/go/+/refs/tags/go1.21.6:src/image/png/reader.go;l=1059][`image/png`]]) and in third-party SQL drivers like [[https://github.com/go-sql-driver/mysql][github.com/go-sql-driver/mysql]].
 
@@ -913,7 +913,7 @@ See also [[https://pkg.go.dev/io/fs#FileMode][`fs.FileMode`]] for another exampl
 
 * If statements
 
-Unlike in C, the condition must be of type `bool` and does not need to be enclosed in parentheses (except in [[https://go.dev/play/p/fbu17KPfPx6][rare cases]]). However, braces around the "if" branch are mandatory.
+Unlike in C, the condition must be of type `bool` and needs not be enclosed in parentheses (except in [[https://go.dev/play/p/fbu17KPfPx6][rare cases]]). However, braces around the "if" branch are mandatory.
 
 .play -edit src/if_simple.go /^//START/,/^//END/
 
@@ -1250,7 +1250,7 @@ The code above is roughly equivalent to the following:
 
 * Named results (cont'd)
 
-Named results can [[https://cs.opensource.google/go/go/+/refs/tags/go1.25.4:src/context/context.go;l=183][shorten code]], as in this example from [[https://pkg.go.dev/context][the context package]]:
+Named results can [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.1:src/context/context.go;l=184][shorten code]], as in this example from [[https://pkg.go.dev/context][the context package]]:
 
   func (emptyCtx) Deadline() (deadline time.Time, ok bool) {
     return
