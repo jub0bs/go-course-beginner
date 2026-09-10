@@ -12,9 +12,9 @@ func main() {
 		"green": {},
 	}
 
-	s := "yellow"
+	s := "blue"
 	if _, ok := set[s]; ok { // checking for membership
-		fmt.Printf("%q is not in the map.\n", s)
+		fmt.Printf("%q is in the set.\n", s)
 	}
 
 	set["white"] = struct{}{} // adding an element
