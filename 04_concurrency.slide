@@ -541,7 +541,7 @@ you can write
 
 3. Within the for-range loop, call your `check` function concurrently.
 
-4. Use a wait group in order to wait, at the end of the `main` function, for all the goroutines that you've started to terminate.
+4. Use a wait group in order to wait, at the end of the `main` function, for the termination of all the goroutines that you've started.
 
 5. Time the program's execution. Does user experience improve?
 
@@ -1278,7 +1278,7 @@ Finally, you can start a server on a port of your choice by calling [[https://pk
 
 
 
-* Frameworks?! We don't need no_stinkin' frameworks! 
+* Frameworks?! We don't need no stinkin' frameworks!
 
 The Go community has produced several Web frameworks but, in my opinion, they typically do more harm than good:
 
@@ -1480,7 +1480,7 @@ The following directives have been added to your `go.mod` file (exact versions m
     github.com/jub0bs/cors v1.1.1 // indirect
     golang.org/x/net v0.58.0 // indirect
     golang.org/x/text v0.41.0 // indirect
-)
+  )
 
 Note the presence of an "indirect" comment, which indicates that you're not (yet?) directly depending on any of those modules in your code. Once you actually import package `github.com/jub0bs/cors` in your code, run the following command:
 

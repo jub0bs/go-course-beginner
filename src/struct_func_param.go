@@ -19,7 +19,7 @@ func main() {
 		firstName: "Julien",
 	}
 	Promote(julien)
-	fmt.Println(julien.isAdmin) // false
+	fmt.Println(julien.isAdmin) // true or false?
 }
 
 // END OMIT

@@ -515,7 +515,8 @@ A [[https://go.dev/wiki/CodeReviewComments#import-dot][dot import]] allows you t
 Dot imports can be convenient in test code (see [[https://cs.opensource.google/go/go/+/refs/tags/go1.18.1:src/strconv/quote_test.go;l=8][this example]]), but are best avoided in production code because
 
 - they pollute the namespace of your source file,
-- they obscure the provenance of identifiers.
+- they obscure the provenance of identifiers,
+- they [[https://go.dev/doc/go1compat#expectations][undermine the backward compatibility of your programs]].
 
 : similar to Java's static imports
 : used in conjunction with external test packages to pretend that we're still in the same package

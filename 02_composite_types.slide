@@ -305,7 +305,7 @@ In the slicing expression `s[i:j]`,  indices `i` and `j` must satisfy
 
 Otherwise, a compilation error or a panic will occur.
 
-There's also [[https://go.dev/ref/spec#Slice_expressions][a three-index form of the slicing operator]], which is useful for preventing subsequent append operations from mutating a slice's backing store; but it is an advanced feature that you're unlikely to need, at least at the start of your journey with Go.
+There's also [[https://go.dev/ref/spec#Slice_expressions][a three-index form of the slicing operator]], which is useful for preventing subsequent append operations from mutating a slice's backing store; but you're unlikely to need, at least at the start of your journey with Go.
 
 
 
@@ -326,6 +326,8 @@ However, attempts to re-slice a slice beyond its capacity results in either a co
 2. Check the length of that slice; if no command-line argument was specified, print a friendly error message on stderr (see [[https://pkg.go.dev/fmt#Fprintln][function `fmt.Fprintln`]] and [[https://pkg.go.dev/os#Stderr][variable `os.Stderr`]]) and exit with status 1 (see [[][function `os.Exit`]]).
 
 3. If a command-line argument was specified, use it as the username in the remainder of your program.
+
+4. Run your program.
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/superhero/gotham.svg 200 _
 
@@ -655,7 +657,7 @@ Unlike Python, Go doesn't ([[https://github.com/golang/go/issues/69230][yet?]]) 
 
 .play -edit src/map_set_nothing.go /^//START/,/^//END/
 
-Feel free to create [[https://go.dev/play/p/24iPnMKvdz6][a small set abstraction]] that hides those unsightly empty structs.
+Feel free to create [[https://go.dev/play/p/E7A2-3OAtHs][a small set abstraction]] that hides those unsightly empty structs.
 
 : amortized O(1) insertion/deletion/membership
 
@@ -742,6 +744,8 @@ Within a [[https://go.dev/ref/spec#Composite_literals][composite literal]] of ar
 A similar elision of type names is possible in map literals:
 
 .play -edit src/type_name_elision_map.go /^//START/,/^//END/
+
+And [[https://github.com/golang/go/issues/12854][Go 1.28 will allow type-name elision in even more places]]!
 
 
 
@@ -981,7 +985,7 @@ A struct type is comparable only if the types of all its fields are themselves c
 
 You may think of trees as too academic, but data structures in this family are frequently useful, [[https://github.com/jub0bs/cors/blob/main/internal/origins/radix/radix.go][even for mundane tasks]].
 
-A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is made up of zero or more nodes that each contains some element (e.g. of integer type) and references up to two children nodes.
+A [[https://en.wikipedia.org/wiki/Binary_tree][binary tree]] is a tree made up of zero or more nodes that each contains some element (e.g. of integer type) and references up to two children nodes.
 
 .image img/binary_tree.svg 200 _
 

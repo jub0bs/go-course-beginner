@@ -11,7 +11,7 @@ https://bsky.app/profile/jub0bs.com
 
 * Declaration of a method
 
-Synctactically, methods distinguish themselves from _package-scoped_functions_ by the presence (between the `func` keyword and the method's name) of an extra parameter:
+Syntactically, methods distinguish themselves from _package-scoped_functions_ by the presence (between the `func` keyword and the method's name) of an extra parameter:
 
   type Counter uint
 
@@ -727,7 +727,7 @@ You've already used a function that has an `io.Writer` parameter. Which one?
 
 
 
-* For behavior-driven parameters, favor interface types over concrete types
+* For behavior-driven parameters, favor interfaces over concrete types
 
 If a given function parameter is supposed to provide _behavior_ rather than _data_, you should strive to use an interface type (rather than a concrete type) for that parameter.
 
@@ -896,7 +896,7 @@ We'll declare our interface type in a new package at the root of the module. But
 
 * Namecheck project: declare an interface for *http.Client
 
-1. In `namecheck.go`, judiciously declare a useful interface named "Doer" that type `*http.Client` already satisfies.
+1. In `namecheck.go`, judiciously declare a useful interface named "Doer" that the type `*http.Client` already satisfies.
 
 2. In your `GitHub` and `Bluesky` struct types, change the type of the field named `Client` from `*http.Client` to `namecheck.Doer`:
 
