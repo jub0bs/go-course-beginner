@@ -1328,20 +1328,21 @@ Note that the response body currently consists of a Go-specific textual represen
 
 * A digression about Web security
 
-You should now treat the username as untrusted input and be careful how you use it.
+You should now treat the username as untrusted input and be very careful about how you use it. Insecure URL construction (e.g. by simple concatenation of untrusted input) can indeed lead to vulnerabilities such as [[https://j0vsec.com/post/cve-2021-43798/][path traversal]] and [[https://rhynorater.github.io/CVE-2020-13379-Write-Up][server-side request forgery]].
 
-Insecure URL construction (e.g. by simple concatenation of untrusted input) can indeed lead to vulnerabilities such as [[https://j0vsec.com/post/cve-2021-43798/][path traversal]] and [[https://rhynorater.github.io/CVE-2020-13379-Write-Up][server-side request forgery]].
-
-For example, an adversary may send a GET request to a URL like
+For example, an adversary could send a GET request to
 
   /check?username=grafana%2fgrafana%2fcommit%2f003b2f14db0bec68a04a904c48558d34a51b7dbb%2epatch
 
-as an attempt to force your server to hit a resource other than the one you intended.
+to force your server to send a request to the following unintended destination:
+
+   https://github.com/grafana/grafana/commit/003b2f14db0bec68a04a904c48558d34a51b7dbb.patch
+
 In this specific case, the impact is moot (why?), but better be safe than sorry:
 
   addr, err := url.JoinPath("https://github.com", url.PathEscape(username))
 
-.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 150 _
+.image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/knight.svg 100 _
 
 : the presence of characters like `/` and `.` in the username under test would make it invalid, but defense in depth never hurts
 : GitHub may find suspicious that our server is hitting that resource
@@ -1352,7 +1353,7 @@ In this specific case, the impact is moot (why?), but better be safe than sorry:
 
 To JSON-encode a Go value, use [[https://pkg.go.dev/encoding/json/v2][the `encoding/json/v2` package]].
 
-Although you can use the `json.Marshal` function, I recommend relying on a `json.Encoder`:
+Use the `json.MarshalWrite` function:
 
 .code -edit src/json_encoding.go /^//START/,/^//END/
 
@@ -1398,7 +1399,7 @@ A _field_tag_ provides metadata about a struct field. The `encoding/json` packag
 
 * JSON decoding
 
-Decoding some JSON object to a Go variable works in a similar way.  Although you can use the `json.Unmarshal` function, I recommend relying on a `json.Decoder`:
+Decoding some JSON object to a Go variable works in a similar way. Use the `json.UnmarshalRead` function:
 
 .code -edit src/json_decoding.go /^//START/,/^//END/
 
@@ -1872,7 +1873,7 @@ If you start it as a goroutine, it will keep running until your program executio
 
 .play -edit src/uncancelable.go /^//START2/,/^//END2/
 
-In fact, if we were to wait at the end of the `main` function for the goroutine to terminate, program execution would never end (see this [[https://go.dev/play/p/nl3ekcnZcbz][playground]]). 😬
+In fact, if we were to wait at the end of the `main` function for the goroutine to terminate, program execution would never end (see this [[https://go.dev/play/p/U2pXjEdkYsd][playground]]). 😬
 
 How could you redesign the function so that the caller could force it to terminate? 🤔
 

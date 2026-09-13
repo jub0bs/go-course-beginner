@@ -13,7 +13,7 @@ func cancelable(done <-chan struct{}) {
 		case <-done: // HL
 			return // HL
 		default:
-			fmt.Println(t)
+			fmt.Println("Still alive...")
 			time.Sleep(500 * time.Millisecond)
 		}
 	}

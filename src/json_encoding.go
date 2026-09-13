@@ -14,10 +14,9 @@ type User struct {
 }
 
 func getUser(w http.ResponseWriter, r *http.Request) {
-	// omitted: retrieve the requested user from the database
+	var user User // omitted: retrieve the requested user from the database
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)                // HL
-	if err := enc.Encode(user); err != nil { // HL
+	if err := json.MarshalWrite(w, user); err != nil { // HL
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 }

@@ -14,7 +14,7 @@ func cancelable(ctx context.Context) {
 		case <-ctx.Done(): // HL
 			return // HL
 		default:
-			fmt.Println(t)
+			fmt.Println("Still alive...")
 			time.Sleep(500 * time.Millisecond)
 		}
 	}

@@ -8,7 +8,7 @@ import (
 // START1 OMIT
 func uncancelable() {
 	for {
-		fmt.Println(t)
+		fmt.Println("Still alive...")
 		time.Sleep(500 * time.Millisecond)
 	}
 }

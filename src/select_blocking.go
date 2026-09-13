@@ -11,7 +11,7 @@ func main() {
 	select {
 	case out <- 42: // blocking // HL
 		fmt.Println("send case")
-		case v := <-in: // blocking // HL
+	case v := <-in: // blocking // HL
 		fmt.Println("receive case:", v)
 	}
 }
