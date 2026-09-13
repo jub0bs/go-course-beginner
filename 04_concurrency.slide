@@ -1016,11 +1016,11 @@ Deadlocks can result from an incautious use of channels. Remember that, dependin
 
 * Goroutine leak
 
-A goroutine is said to leak if, once started, it never terminates, turning into a "zombie".
+A goroutine is said to _leak_ if it becomes blocked and can never become unblocked; a leaked goroutine essentially is a "zombie" goroutine.
 
 You should guarantee the absence of goroutine leaks in your program; otherwise, you run the risk of memory leaks, performance degradation, and even program crashes! 😱
 
-Be vigilant about goroutine leaks: the Go runtime doesn't alert you about them.
+Be vigilant about goroutine leaks: run-time tools like [[https://go.dev/blog/goroutine-leak-profiles][the new goroutine-leak profiles]] can help you detect them, but they're no panacea. Nothing beats careful code review!
 
 : but soon pprof will? https://github.com/golang/go/issues/74609
 
