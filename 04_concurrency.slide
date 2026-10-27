@@ -371,6 +371,7 @@ Wait groups are particularly useful when you don't known in advance how many gor
 : e.g. if you're starting a goroutine for each line of a file that you're reading, or for each element received from a channel
 : wait groups not needed in fan-out/fan-in if number of tasks known in advance
 : compare https://go.dev/play/p/cnXXJFTUPO1 to https://go.dev/play/p/MHjuGwsP_hJ
+: `WaitGroup` isn't aware of the goroutines it manages; the group is up to you to define!
 
 
 

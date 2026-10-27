@@ -25,9 +25,9 @@ In array literals, you can write "`...`" in place of the array's length. The com
 
 
 
-* Arrays are values
+* Arrays are values, not "pointer-like"
 
-Go arrays [[https://go.dev/doc/effective_go#arrays][differ significantly from C arrays]]. They're _not_ "reference types". An array value is not a pointer to the first element, but denotes the entire collection.
+Go arrays [[https://go.dev/doc/effective_go#arrays][differ significantly from C arrays]]. They're _not_ "reference types". An array value is not a pointer to the first element; instead, it holds the entire collection of elements.
 
 The zero value of an array type is not `nil` (which an invalid value for array types),
 but an array full of zero values of its element type.
@@ -104,11 +104,18 @@ Functions that take an array operate on an entire copy of their array argument!
 
 * Arrays are seldom used
 
-Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arrays][do exist]], especially when you need compile-time guarantees about sizes (see [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.3:src/encoding/base64/base64.go;l=25][the `encoding/base64` package]] and [[https://pkg.go.dev/crypto/md5#Sum][the `crypto/md5` package]]), but remain relatively rare.
+Legitimate cases for direct use of arrays [[https://go.dev/doc/effective_go#arrays][do exist]], especially when compile-time guarantees about sizes are desirable, e.g. for
 
-.code src/sudoku.go  /^//START/,/^//END
+- [[https://go.dev/play/p/q37GvF6F81A][a (9x9) Sudoku grid]],
+- [[https://pkg.go.dev/net/netip#AddrFrom4][IPv4 addresses]],
+- [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.3:src/encoding/base64/base64.go;l=25][the alphabet of base64 codec]],
+- [[https://pkg.go.dev/uuid#UUID][UUID values]],
+- [[https://cs.opensource.google/go/go/+/refs/tags/go1.27.3:src/crypto/sha256/sha256.go;l=53][the digests of a specific hash function]],
+- etc.
 
-_Slices_ are similar to but more flexible than arrays; as such, [[https://github.com/golang/go/issues/46505#issuecomment-892827067][slices are typically preferred over arrays]].
+Other than those use cases, direct use of arrays remains relatively rare.
+
+_Slices_ are similar to but more flexible than arrays; as such, [[https://github.com/golang/go/issues/46505#issuecomment-892827067][slices are typically preferred]].
 
 : use cases: detailed layout of memory, avoid allocations, avoid bounds checks
 
@@ -144,9 +151,9 @@ You can also use the built-in `make` function to initialize a slice of a desired
 
 
 
-* A slice's zero value
+* Slices' zero value
 
-Slice are "reference types". Their zero value is `nil`.
+The zero value of slices is `nil`.
 
 A `nil` slice is distinct from but functionally equivalent to an empty slice.
 
@@ -573,7 +580,7 @@ As an optional second argument to `make`, you can specify a _size_hint_ as a non
 
 
 
-* Maps are reference types
+* Maps' zero value
 
 The zero value of map types is `nil`. A `nil` map isn't backed by any hash table internally.
 
@@ -672,9 +679,10 @@ You can iterate over a map using `for` and `range`:
 At each iteration, the variables yielded by the `range` expression hold copies of
 the key and value.
 
-Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-9][specified as nondeterministic]]! Try running the code snippet above a few times: the iteration order will typically change from one program execution to the next. See [[https://www.hyrumslaw.com/][Hyrum's Law]].
+Maps are unordered collections. Surprisingly, perhaps, the iteration order is [[https://cacm.acm.org/magazines/2022/5/260357-the-go-programming-language-and-environment/fulltext#body-9][specified as nondeterministic and unstable between iterations]]! Try running the code snippet above a few times: the iteration order will typically change from one run to another. See [[https://www.hyrumslaw.com/][Hyrum's Law]].
 
 : rationale also explained in https://go.dev/doc/go1#iteration
+: see changes in Perl 5.18 that broke many systems
 
 
 

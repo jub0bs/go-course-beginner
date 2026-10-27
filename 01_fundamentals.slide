@@ -1114,19 +1114,21 @@ For more on this topic, see [[https://go.dev/blog/gofix#example-a-modernizer-for
 
 
 
-* Reference (a.k.a. "pointer-like") types
+* Reference ("pointer-like") types
 
-Some types are little more than "fat" pointers: they consist of a pointer to the "actual" data structure and (possibly) some additional metadata:
+Under the hood, some types are just pointers: they only consist in a pointer to the "actual" data structure.
 
 .image img/reference_type.svg 200 _
 
-Types that fit this description include slices, maps, channels. Some Gophers colloquially refer to such types as _reference_types_.
+Types that fit this description include maps and channels. Some Gophers colloquially refer to such types as [[https://github.com/golang/go/discussions/47331#discussion-3471930][_reference_types_]].
 
 Manipulating a pointer to a value of some reference type is only [[https://go.dev/blog/json-and-go][occasionally]] useful.
 
 👉 That's all you need to know about pointers for now. Let's talk about functions.
 
-: https://excalidraw.com/#json=rDopYJ9BVvCjd2Q7oTqgL,zNDkips7hL3okCreu4AWYw
+: but slices cannot be called reference types in this sense because of the ints that they carry; see https://github.com/golang/go/issues/81698#issuecomment-6221205505
+
+: https://excalidraw.com/#json=wQr3mvHUbniSxXG9Tz6NL,WHGnXjfvZCMyqmVvE-3cZg
 
 
 
@@ -1354,6 +1356,7 @@ A [[https://en.wikipedia.org/wiki/Closure_(computer_programming)][_closure_]] is
 This example is a little contrived (expect more realistic use cases for closures later in this course), but it illustrates the important distinction between the _scope_ and the _lifetime_ of a variable: a variable may still be alive even after it's fallen out of scope!
 
 : alternative example: https://go.dev/play/p/iq16zw9kc7Z
+: alternative example from strings.Title: https://cs.opensource.google/go/go/+/refs/tags/go1.27.3:src/strings/strings.go;l=849
 
 
 
@@ -1696,7 +1699,7 @@ Instead, declare your own type and make it behave like an error. More about that
 
 * Panic
 
-A panic is a run-time event that indicates an exceptional and irrecoverable failure. Some panics can be [[https://go.dev/blog/defer-panic-and-recover][_recovered_]], but few should be.
+A panic is a run-time event that indicates an exceptional and irrecoverable failure, such as a blatant programming error. Some panics can be [[https://go.dev/blog/defer-panic-and-recover][_recovered_]], but few should be.
 
 A panic can be triggered by a run-time error or by some direct or indirect call to [[https://pkg.go.dev/builtin#panic][the built-in `panic` function]].
 
@@ -1852,6 +1855,8 @@ Each source file must import the packages that it needs.
 - yet *descriptive* (avoid painfully generic names like "util", "helpers", or "common").
 
 The name should be [[https://dave.cheney.net/2019/01/08/avoid-package-names-like-base-util-or-common][a clue to the package's purpose rather than to its contents]]. Rob Pike also says: [[https://www.youtube.com/watch?v=PAAkCSZUG1c&t=1090s][Design the architecture, name the components, document the details.]]
+
+Finally, endeavor to [[https://github.com/golang/go/issues/80590#issuecomment-5705640032][choose names that don't conflict with that of a widely used package]].
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 

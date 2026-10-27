@@ -291,6 +291,7 @@ As its name suggests, the Go Playground isn't meant for projects. Limitations in
 - no way of specifying command-line arguments
 - limited support for third-party packages
 - no syntax highlighting (but [[https://goplay.tools][this third-party Go playground]] supports it)
+- pretty ungenerous timeout (a few seconds)
 
 Also, do not write programs that contain confidential information on the Go Playground: if you click the "Share" button, the contents of your Playground will be persisted by Google and accessible by anyone who knows the corresponding slug.
 

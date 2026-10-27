@@ -234,6 +234,7 @@ Strive for consistency: [[https://go.dev/doc/faq#methods_on_values_or_pointers][
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 150 _
 
+: types that mix pointer/value receivers are hard to use because the pointer-receiver methods are cannot be called on values of the type
 
 
 * Exercise: turn functions operating on a binary tree into methods
@@ -659,17 +660,13 @@ Can you explain why we must pass a `*Location` (and not just a `Location`) for `
 
 * Avoid premature abstraction
 
-An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don't design with interfaces; discover them.]]
+An aphorism attributed to Rob Pike is: [[https://www.youtube.com/watch?v=YXV7sa4oM4I&t=840s][don't design with interfaces; discover them.]] And Ian Lance Taylor once wrote that, [[https://github.com/golang/go/discussions/47331#discussioncomment-1060105][in Go, interfaces arise from the common behaviour of concrete types]].
 
-In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][resist the temptation to declare interface types upfront]].
-
-Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
+In other words, you should [[https://go.dev/wiki/CodeReviewComments#interfaces][resist the temptation to declare interface types upfront]]. Instead, [[https://medium.com/@cep21/what-accept-interfaces-return-structs-means-in-go-2fe879e25ee8][start with concrete types and let interfaces reveal themselves organically]], as needed for abstraction or testing purposes.
 
 Note that we declared struct types `github.GitHub` and `bluesky.Bluesky` *before* declaring interface type `Checker`!
 
 .image https://raw.githubusercontent.com/egonelbre/gophers/master/vector/fairy-tale/sage.svg 200 _
-
-: another good comment from ILT: https://github.com/golang/go/discussions/47331#discussioncomment-1060105
 
 
 
@@ -986,7 +983,7 @@ The zero value of basic interfaces is `nil`. A `nil` interface value has no dyna
  var i any // dynamic type: none; dynamic value: nil
  i == nil  // true
 
-However, an interface value is equal to `nil` only if it has no dynamic type! An interface value that holds a `nil` value of some concrete type is not itself equal to `nil`! 🤯
+However, an interface value is equal to `nil` only if it has no dynamic type! An interface value that happens to hold a `nil` value of some concrete type is not itself equal to `nil`! 🤯
 
   var checker Checker = (*github.GitHub)(nil) // dynamic type: *github.GitHub; dynamic value: nil
   checker == nil                              // false!
@@ -1007,6 +1004,8 @@ if overlooked, [[https://go.dev/doc/faq#nil_error][it can lead to subtle bugs]],
 In my experience, new Gophers quickly learn to recognize such mistakes, though.
 
 .image https://www.globalnerdy.com/wp-content/uploads/2017/08/gopher-this-is-fine.jpg 150 _
+
+: although generally discouraged, returning a concrete error type (rather than error) is sometimes useful for better performance
 
 
 
