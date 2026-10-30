@@ -25,7 +25,7 @@ Moreover, most of the Go learning resources available online are in English.
 
 [[https://github.com/jub0bs/go-course-beginner/blob/main/README.md][The README]] constains instructions for running the slides with [[https://pkg.go.dev/golang.org/x/tools/cmd/present][a Go-specific tool]].
 
-Some of these slides contain editable and executable code snippets. If you need to add a line break somewhere in a code snippet, make sure [[https://github.com/golang/go/issues/9011][to type Shift + Enter]].
+Some of these slides contain editable and executable code snippets. When pasting something in a code snippet, just make sure to keep Shift pressed.
 
 
 
@@ -295,7 +295,7 @@ As its name suggests, the Go Playground isn't meant for projects. Limitations in
 
 Also, do not write programs that contain confidential information on the Go Playground: if you click the "Share" button, the contents of your Playground will be persisted by Google and accessible by anyone who knows the corresponding slug.
 
-.image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 150 _
+.image https://miro.medium.com/max/4800/1*OxWM0qyTBnb6WfSEw-T9sg.jpeg 100 _
 
 : In this course, we'll only use the Playground to solve simple exercises.
 : An alternative with more features, incl. syntax highlighting: https://goplay.space/

@@ -29,12 +29,20 @@ You've learned a lot, but there is [[https://www.humancoders.com/formations/go-a
 
 
 
+* Tutorials & exercices
+
+- [[https://go.dev/tour][A Tour of Go]]
+- [[https://gophercises.com][gophercises]]
+- [[https://gobyexample.com][Go by Example]]
+
+
+
 * Blogs
 
-- [[https://antonz.org/all/][Anton Zhiyanov's blog]] (features interactive tours of new Go releases)
+- [[https://victoriametrics.com/blog/][VictoriaMetrics's blog]] (features interactive tours of new Go releases)
+- [[https://antonz.org/all/][Anton Zhiyanov's blog]] (features interactive tours of past Go releases)
 - [[https://www.ardanlabs.com/blog/][ArdanLabs' blog]]
-- [[https://victoriametrics.com/blog/][VictoriaMetrics's blog]]
-- [[https://utcc.utoronto.ca/~cks/space/blog/][[Chris Siebenmann's blog]]
+- [[https://utcc.utoronto.ca/~cks/space/blog/][Chris Siebenmann's blog]]
 - [[https://dave.cheney.net/][Dave Cheney's blog]] (no longer very active but still good)
 - [[https://rakyll.org/][Rakyll's blog]] (no longer active but still good)
 

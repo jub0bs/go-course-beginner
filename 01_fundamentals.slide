@@ -914,7 +914,7 @@ See also [[https://pkg.go.dev/io/fs#FileMode][`fs.FileMode`]] for another exampl
 
 * If statements
 
-Unlike in C, the condition must be of type `bool` and needs not be enclosed in parentheses (except in [[https://go.dev/play/p/fbu17KPfPx6][rare cases]]). However, braces around the "if" branch are mandatory.
+Unlike in C, the condition must be of type `bool` and needs not be enclosed in parentheses (except in [[https://go.dev/play/p/fbu17KPfPx6][rare cases]]). However, braces around the body are mandatory.
 
 .play -edit src/if_simple.go /^//START/,/^//END/
 

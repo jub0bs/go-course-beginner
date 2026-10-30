@@ -388,7 +388,7 @@ One use case for slices is [[https://go.dev/blog/subtests#table-driven-tests-usi
 
 * Namecheck project: use table-driven tests
 
-1. Write a `TestIsValid` test function that uses table-driven tests. If the anonymous struct confuses you, you can declare a `TestCase` struct type at the top of your function.
+1. Write a `TestIsValid` test function that uses table-driven tests.
 
 2. Move all the test cases for the `IsValid` function inside a slice of test cases within your `TestIsValid` test function.
 
