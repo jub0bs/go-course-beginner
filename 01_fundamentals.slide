@@ -159,6 +159,7 @@ A `go.mod` file will be created at the root of your project:
 - The [[https://go.dev/ref/mod#go-mod-file-go][`go` directive]] specifies the minimum required version of the Go toolchain.
 
 
+
 * Compiling a program
 
 To compile a main package, run the following command in your shell:
@@ -1804,6 +1805,8 @@ A main package produces a single executable. If your project produces several ex
       │   └── main.go
       └── server
           └── main.go
+
+See an example of this in [[https://github.com/kubernetes/kubernetes][the Kubernetes project]].
 
 
 

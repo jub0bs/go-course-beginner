@@ -25,13 +25,9 @@ func cancelable(done <-chan struct{}) {
 func main() {
 	done := make(chan struct{}) // HL
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		cancelable(done) // HL
-	}()
-	time.Sleep(5 * time.Second) // simulate more work
-	close(done)                 // HL
+	wg.Go(func() { cancelable(done) }) // HL
+	time.Sleep(5 * time.Second)        // simulate more work
+	close(done)                        // HL
 	wg.Wait()
 }
 

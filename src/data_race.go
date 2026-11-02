@@ -10,12 +10,8 @@ func main() {
 	const n = 2
 	var count int
 	var wg sync.WaitGroup
-	wg.Add(n)
 	for range n {
-		go func() {
-			defer wg.Done()
-			count++
-		}()
+		wg.Go(func() { count++ })
 	}
 	wg.Wait()
 	fmt.Println(count)

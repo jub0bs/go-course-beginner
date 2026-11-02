@@ -193,7 +193,7 @@ Indexing a slice beyond its _length_ causes a panic, and so does indexing a slic
 
 .play -edit src/slice_indexing_panic.go  /^//START/,/^//END/
 
-Unlike Python, Go doesn't support negative indexing to access elements from the end of a slice, [[https://github.com/golang/go/issues/11245#issuecomment-112640948][for good reasons]].
+Unlike Python, Go doesn't support negative indexing to access elements from the end of a slice, [[https://github.com/golang/go/issues/11245#issuecomment-112640948][for good reasons]]. However, you can use [[https://pkg.go.dev/slices#Backward][the `slices.Backward` function]] to iterate over a slice from end to start.
 
 : negative indexing is convenient but can mask subtle bugs due to integer overflow
 
@@ -542,7 +542,7 @@ Conversely, inadvertent slice de-aliasing is also dangerous. In particular, beca
 
 [[https://pkg.go.dev/builtin#clear][The built-in `clear` function]] resets all the elements of its slice argument to the zero value of the slice's element type.
 
-Finally, [[https://pkg.go.dev/slices][the `slices` package]] provides many functions for performing usual operations on slices, such as [[https://pkg.go.dev/slices#Equal][testing for equality]], [[https://pkg.go.dev/slices#Sort][sorting]], [[https://pkg.go.dev/slices#BinarySearch][running a binary search]], etc.
+Finally, [[https://pkg.go.dev/slices][the `slices` package]] provides many functions for performing usual operations on slices, such as [[https://pkg.go.dev/slices#Equal][testing for equality]], [[https://pkg.go.dev/slices#Sort][sorting]], [[https://pkg.go.dev/slices#BinarySearch][running a binary search]], [[https://pkg.go.dev/slices#Clip][curtailing capacity]] or [[https://pkg.go.dev/slices#Grow][provisioning more capacity]].
 
 👉 Enough about slices. Let's talk about maps.
 

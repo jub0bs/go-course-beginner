@@ -5,27 +5,19 @@ import (
 	"sync"
 )
 
-func grindCoffeeBeans() {
-	fmt.Println("Grinding coffee beans...")
+func grindCoffeeBeans(grams float64) {
+	fmt.Printf("Grinding %f grams of coffee beans...\n", grams)
 }
 
-func frothMilk() {
-	fmt.Println("Frothing milk...")
+func frothMilk(ml float64) {
+	fmt.Printf("Frothing %f ml of milk...\n", ml)
 }
 
 // START OMIT
 func main() {
 	var wg sync.WaitGroup // HL
-	wg.Add(1)             // HL
-	go func() {
-		defer wg.Done() // HL
-		grindCoffeeBeans()
-	}()
-	wg.Add(1) // HL
-	go func() {
-		defer wg.Done() // HL
-		frothMilk()
-	}()
+	wg.Go(func() { grindCoffeeBeans(7) })
+	wg.Go(func() { frothMilk(30) })
 	wg.Wait() // HL
 }
 

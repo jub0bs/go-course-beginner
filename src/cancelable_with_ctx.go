@@ -27,13 +27,9 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background()) // HL
 	defer cancel()                                          // HL
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		cancelable(ctx) // HL
-	}()
-	time.Sleep(5 * time.Second) // simulate more work
-	cancel()                    // HL
+	wg.Go(func() { cancelable(ctx) }) // HL
+	time.Sleep(5 * time.Second)       // simulate more work
+	cancel()                          // HL
 	wg.Wait()
 }
 
