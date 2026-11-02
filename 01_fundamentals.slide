@@ -1437,23 +1437,27 @@ A non-`nil` `error` result indicates to the caller that the function call failed
 
 
 
-* Don't ignore errors
+* Don't ignore error results (unless you can prove it's safe)
 
 Few errors should be ignored. Note that the onus is on you to check errors; the compiler itself won't remind you to do so.
 
-You can sometimes deviate from this general rule. For instance, even though `fmt.Println` returns an `error` result, you don't typically check that error:
+You can sometimes deviate from this general rule, though.
+
+For instance, even though `fmt.Println` returns an `error` result, checking that error is unnecessary (because, if you cannot print stuff to stdout, you've got bigger problems!):
 
   if _, err := fmt.Println("Hello, World!"); err != nil { // unnecessary
 
-In other cases, you can guarantee that the function call cannot fail; you can then ignore its `error` result, but do leave a clarifying comment:
+In other cases, you can guarantee that the function call cannot fail; you can then afford to ignore its `error` result, but do leave a clarifying comment:
 
   maxAge, _ := strconv.Atoi(icfg.acma[0]) // safe by construction of icfg
+
+Some methods (see [[https://pkg.go.dev/bytes#Buffer][`*bytes.Buffer`]]'s, for example) even have an `error` result that is documented to always be `nil`; you can of course ignore such `error` results.
 
 : https://github.com/jub0bs/cors/blob/ec22bec7135311e20d92745e67a68915241ef0b0/config.go#L886
 
 
 
-* Don't ignore errors (cont'd)
+* A non-nil error typically implies unusable results
 
 Some fallible functions document that they return partial results even when they fail:
 
