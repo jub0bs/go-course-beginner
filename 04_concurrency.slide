@@ -383,11 +383,11 @@ The zero value of type [[https://pkg.go.dev/sync#WaitGroup][`sync.WaitGroup`]] i
 
 A `sync.WaitGroup` is typically declared within a function. Declaring one at package level is rarely (if ever) useful.
 
-  var wg sync.WaitGroup // bad
+  var wg sync.WaitGroup // ❌
 
   func main() {
     // ...
-    var wg sync.WaitGroup // good
+    var wg sync.WaitGroup // ✅
     // ...
   }
 

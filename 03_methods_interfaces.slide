@@ -152,14 +152,14 @@ Resist the temptation to name method receivers "this" or "self".
 
 Idiomatic names for a method receiver are [[https://go.dev/wiki/CodeReviewComments#receiver-names][abbreviations derived from the type name]]:
 
-  func (counter Counter) Incr() Counter { return c + 1 } // unnecessarily verbose
+  func (counter Counter) Incr() Counter { return counter + 1 } // unnecessarily verbose
   func (c Counter) Incr() Counter { return c + 1 }       // good
 
 [[https://tip.golang.org/doc/comment#func][To avoid needless variation]] in the package's documentation, endeavor to use a [[https://go.dev/talks/2014/names.slide#11][consistent receiver name]] across all methods of a given type:
 
   // bad
   func (c Counter) Incr() Counter { return c + 1 }
-  func (cntr Counter) Decr() Counter { return c - 1 }
+  func (cntr Counter) Decr() Counter { return cntr - 1 }
 
   // good
   func (c Counter) Incr() Counter { return c + 1 }
